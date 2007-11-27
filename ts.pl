@@ -13,7 +13,7 @@ use UI;
 my $ui = UI->new();
 
 my $place = Place->new();
-$place->load('map1.txt');
+$place->load($ARGV[0] || 'map1.txt');
 
 # Create some initial player
 my $player = Player->new(x => 5,
