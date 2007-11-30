@@ -16,13 +16,16 @@ sub BUILD {
 
 sub clear_player {
     my ($self) = @_;
+    my $color = $self->place->chart->[$self->player->x][$self->player->y]->color;
+    print color $color if $color;
     $self->scr->at($self->player->y,$self->player->x)->puts($self->place->chart->[$self->player->y][$self->player->x]->symbol() || ' ');
+    print color 'reset' if $color;
 }
 
 sub draw_player {
     my ($self) = @_;
     print color $self->player->color;
-    $self->scr->at($self->player->y,$self->player->x)->bold()->puts($self->player->char)->normal();
+    $self->scr->at($self->player->y,$self->player->x)->bold()->puts($self->player->symbol)->normal();
     print color 'reset';
 }
 

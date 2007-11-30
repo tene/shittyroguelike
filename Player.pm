@@ -4,7 +4,7 @@ use Moose;
 
 has 'x' => (is=>'rw',isa=>'Int',required=>1);
 has 'y' => (is=>'rw',isa=>'Int',required=>1);
-has 'char' => (is=>'rw',isa=>'Str',required=>1,default=>'∂');
+has 'symbol' => (is=>'rw',isa=>'Str',required=>1,default=>'@');
 has 'color' => (is=>'rw',isa=>'Str',required=>1,default=>'bold blue');
 has 'place' => (is=>'rw',isa=>'Place');
 has 'tile' => (is=>'rw',isa=>'Place::Tile');

@@ -20,7 +20,7 @@ $place->load($ARGV[0] || 'maps/map1.txt');
 # Create some initial player
 my $player = Player->new(x => 5,
              y => 5,
-             char => '@',
+             symbol => '@',
              #char => '∂',
              color => 'bold blue',
              place => $place,
