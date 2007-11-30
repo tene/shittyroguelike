@@ -22,9 +22,11 @@ sub load {
             $tile->symbol($char);
             if($char eq '.') {
                 $tile->vasru(1);
+                $tile->color('bold black');
             }
             else {
                 $tile->vasru(0);
+                $tile->color('bold white');
             }
             push @tiles, $tile;
         }

@@ -2,8 +2,8 @@ package Place::Tile;
 
 use Moose;
 
-has symbol => (is=>'rw',isa=>'Str');
-has color => (is=>'rw',isa=>'Str');
+has symbol => (is=>'rw',isa=>'Str',required=>1,default=>'.');
+has color => (is=>'rw',isa=>'Str',required=>1,default=>'white');
 has vasru => (is=>'rw',isa=>'Bool');
 has contents => (is=>'rw',isa=>'ArrayRef[Object]',auto_deref=>1);
 
