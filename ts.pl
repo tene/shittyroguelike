@@ -37,6 +37,7 @@ sub move_rel {
     $ui->draw_player();
 }
 
+
 $ui->setup();
 
 $ui->redraw();

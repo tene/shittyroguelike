@@ -1,8 +1,12 @@
 package Place;
 
+use Place::Tile;
+
 use Moose;
 
-has chart => (is=>'rw',isa=>'ArrayRef[ArrayRef[Str]]');
+use Data::Dumper;
+
+has chart => (is=>'rw',isa=>'ArrayRef[ArrayRef[Place::Tile]]');
 
 sub load {
     my ($self,$filename) = @_;
@@ -12,7 +16,19 @@ sub load {
     while (<MAP>) {
         chomp;
         my @chars = split //,$_;
-        push @$a, [@chars];
+        my @tiles = ();
+        for my $char (@chars) {
+            my $tile = Place::Tile->new();
+            $tile->symbol($char);
+            if($char eq '.') {
+                $tile->vasru(1);
+            }
+            else {
+                $tile->vasru(0);
+            }
+            push @tiles, $tile;
+        }
+        push @$a, [@tiles];
     }
 
     $self->chart($a);

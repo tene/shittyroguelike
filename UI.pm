@@ -16,7 +16,7 @@ sub BUILD {
 
 sub clear_player {
     my ($self) = @_;
-    $self->scr->at($self->player->y,$self->player->x)->puts($self->place->chart->[$self->player->y][$self->player->x] || ' ');
+    $self->scr->at($self->player->y,$self->player->x)->puts($self->place->chart->[$self->player->y][$self->player->x]->symbol() || ' ');
 }
 
 sub draw_player {
@@ -31,7 +31,7 @@ sub redraw {
     my $i = 0;
     $self->scr->clrscr();
     for my $line (@{$self->place->chart}) {
-        $self->scr->at($i++,0)->puts(join('',@$line));
+        $self->scr->at($i++,0)->puts(join('',map {$_->symbol()} @$line));
     }
     $self->draw_player();
 }
