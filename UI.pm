@@ -34,7 +34,11 @@ sub redraw {
     my $i = 0;
     $self->scr->clrscr();
     for my $line (@{$self->place->chart}) {
-        $self->scr->at($i++,0)->puts(join('',map {$_->symbol()} @$line));
+        my $j = 0;
+        for my $tile (@$line) {
+            $self->scr->at($i,$j++)->puts((color $tile->color() ) . $tile->symbol());
+        }
+        $i++;
     }
     $self->draw_player();
 }
