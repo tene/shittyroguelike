@@ -9,6 +9,8 @@ use Player;
 use Place;
 use UI;
 
+binmode(STDOUT, ":utf8");
+
 # Do some setup
 my $ui = UI->new();
 
@@ -18,7 +20,8 @@ $place->load($ARGV[0] || 'maps/map1.txt');
 # Create some initial player
 my $player = Player->new(x => 5,
              y => 5,
-             char => '∂',
+             char => '@',
+             #char => '∂',
              color => 'bold blue',
              place => $place,
          );

@@ -6,7 +6,7 @@ has chart => (is=>'rw',isa=>'ArrayRef[ArrayRef[Str]]');
 
 sub load {
     my ($self,$filename) = @_;
-    open MAP, "<$filename";
+    open (MAP, "<:utf8", $filename);
 
     my $a = [];
     while (<MAP>) {
