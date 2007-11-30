@@ -16,7 +16,7 @@ sub BUILD {
 
 sub clear_player {
     my ($self) = @_;
-    my $color = $self->place->chart->[$self->player->x][$self->player->y]->color;
+    my $color = $self->place->chart->[$self->player->y][$self->player->x]->color;
     print color $color if $color;
     $self->scr->at($self->player->y,$self->player->x)->puts($self->place->chart->[$self->player->y][$self->player->x]->symbol() || ' ');
     print color 'reset' if $color;
