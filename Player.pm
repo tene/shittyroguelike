@@ -19,4 +19,30 @@ sub move_to {
     $self->tile->enter($self);
 }
 
+sub move_rel {
+    my ($self,$x,$y) = @_;
+    my $dest = $self->tile;
+
+    my $xdir = ($x < 0)? 'left' : 'right';
+    my $ydir = ($y < 0)? 'up' : 'down';
+
+    $x = abs $x;
+    $y = abs $y;
+
+    while ($x-- > 0) {
+        $dest = $dest->$xdir || return;
+    }
+
+    while ($y-- > 0) {
+        $dest = $dest->$ydir || return;
+    }
+
+    return unless $dest->vasru();
+
+    $self->tile->leave($self) if $self->tile;
+    $dest->enter($self);
+    $self->tile($dest);
+
+}
+
 1;

@@ -30,14 +30,6 @@ $ui->place($place);
 $ui->player($player);
 
 
-sub move_rel {
-    my ($x,$y) = @_;
-    #$ui->clear_player();
-    $player->move_to($player->x + $x,$player->y + $y);
-    #$ui->draw_player();
-}
-
-
 $ui->setup();
 
 $ui->redraw();
@@ -46,16 +38,16 @@ $player->move_to($player->x,$player->y);
 my $c = $ui->scr->getch();
 while ($c ne 'q') {
     if($c eq 'ku' || $c eq 'k') {
-        move_rel(0,-1);
+        $player->move_rel(0,-1);
     }
     elsif($c eq 'kd' || $c eq 'j') {
-        move_rel(0,1);
+        $player->move_rel(0,1);
     }
     elsif($c eq 'kl' || $c eq 'h') {
-        move_rel(-1,0);
+        $player->move_rel(-1,0);
     }
     elsif($c eq 'kr' || $c eq 'l') {
-        move_rel(1,0);
+        $player->move_rel(1,0);
     }
 $c = $ui->scr->getch();      # doesn't need Enter key 
 }
