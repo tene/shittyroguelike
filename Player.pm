@@ -2,12 +2,12 @@ package Player;
 
 use Moose;
 
-with 'UI::Drawable';
-
 has 'x' => (is=>'rw',isa=>'Int',required=>1);
 has 'y' => (is=>'rw',isa=>'Int',required=>1);
 has 'place' => (is=>'rw',isa=>'Place');
 has 'tile' => (is=>'rw',isa=>'Place::Tile');
+has 'symbol' => (is=>'rw',isa=>'Str');
+has 'color' => (is=>'rw',isa=>'Str');
 
 sub move_to {
     my ($self,$x,$y) = @_;

@@ -1,47 +1,57 @@
 package UI;
 
-use Moose;
-use Term::Screen;
-use Term::ANSIColor;
+use Curses qw(initscr start_color noecho cbreak curs_set endwin new_panel update_panels doupdate);
 
-has scr => (is=>'rw',isa=>'Term::Screen');
-has place => (is=>'rw');
-has player => (is=>'rw');
+use Moose;
+
+has place_panel => (is=>'rw',isa=>'Curses::Panel');
+has place => (is=>'rw',isa=>'Place');
+has player => (is=>'rw',isa=>'Player');
+has win => (is=>'rw',isa=>'Curses::Window');
 
 sub BUILD {
     my ($self, $params) = @_;
-    $self->scr(new Term::Screen);
-    unless ($self->scr) { die " Something's wrong \n"; }
+
+    my $win = new Curses();
+    initscr();
+    start_color();
+    noecho();
+    cbreak();
+    curs_set(0);
+
+    my $pw = Curses->new(25,50,0,0);
+    $pw->scrollok(1);
+    $pw->leaveok(1);
+    my $pp = new_panel($pw);
+
+    $self->win($win);
+    $self->place_panel($pp);
 }
 
 
 sub redraw {
     my ($self) = @_;
-    my $i = 0;
-    $self->scr->clrscr();
     for my $line (@{$self->place->chart}) {
-        my $j = 0;
         for my $tile (@$line) {
             $tile->draw();
         }
-        $i++;
     }
-    #$self->player->draw();
+    refresh();
 }
 
-
+sub refresh {
+    update_panels();
+    doupdate();
+}
 
 sub setup {
     my ($self) = @_;
-    $self->scr->clrscr();
-    $self->scr->noecho();
-    print $self->scr->term->Tputs('vi',1);
 }
 
 sub teardown {
     my ($self) = @_;
-    $self->scr->clrscr();
-    print $self->scr->term->Tputs('ve',1);
+    curs_set(1);
+    endwin();
     print "Thanks for playing!\n";
 }
 
