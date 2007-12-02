@@ -4,9 +4,13 @@ use Moose;
 
 with 'UI::Drawable';
 
-has vasru => (is=>'rw',isa=>'Bool');
-has contents => (is=>'rw',isa=>'ArrayRef[Object]',auto_deref=>1);
+has vasru        => (is=>'rw',isa=>'Bool');
+has contents     => (is=>'rw',isa=>'ArrayRef[Object]',auto_deref=>1);
 has floor_symbol => (is=>'rw',isa=>'Str');
+has left         => (is=>'rw',isa=>'Place::Tile');
+has right        => (is=>'rw',isa=>'Place::Tile');
+has up           => (is=>'rw',isa=>'Place::Tile');
+has down         => (is=>'rw',isa=>'Place::Tile');
 
 sub BUILD {
     my ($self,$params) = @_;
