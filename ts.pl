@@ -4,6 +4,8 @@ use strict;
 
 no warnings;
 
+use Curses;
+
 use Player;
 use Place;
 use Place::Thing;
@@ -32,21 +34,21 @@ $ui->player($player);
 
 $ui->setup();
 
-$ui->redraw();
 $player->move_to($player->x,$player->y);
+$ui->redraw();
 
 my $c = $ui->win->getch();
 while ($c ne 'q') {
-    if($c eq 'ku' || $c eq 'k') {
+    if($c == KEY_UP || $c eq 'k') {
         $player->move_rel(0,-1);
     }
-    elsif($c eq 'kd' || $c eq 'j') {
+    elsif($c eq KEY_DOWN || $c eq 'j') {
         $player->move_rel(0,1);
     }
-    elsif($c eq 'kl' || $c eq 'h') {
+    elsif($c eq KEY_LEFT || $c eq 'h') {
         $player->move_rel(-1,0);
     }
-    elsif($c eq 'kr' || $c eq 'l') {
+    elsif($c eq KEY_RIGHT || $c eq 'l') {
         $player->move_rel(1,0);
     }
     elsif($c eq 'r') {
@@ -55,6 +57,7 @@ while ($c ne 'q') {
     elsif($c eq 'l') {
         $player->tile->add(Place::Thing->new(color=>'green',symbol=>'%'));
     }
+    $ui->output_panel->panel_window->addstr("keypress: $c\n");
     $ui->refresh();
 $c = $ui->win->getch();      # doesn't need Enter key 
 }
