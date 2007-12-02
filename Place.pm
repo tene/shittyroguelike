@@ -14,11 +14,13 @@ sub load {
 
     my $a = [];
     my $y = 0;
+    my $prevline;
     while (<MAP>) {
         chomp;
         my @chars = split //,$_;
         my @tiles = ();
         my $x = 0;
+        my $prevtile;
         for my $char (@chars) {
             my $tile = Place::Tile->new(symbol=>$char,x=>$x,y=>$y,scr=>$scr);
             if($char eq '.') {
@@ -29,9 +31,21 @@ sub load {
                 $tile->vasru(0);
                 $tile->color('bold white');
             }
+
+            if ($prevtile) {
+                $prevtile->right($tile);
+                $tile->left($prevtile);
+            }
+            $prevtile = $tile;
+
+            if ($prevline) {
+                $prevline->[$x]->down($tile);
+                $tile->up($prevline->[$x]);
+            }
             push @tiles, $tile;
             $x++;
         }
+        my $prevline = \@tiles;
         push @$a, [@tiles];
         $y++;
     }
