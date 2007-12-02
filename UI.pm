@@ -4,7 +4,7 @@ use Moose;
 use Term::Screen;
 use Term::ANSIColor;
 
-has scr => (is=>'rw');
+has scr => (is=>'rw',isa=>'Term::Screen');
 has place => (is=>'rw');
 has player => (is=>'rw');
 
@@ -14,20 +14,6 @@ sub BUILD {
     unless ($self->scr) { die " Something's wrong \n"; }
 }
 
-sub clear_player {
-    my ($self) = @_;
-    my $color = $self->place->chart->[$self->player->y][$self->player->x]->color;
-    print color $color if $color;
-    $self->scr->at($self->player->y,$self->player->x)->puts($self->place->chart->[$self->player->y][$self->player->x]->symbol() || ' ');
-    print color 'reset' if $color;
-}
-
-sub draw_player {
-    my ($self) = @_;
-    print color $self->player->color;
-    $self->scr->at($self->player->y,$self->player->x)->bold()->puts($self->player->symbol)->normal();
-    print color 'reset';
-}
 
 sub redraw {
     my ($self) = @_;
@@ -36,11 +22,11 @@ sub redraw {
     for my $line (@{$self->place->chart}) {
         my $j = 0;
         for my $tile (@$line) {
-            $self->scr->at($i,$j++)->puts((color $tile->color() ) . $tile->symbol());
+            $tile->draw();
         }
         $i++;
     }
-    $self->draw_player();
+    #$self->player->draw();
 }
 
 

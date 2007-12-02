@@ -15,7 +15,7 @@ binmode(STDOUT, ":utf8");
 my $ui = UI->new();
 
 my $place = Place->new();
-$place->load($ARGV[0] || 'maps/map1.txt');
+$place->load($ARGV[0] || 'maps/map1.txt',$ui->scr);
 
 # Create some initial player
 my $player = Player->new(x => 5,
@@ -32,9 +32,9 @@ $ui->player($player);
 
 sub move_rel {
     my ($x,$y) = @_;
-    $ui->clear_player();
+    #$ui->clear_player();
     $player->move_to($player->x + $x,$player->y + $y);
-    $ui->draw_player();
+    #$ui->draw_player();
 }
 
 
