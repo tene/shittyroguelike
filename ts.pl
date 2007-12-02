@@ -7,6 +7,7 @@ use Term::ANSIColor;
 
 use Player;
 use Place;
+use Place::Thing;
 use UI;
 
 binmode(STDOUT, ":utf8");
@@ -48,6 +49,9 @@ while ($c ne 'q') {
     }
     elsif($c eq 'kr' || $c eq 'l') {
         $player->move_rel(1,0);
+    }
+    elsif($c eq 'r') {
+        $player->tile->add(Place::Thing->new(color=>'green',symbol=>'%'));
     }
 $c = $ui->scr->getch();      # doesn't need Enter key 
 }
