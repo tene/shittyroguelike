@@ -41,6 +41,7 @@ sub move_rel {
 $ui->setup();
 
 $ui->redraw();
+$player->move_to($player->x,$player->y);
 
 my $c = $ui->scr->getch();
 while ($c ne 'q') {
