@@ -38,14 +38,14 @@ sub load {
             }
             $prevtile = $tile;
 
-            if ($prevline) {
+            if (defined $prevline && defined $prevline->[$x]) {
                 $prevline->[$x]->down($tile);
                 $tile->up($prevline->[$x]);
             }
             push @tiles, $tile;
             $x++;
         }
-        my $prevline = \@tiles;
+        $prevline = \@tiles;
         push @$a, [@tiles];
         $y++;
     }
