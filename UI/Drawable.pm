@@ -12,7 +12,7 @@ sub draw {
     my $self = shift;
 
     $self->panel->panel_window->attron($self->color);
-    $self->panel->panel_window->addch($self->y,$self->x,$self->symbol);
+    $self->panel->panel_window->addstr($self->y,$self->x,$self->symbol);
     $self->panel->panel_window->attroff($self->color);
 }
 
