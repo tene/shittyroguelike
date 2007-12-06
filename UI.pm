@@ -1,6 +1,6 @@
 package UI;
 
-use Curses qw(initscr keypad start_color noecho cbreak curs_set endwin new_panel update_panels doupdate);
+use Curses qw(initscr keypad start_color noecho cbreak curs_set endwin new_panel update_panels doupdate init_pair COLOR_BLACK COLOR_BLUE COLOR_CYAN COLOR_GREEN COLOR_MAGENTA COLOR_RED COLOR_WHITE COLOR_YELLOW COLOR_PAIR);
 
 use Moose;
 
@@ -9,6 +9,7 @@ has output_panel => (is=>'rw',isa=>'Curses::Panel');
 has place => (is=>'rw',isa=>'Place');
 has player => (is=>'rw',isa=>'Player');
 has win => (is=>'rw',isa=>'Curses::Window');
+has colors => (is=>'rw',isa=>'HashRef[HashRef[Int]]');
 
 sub BUILD {
     my ($self, $params) = @_;
@@ -33,6 +34,30 @@ sub BUILD {
     $self->win($win);
     $self->place_panel($pp);
     $self->output_panel($dp);
+    
+    my $c = {
+        black => COLOR_BLACK,
+        blue => COLOR_BLUE,
+        cyan => COLOR_CYAN,
+        green => COLOR_GREEN,
+        magenta => COLOR_MAGENTA,
+        red => COLOR_RED,
+        white => COLOR_WHITE,
+        yellow => COLOR_YELLOW,
+    };
+
+    my $cols = {};
+    my $color_pair = 1;
+    for my $i (keys %$c) {
+        $cols->{$i} = {};
+        for my $j (keys %$c) {
+            init_pair($color_pair,$c->{$i},$c->{$j});
+            $cols->{$i}->{$j} = COLOR_PAIR($color_pair);
+            $color_pair++;
+        }
+    }
+
+    $self->colors($cols);
 }
 
 
@@ -43,6 +68,7 @@ sub redraw {
             $tile->draw();
         }
     }
+    update_panels();
     refresh();
 }
 

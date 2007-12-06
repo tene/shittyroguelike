@@ -17,14 +17,13 @@ binmode(STDOUT, ":utf8");
 my $ui = UI->new();
 
 my $place = Place->new();
-$place->load($ARGV[0] || 'maps/map1.txt',$ui->place_panel);
+$place->load($ARGV[0] || 'maps/map1.txt',$ui->place_panel,$ui);
 
 # Create some initial player
 my $player = Player->new(x => 5,
              y => 5,
              symbol => '@',
-             #char => '∂',
-             color => 'bold blue',
+             color => $ui->colors->{'blue'}->{'black'},
              place => $place,
          );
 
@@ -37,6 +36,7 @@ $ui->setup();
 $player->move_to($player->x,$player->y);
 $ui->redraw();
 
+$ui->output_panel->panel_window->addstr("Started.  Press 'r' to redraw the screen.\n");
 my $c = $ui->win->getch();
 while ($c ne 'q') {
     if($c == KEY_UP || $c eq 'k') {
@@ -55,7 +55,7 @@ while ($c ne 'q') {
         $ui->redraw();
     }
     elsif($c eq 'l') {
-        $player->tile->add(Place::Thing->new(color=>'green',symbol=>'%'));
+        $player->tile->add(Place::Thing->new(color=>$ui->colors->{'green'}->{'black'},symbol=>'%'));
     }
     $ui->output_panel->panel_window->addstr("keypress: $c\n");
     $ui->refresh();

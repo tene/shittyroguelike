@@ -16,7 +16,7 @@ has down         => (is=>'rw',isa=>'Place::Tile');
 sub BUILD {
     my ($self,$params) = @_;
     $self->floor_symbol($params->{'symbol'});
-    $self->floor_color($params->{'color'} || 'bold black');
+    $self->floor_color($params->{'color'} || undef);
 }
 
 sub enter {

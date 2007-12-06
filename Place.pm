@@ -9,7 +9,7 @@ use Data::Dumper;
 has chart => (is=>'rw',isa=>'ArrayRef[ArrayRef[Place::Tile]]');
 
 sub load {
-    my ($self,$filename,$panel) = @_;
+    my ($self,$filename,$panel,$ui) = @_;
     open (MAP, "<:utf8", $filename);
 
     my $a = [];
@@ -22,14 +22,15 @@ sub load {
         my $x = 0;
         my $prevtile;
         for my $char (@chars) {
-            my $tile = Place::Tile->new(symbol=>$char,x=>$x,y=>$y,panel=>$panel);
+            my $tile = Place::Tile->new(symbol=>$char,x=>$x,y=>$y,panel=>$panel,color=>$ui->colors->{'white'}->{'black'});
             if($char eq '.') {
                 $tile->vasru(1);
-                $tile->color('bold black');
             }
             else {
                 $tile->vasru(0);
-                $tile->color('bold black');
+            }
+            if($char eq '#') {
+                $tile->color($ui->colors->{green}->{black});
             }
 
             if ($prevtile) {
