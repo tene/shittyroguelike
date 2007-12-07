@@ -1,6 +1,8 @@
 package Place::Tile;
 
 use Moose;
+use Perl6::Attributes;
+use Perl6::Subs;
 
 with 'UI::Drawable';
 
@@ -13,50 +15,40 @@ has right        => (is=>'rw',isa=>'Place::Tile');
 has up           => (is=>'rw',isa=>'Place::Tile');
 has down         => (is=>'rw',isa=>'Place::Tile');
 
-sub BUILD {
-    my ($self,$params) = @_;
-    $self->floor_symbol($params->{'symbol'});
-    $self->floor_color($params->{'color'} || undef);
+method BUILD ($params) {
+    ./floor_symbol($params->{'symbol'});
+    ./floor_color($params->{'color'} || undef);
 }
 
-sub enter {
-    my $self = shift;
-    my $obj = shift;
-
+method enter ($obj) {
     $obj->tile($self);
 
-    $self->symbol($obj->symbol);
-    $self->color($obj->color);
-    $self->add($obj);
-    $self->draw();
+    ./symbol($obj->symbol);
+    ./color($obj->color);
+    ./add($obj);
+    ./draw();
 }
 
-sub leave {
-    my ($self,$obj) = @_;
-    $self->remove($obj);
-    my @l = $self->contents();
+method leave ($obj) {
+    ./remove($obj);
+    my @l = ./contents;
     if(@l) {
-        $self->symbol($self->contents->[-1]->symbol );
-        $self->color($self->contents->[-1]->color );
+        ./symbol($l[-1]->symbol );
+        ./color($l[-1]->color );
     }
     else {
-        $self->symbol($self->floor_symbol);
-        $self->color($self->floor_color);
+        ./symbol($.floor_symbol);
+        ./color($.floor_color);
     }
-    $self->draw();
+    ./draw();
 }
 
-sub remove {
-    my $self = shift;
-    my $obj = shift;
-
-    $self->contents([grep {$_->symbol() ne $obj->symbol()} $self->contents]);
+method remove ($obj) {
+    ./contents([grep {$_->symbol() ne $obj->symbol()} ./contents()]);
 }
 
-sub add {
-    my $self = shift;
-    my $obj = shift;
-
-    $self->contents([$self->contents(), $obj]);
+method add ($obj) {
+    ./contents([./contents(), $obj]);
 }
+
 1;
