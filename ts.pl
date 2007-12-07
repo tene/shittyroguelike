@@ -11,6 +11,12 @@ use Place;
 use Place::Thing;
 use UI;
 
+$_->meta->make_immutable(
+    inline_constructor => 0,
+    inline_accessors   => 1,
+)
+for qw(Player Place Place::Thing UI);
+
 binmode(STDOUT, ":utf8");
 
 # Do some setup
@@ -34,9 +40,9 @@ $ui->player($player);
 $ui->setup();
 
 $player->move_to($player->x,$player->y);
-$ui->redraw();
 
-$ui->output_panel->panel_window->addstr("Started.  Press 'r' to redraw the screen.\n");
+ungetch('r');
+$ui->redraw();
 my $c = $ui->win->getch();
 while ($c ne 'q') {
     if($c == KEY_UP || $c eq 'k') {
