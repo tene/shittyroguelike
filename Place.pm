@@ -4,12 +4,14 @@ use Place::Tile;
 
 use Moose;
 
+use Perl6::Attributes;
+use Perl6::Subs;
+
 use Data::Dumper;
 
 has chart => (is=>'rw',isa=>'ArrayRef[ArrayRef[Place::Tile]]');
 
-sub load {
-    my ($self,$filename,$panel,$ui) = @_;
+method load ($filename,$panel,$ui) {
     open (MAP, "<:utf8", $filename);
 
     my $a = [];
@@ -51,7 +53,7 @@ sub load {
         $y++;
     }
 
-    $self->chart($a);
+    $.chart = $a;
 }
 
 1;
