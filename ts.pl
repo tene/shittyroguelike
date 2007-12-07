@@ -26,8 +26,7 @@ my $place = Place->new();
 $place->load($ARGV[0] || 'maps/map1.txt',$ui->place_panel,$ui);
 
 # Create some initial player
-my $player = Player->new(x => 5,
-             y => 5,
+my $player = Player->new(
              symbol => '@',
              color => $ui->colors->{'blue'}->{'black'},
              place => $place,
@@ -39,7 +38,7 @@ $ui->player($player);
 
 $ui->setup();
 
-$player->move_to($player->x,$player->y);
+$player->move_to(5,5);
 
 ungetch('r');
 $ui->redraw();

@@ -4,8 +4,6 @@ use Moose;
 use Perl6::Attributes;
 use Perl6::Subs;
 
-has 'x' => (is=>'rw',isa=>'Int',required=>1);
-has 'y' => (is=>'rw',isa=>'Int',required=>1);
 has 'place' => (is=>'rw',isa=>'Place');
 has 'tile' => (is=>'rw',isa=>'Place::Tile');
 has 'symbol' => (is=>'rw',isa=>'Str');
@@ -14,8 +12,6 @@ has 'color' => (is=>'rw',isa=>'Str');
 method move_to ($x,$y) {
     return unless $.place->chart->[$y][$x]->vasru();
     $.tile->leave($self) if $.tile;
-    $.x = $x;
-    $.y = $y;
     $.tile = $.place->chart->[$y][$x];
     $.tile->enter($self);
 }
