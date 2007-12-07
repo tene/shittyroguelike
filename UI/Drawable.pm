@@ -11,9 +11,9 @@ has 'x' => (is=>'rw',isa=>'Int',required=>1);
 has 'y' => (is=>'rw',isa=>'Int',required=>1);
 
 method draw {
-    ./panel->panel_window->attron($.color);
-    ./panel->panel_window->addstr($.y,$.x,$.symbol);
-    ./panel->panel_window->attroff($.color);
+    $.panel->panel_window->attron($.color);
+    $.panel->panel_window->addstr($.y,$.x,$.symbol);
+    $.panel->panel_window->attroff($.color);
 }
 
 1;
