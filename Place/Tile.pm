@@ -44,7 +44,7 @@ method leave ($obj) {
 }
 
 method remove ($obj) {
-    ./contents([grep {$_->symbol() ne $obj->symbol()} ./contents()]);
+    ./contents([grep {! $_ == $obj} ./contents()]);
 }
 
 method add ($obj) {
