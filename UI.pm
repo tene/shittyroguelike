@@ -3,6 +3,8 @@ package UI;
 use Curses qw(initscr keypad start_color noecho cbreak curs_set endwin new_panel update_panels doupdate init_pair COLOR_BLACK COLOR_BLUE COLOR_CYAN COLOR_GREEN COLOR_MAGENTA COLOR_RED COLOR_WHITE COLOR_YELLOW COLOR_PAIR);
 
 use Moose;
+use Perl6::Attributes;
+use Perl6::Subs;
 
 has place_panel => (is=>'rw',isa=>'Curses::Panel');
 has output_panel => (is=>'rw',isa=>'Curses::Panel');
@@ -11,8 +13,7 @@ has player => (is=>'rw',isa=>'Player');
 has win => (is=>'rw',isa=>'Curses::Window');
 has colors => (is=>'rw',isa=>'HashRef[HashRef[Int]]');
 
-sub BUILD {
-    my ($self, $params) = @_;
+method BUILD ($params) {
 
     my $win = new Curses();
     initscr();
@@ -31,9 +32,9 @@ sub BUILD {
     my $dp = new_panel($dw);
     my $pp = new_panel($pw);
 
-    $self->win($win);
-    $self->place_panel($pp);
-    $self->output_panel($dp);
+    $.win = $win;
+    $.place_panel = $pp;
+    $.output_panel = $dp;
     
     my $c = {
         black => COLOR_BLACK,
@@ -57,13 +58,12 @@ sub BUILD {
         }
     }
 
-    $self->colors($cols);
+    $.colors = $cols;
 }
 
 
-sub redraw {
-    my ($self) = @_;
-    for my $line (@{$self->place->chart}) {
+method redraw {
+    for my $line (@{$.place->chart}) {
         for my $tile (@$line) {
             $tile->draw();
         }
