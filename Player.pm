@@ -14,9 +14,9 @@ has 'color' => (is=>'rw',isa=>'Str');
 method move_to ($x,$y) {
     return unless $.place->chart->[$y][$x]->vasru();
     $.tile->leave($self) if $.tile;
-    ./x($x);
-    ./y($y);
-    ./tile($.place->chart->[$y][$x]);
+    $.x = $x;
+    $.y = $y;
+    $.tile = $.place->chart->[$y][$x];
     $.tile->enter($self);
 }
 
