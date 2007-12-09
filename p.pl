@@ -39,7 +39,6 @@ sub _start {
                                 symbol => '@',
                                 color => $heap->{ui}->colors->{'blue'}->{'black'},
                                 tile => $heap->{place}->chart->[5][5],
-                                id => 0,
                                 );
     $heap->{ui}->place($heap->{place});
     $heap->{ui}->player($heap->{player});
@@ -66,7 +65,7 @@ sub keystroke_handler {
          when [KEY_LEFT, 'h'] { $kernel->yield('player_move_rel',$heap->{my_id},-1,0) }
          when [KEY_RIGHT, 'l'] { $kernel->yield('player_move_rel',$heap->{my_id},1,0) }
          when 'r' { $heap->{ui}->redraw() }
-         when 'd' { $heap->{player}->tile->add(Place::Thing->new(color=>$heap->{ui}->colors->{'green'}->{'black'},symbol=>'%',tile=>$heap->{player}->tile,id=>int(rand(1000)+10))) }
+         when 'd' { $heap->{player}->tile->add(Place::Thing->new(color=>$heap->{ui}->colors->{'green'}->{'black'},symbol=>'%',tile=>$heap->{player}->tile)) }
          when 'q' {   } # how to tell POE to kill the session?
      }
 }

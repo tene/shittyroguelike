@@ -31,7 +31,6 @@ my $player = Player->new(
              symbol => '@',
              color => $ui->colors->{'blue'}->{'black'},
              tile => $place->chart->[5][5],
-             id => 0,
          );
 
 $ui->place($place);
@@ -50,7 +49,7 @@ while ($c ne 'q') {
         when ['h',KEY_LEFT] { $player->move_rel(-1,0) }
         when ['l',KEY_RIGHT] { $player->move_rel(1,0) }
         when 'r' { $ui->redraw() }
-        when 'd' { $player->tile->add(Place::Thing->new(color=>$ui->colors->{'green'}->{'black'},symbol=>'%',tile=>$player->tile,id=>int(rand(1000)+10))) }
+        when 'd' { $player->tile->add(Place::Thing->new(color=>$ui->colors->{'green'}->{'black'},symbol=>'%',tile=>$player->tile)) }
     }
     
     $ui->output_panel->panel_window->addstr("keypress: $c\n");
