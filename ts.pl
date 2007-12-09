@@ -49,7 +49,7 @@ while ($c ne 'q') {
         when ['h',KEY_LEFT] { $player->move_rel(-1,0) }
         when ['l',KEY_RIGHT] { $player->move_rel(1,0) }
         when 'r' { $ui->redraw() }
-        when 'd' { $player->tile->add(Place::Thing->new(color=>$ui->colors->{'green'}->{'black'},symbol=>'%',tile=>$player->tile)) }
+        when 'd' { $player->tile->add(Place::Thing->new(color=>$ui->colors->{'green'}->{'black'},symbol=>'%')) }
     }
     
     $ui->output_panel->panel_window->addstr("keypress: $c\n");
