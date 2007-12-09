@@ -54,7 +54,7 @@ method leave ($obj) {
 }
 
 method remove ($obj) {
-    $.contents = [grep {! $_ == $obj} ./contents()];
+    $.contents = [grep {! $_->id == $obj->id} ./contents()];
 }
 
 method add ($obj) {
