@@ -14,6 +14,7 @@ POE::Session->create
   ( inline_states =>
       { _start => \&_start,
         got_keystroke => \&keystroke_handler,
+        player_move_rel => \&player_move_rel,
       }
   );
 
@@ -45,23 +46,29 @@ sub _start {
 
     $heap->{player}->move_to(5,5);
 
+    $heap->{players} = { 0 => $heap->{player} };
+    $heap->{my_id} = 0;
+
+    $heap->{ui}->redraw();
     ungetch('r');
 }
 
 sub keystroke_handler {
     my ($kernel, $heap, $keystroke, $wheel_id) = @_[KERNEL, HEAP, ARG0, ARG1];
 
+     $heap->{ui}->output_panel->panel_window->addstr("keypress: $keystroke\n");
+     $heap->{ui}->refresh();
      if($keystroke == KEY_UP || $keystroke eq 'k') {
-         $heap->{player}->move_rel(0,-1);
+         $kernel->yield('player_move_rel',$heap->{my_id},0,-1);
      }
      elsif($keystroke eq KEY_DOWN || $keystroke eq 'j') {
-         $heap->{player}->move_rel(0,1);
+         $kernel->yield('player_move_rel',$heap->{my_id},0,1);
      }
      elsif($keystroke eq KEY_LEFT || $keystroke eq 'h') {
-         $heap->{player}->move_rel(-1,0);
+         $kernel->yield('player_move_rel',$heap->{my_id},-1,0);
      }
      elsif($keystroke eq KEY_RIGHT || $keystroke eq 'l') {
-         $heap->{player}->move_rel(1,0);
+         $kernel->yield('player_move_rel',$heap->{my_id},1,0);
      }
      elsif($keystroke eq 'r') {
          $heap->{ui}->redraw();
@@ -72,6 +79,11 @@ sub keystroke_handler {
      elsif($keystroke eq 'q') {
          # how do I tell POE to quit?
      }
-     $heap->{ui}->output_panel->panel_window->addstr("keypress: $keystroke\n");
-     $heap->{ui}->refresh();
+}
+
+sub player_move_rel {
+    my ($kernel, $heap, $player_id, $x, $y) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2];
+
+    $heap->{players}->{$player_id}->move_rel($x,$y);
+    $heap->{ui}->refresh();
 }
