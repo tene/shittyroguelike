@@ -4,8 +4,9 @@ use Moose;
 use Perl6::Attributes;
 use Perl6::Subs;
 
-with 'UI::Drawable';
-
+has panel        => (is=>'rw',isa=>'Curses::Panel',required=>1);
+has x            => (is=>'rw',isa=>'Int',required=>1);
+has y            => (is=>'rw',isa=>'Int',required=>1);
 has vasru        => (is=>'rw',isa=>'Bool');
 has contents     => (is=>'rw',isa=>'ArrayRef[Object]',auto_deref=>1);
 has floor_symbol => (is=>'rw',isa=>'Str');
@@ -14,6 +15,15 @@ has left         => (is=>'rw',isa=>'Place::Tile');
 has right        => (is=>'rw',isa=>'Place::Tile');
 has up           => (is=>'rw',isa=>'Place::Tile');
 has down         => (is=>'rw',isa=>'Place::Tile');
+has 'symbol' => (is=>'rw',isa=>'Str',required=>1);
+has 'color' => (is=>'rw');
+   
+method draw {
+    $.panel->panel_window->attron($.color);
+    $.panel->panel_window->addstr($.y,$.x,$.symbol);
+    $.panel->panel_window->attroff($.color);
+}
+ 
 
 method BUILD ($params) {
     $.floor_symbol = $params->{'symbol'};

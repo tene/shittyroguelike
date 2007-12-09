@@ -31,6 +31,7 @@ $place->load($ARGV[0] || 'maps/map1.txt',$ui->place_panel,$ui);
 my $player = Player->new(
              symbol => '@',
              color => $ui->colors->{'blue'}->{'black'},
+             tile => $place->chart->[5][5],
          );
 
 $ui->place($place);
@@ -38,8 +39,6 @@ $ui->player($player);
 
 
 $ui->setup();
-
-$player->move_to($place->chart->[5][5]);
 
 ungetch('r');
 $ui->redraw();
@@ -60,8 +59,8 @@ while ($c ne 'q') {
     elsif($c eq 'r') {
         $ui->redraw();
     }
-    elsif($c eq 'l') {
-        $player->tile->add(Place::Thing->new(color=>$ui->colors->{'green'}->{'black'},symbol=>'%'));
+    elsif($c eq 'd') {
+        $player->tile->add(Place::Thing->new(color=>$ui->colors->{'green'}->{'black'},symbol=>'%',tile=>$player->tile));
     }
     $ui->output_panel->panel_window->addstr("keypress: $c\n");
     $ui->refresh();

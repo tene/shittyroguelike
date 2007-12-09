@@ -37,13 +37,12 @@ sub _start {
     $heap->{player} = Player->new(
                                 symbol => '@',
                                 color => $heap->{ui}->colors->{'blue'}->{'black'},
+                                tile => $heap->{place}->chart->[5][5],
                                 );
     $heap->{ui}->place($heap->{place});
     $heap->{ui}->player($heap->{player});
 
     $heap->{ui}->setup();
-
-    $heap->{player}->move_to($heap->{place}->chart->[5][5]);
 
     $heap->{players} = { 0 => $heap->{player} };
     $heap->{my_id} = 0;
@@ -73,7 +72,7 @@ sub keystroke_handler {
          $heap->{ui}->redraw();
      }
      elsif($keystroke eq 'l') {
-         $heap->{player}->tile->add(Place::Thing->new(color=>$heap->{ui}->colors->{'green'}->{'black'},symbol=>'%'));
+         $heap->{player}->tile->add(Place::Thing->new(color=>$heap->{ui}->colors->{'green'}->{'black'},symbol=>'%',tile=>$heap->{player}->tile));
      }
      elsif($keystroke eq 'q') {
          # how do I tell POE to quit?

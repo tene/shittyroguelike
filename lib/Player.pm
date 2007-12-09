@@ -4,13 +4,15 @@ use Moose;
 use Perl6::Attributes;
 use Perl6::Subs;
 
-has 'tile' => (is=>'rw',isa=>'Place::Tile');
-has 'symbol' => (is=>'rw',isa=>'Str');
-has 'color' => (is=>'rw',isa=>'Str');
+with 'UI::Drawable';
+
+method BUILD ($params) {
+    $params->{'tile'}->enter($self);
+}
 
 method move_to ($dest) {
     return unless $dest->vasru();
-    $.tile->leave($self) if $.tile;
+    $.tile->leave($self);
     $.tile = $dest;
     $.tile->enter($self);
 }
