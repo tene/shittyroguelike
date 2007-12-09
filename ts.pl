@@ -4,9 +4,8 @@ use FindBin::libs;
 
 use strict;
 
-no warnings;
-
 use Curses;
+use Switch 'Perl6';
 
 use Player;
 use Place;
@@ -45,24 +44,15 @@ ungetch('r');
 $ui->redraw();
 my $c = $ui->win->getch();
 while ($c ne 'q') {
-    if($c == KEY_UP || $c eq 'k') {
-        $player->move_rel(0,-1);
+    given ($c) {
+        when ['k',KEY_UP] { $player->move_rel(0,-1) }
+        when ['j',KEY_DOWN] { $player->move_rel(0,1) }
+        when ['h',KEY_LEFT] { $player->move_rel(-1,0) }
+        when ['l',KEY_RIGHT] { $player->move_rel(1,0) }
+        when 'r' { $ui->redraw() }
+        when 'd' { $player->tile->add(Place::Thing->new(color=>$ui->colors->{'green'}->{'black'},symbol=>'%',tile=>$player->tile,id=>int(rand(1000)+10))) }
     }
-    elsif($c eq KEY_DOWN || $c eq 'j') {
-        $player->move_rel(0,1);
-    }
-    elsif($c eq KEY_LEFT || $c eq 'h') {
-        $player->move_rel(-1,0);
-    }
-    elsif($c eq KEY_RIGHT || $c eq 'l') {
-        $player->move_rel(1,0);
-    }
-    elsif($c eq 'r') {
-        $ui->redraw();
-    }
-    elsif($c eq 'd') {
-        $player->tile->add(Place::Thing->new(color=>$ui->colors->{'green'}->{'black'},symbol=>'%',tile=>$player->tile,id=>int(rand(1000)+10)));
-    }
+    
     $ui->output_panel->panel_window->addstr("keypress: $c\n");
     $ui->refresh();
 $c = $ui->win->getch();      # doesn't need Enter key 

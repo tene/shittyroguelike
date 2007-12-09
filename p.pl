@@ -4,6 +4,7 @@ use FindBin::libs;
 
 use Curses;
 use POE qw(Wheel::Curses);
+use Switch 'Perl6';
 
 use Player;
 use Place;
@@ -59,26 +60,14 @@ sub keystroke_handler {
 
      $heap->{ui}->output_panel->panel_window->addstr("keypress: $keystroke\n");
      $heap->{ui}->refresh();
-     if($keystroke == KEY_UP || $keystroke eq 'k') {
-         $kernel->yield('player_move_rel',$heap->{my_id},0,-1);
-     }
-     elsif($keystroke eq KEY_DOWN || $keystroke eq 'j') {
-         $kernel->yield('player_move_rel',$heap->{my_id},0,1);
-     }
-     elsif($keystroke eq KEY_LEFT || $keystroke eq 'h') {
-         $kernel->yield('player_move_rel',$heap->{my_id},-1,0);
-     }
-     elsif($keystroke eq KEY_RIGHT || $keystroke eq 'l') {
-         $kernel->yield('player_move_rel',$heap->{my_id},1,0);
-     }
-     elsif($keystroke eq 'r') {
-         $heap->{ui}->redraw();
-     }
-     elsif($keystroke eq 'd') {
-         $heap->{player}->tile->add(Place::Thing->new(color=>$heap->{ui}->colors->{'green'}->{'black'},symbol=>'%',tile=>$heap->{player}->tile),id=>int(rand(1000)+10));
-     }
-     elsif($keystroke eq 'q') {
-         # how do I tell POE to quit?
+     given ($keystroke) {
+         when [KEY_UP, 'k'] { $kernel->yield('player_move_rel',$heap->{my_id},0,-1) }
+         when [KEY_DOWN, 'j'] { $kernel->yield('player_move_rel',$heap->{my_id},0,1) }
+         when [KEY_LEFT, 'h'] { $kernel->yield('player_move_rel',$heap->{my_id},-1,0) }
+         when [KEY_RIGHT, 'l'] { $kernel->yield('player_move_rel',$heap->{my_id},1,0) }
+         when 'r' { $heap->{ui}->redraw() }
+         when 'd' { $heap->{player}->tile->add(Place::Thing->new(color=>$heap->{ui}->colors->{'green'}->{'black'},symbol=>'%',tile=>$heap->{player}->tile,id=>int(rand(1000)+10))) }
+         when 'q' {   } # how to tell POE to kill the session?
      }
 }
 
