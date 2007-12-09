@@ -37,14 +37,13 @@ sub _start {
     $heap->{player} = Player->new(
                                 symbol => '@',
                                 color => $heap->{ui}->colors->{'blue'}->{'black'},
-                                place => $heap->{place},
                                 );
     $heap->{ui}->place($heap->{place});
     $heap->{ui}->player($heap->{player});
 
     $heap->{ui}->setup();
 
-    $heap->{player}->move_to(5,5);
+    $heap->{player}->move_to($heap->{place}->chart->[5][5]);
 
     $heap->{players} = { 0 => $heap->{player} };
     $heap->{my_id} = 0;

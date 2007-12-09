@@ -31,7 +31,6 @@ $place->load($ARGV[0] || 'maps/map1.txt',$ui->place_panel,$ui);
 my $player = Player->new(
              symbol => '@',
              color => $ui->colors->{'blue'}->{'black'},
-             place => $place,
          );
 
 $ui->place($place);
@@ -40,7 +39,7 @@ $ui->player($player);
 
 $ui->setup();
 
-$player->move_to(5,5);
+$player->move_to($place->chart->[5][5]);
 
 ungetch('r');
 $ui->redraw();
