@@ -1,4 +1,6 @@
-#!/usr/bin/perl -I.
+#!/usr/bin/perl
+
+use FindBin::libs;
 
 use strict;
 
