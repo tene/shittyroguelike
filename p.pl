@@ -35,22 +35,18 @@ sub _start {
     $heap->{place} = Place->new();
     $heap->{place}->load($ARGV[0] || 'maps/map1.txt',$heap->{ui}->place_panel,$heap->{ui});
 
-    $heap->{player} = Player->new(
-                                symbol => '@',
-                                color => $heap->{ui}->colors->{'blue'}->{'black'},
-                                tile => $heap->{place}->chart->[5][5],
-                                );
     $heap->{ui}->place($heap->{place});
 
     $heap->{ui}->setup();
 
-    $heap->{players} = { 0 => $heap->{player} };
     $heap->{my_id} = 0;
 
     $heap->{place}->chart->[3][3]->enter(Place::Thing->new(color=>$heap->{ui}->colors->{'red'}->{'black'},symbol=>'%'));
 
     $heap->{ui}->redraw();
     ungetch('r');
+    $heap->{players} = { };
+    $kernel->yield('new_player',0,'@','blue','black',5,5);
 }
 
 sub keystroke_handler {
@@ -64,7 +60,7 @@ sub keystroke_handler {
          when [KEY_LEFT, 'h'] { $kernel->yield('player_move_rel',$heap->{my_id},-1,0) }
          when [KEY_RIGHT, 'l'] { $kernel->yield('player_move_rel',$heap->{my_id},1,0) }
          when 'r' { $heap->{ui}->redraw() }
-         when 'd' { $heap->{player}->tile->add(Place::Thing->new(color=>$heap->{ui}->colors->{'green'}->{'black'},symbol=>'%')) }
+         when 'd' { $heap->{players}->[$heap->{my_id}]->tile->add(Place::Thing->new(color=>$heap->{ui}->colors->{'green'}->{'black'},symbol=>'%')) }
          when 'q' {   } # how to tell POE to kill the session?
      }
 }
@@ -73,5 +69,17 @@ sub player_move_rel {
     my ($kernel, $heap, $player_id, $x, $y) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2];
 
     $heap->{players}->{$player_id}->move_rel($x,$y);
+    $heap->{ui}->refresh();
+}
+
+sub new_player {
+    my ($kernel, $heap, $id, $symbol, $fg, $bg, $y, $x) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2, ARG3, ARG4, ARG5];
+    my $player = Player->new(
+                        symbol => $symbol,
+                        color => $heap->{ui}->colors->{$fg}->{$bg},
+                        tile => $heap->{place}->chart->[$y][$x],
+                        );
+    $heap->{players}->{$id} = $player;
+    $heap->{ui}->output_panel->panel_window->addstr("New player '$symbol' at $x,$y\n");
     $heap->{ui}->refresh();
 }
