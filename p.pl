@@ -41,7 +41,6 @@ sub _start {
                                 tile => $heap->{place}->chart->[5][5],
                                 );
     $heap->{ui}->place($heap->{place});
-    $heap->{ui}->player($heap->{player});
 
     $heap->{ui}->setup();
 

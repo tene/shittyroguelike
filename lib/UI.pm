@@ -9,7 +9,6 @@ use Perl6::Subs;
 has place_panel => (is=>'rw',isa=>'Curses::Panel');
 has output_panel => (is=>'rw',isa=>'Curses::Panel');
 has place => (is=>'rw',isa=>'Place');
-has player => (is=>'rw',isa=>'Player');
 has win => (is=>'rw',isa=>'Curses::Window');
 has colors => (is=>'rw',isa=>'HashRef[HashRef[Int]]');
 
