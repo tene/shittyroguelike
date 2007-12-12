@@ -37,6 +37,7 @@ method enter ($obj) {
     $.color = $obj->color;
     ./add($obj);
     ./draw();
+    $.vasru = 0;
 }
 
 method leave ($obj) {
@@ -50,11 +51,12 @@ method leave ($obj) {
         $.symbol = $.floor_symbol;
         $.color = $.floor_color;
     }
+    $.vasru = 1;
     ./draw();
 }
 
 method remove ($obj) {
-    $.contents = [grep {! $_->id == $obj->id} ./contents()];
+    $.contents = [grep {$_ != $obj} ./contents()];
 }
 
 method add ($obj) {
