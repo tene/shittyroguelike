@@ -1,5 +1,7 @@
 #!/usr/bin/perl
 
+use strict;
+
 use FindBin::libs;
 
 use Curses;
@@ -68,20 +70,22 @@ sub keystroke_handler {
 sub player_move_rel {
     my ($kernel, $heap, $player_id, $x, $y) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2];
     $heap->{players}->{$player_id}->move_rel($x,$y);
+    $heap->{ui}->output_panel->panel_window->addstr("Player $player_id moving $x,$y\n");
     $heap->{ui}->refresh();
 }
 
-my $player_id = 0;
+my $new_player_id = 42;
 sub new_player {
     my ($kernel, $heap, $symbol, $fg, $bg, $y, $x) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2, ARG3, ARG4];
+    my $id = $new_player_id++;
     my $player = Player->new(
                         symbol => $symbol,
                         color => $heap->{ui}->colors->{$fg}->{$bg},
                         tile => $heap->{place}->chart->[$y][$x],
+                        id => $id,
                         );
-    my $id = $player_id++;
     $heap->{players}->{$id} = $player;
-    $heap->{ui}->output_panel->panel_window->addstr("New player '$symbol' at $x,$y\n");
+    $heap->{ui}->output_panel->panel_window->addstr("New player '$symbol' at $x,$y id $id\n");
     $heap->{ui}->refresh();
     return $id;
 }
