@@ -16,6 +16,7 @@ POE::Session->create
       { _start => \&_start,
         got_keystroke => \&keystroke_handler,
         player_move_rel => \&player_move_rel,
+        new_player => \&new_player,
       }
   );
 
@@ -23,7 +24,7 @@ POE::Kernel->run();
 exit;
 
 sub _start {
-    my ($kernel, $heap) = @_[KERNEL, HEAP];
+    my ($kernel, $heap, $session) = @_[KERNEL, HEAP, SESSION];
 
     binmode(STDOUT,':utf8');
 
@@ -39,14 +40,13 @@ sub _start {
 
     $heap->{ui}->setup();
 
-    $heap->{my_id} = 0;
 
     $heap->{place}->chart->[3][3]->enter(Place::Thing->new(color=>$heap->{ui}->colors->{'red'}->{'black'},symbol=>'%'));
 
     $heap->{ui}->redraw();
     ungetch('r');
     $heap->{players} = { };
-    $kernel->yield('new_player',0,'@','blue','black',5,5);
+    $heap->{my_id} = $kernel->call($session,'new_player','@','blue','black',5,5);
 }
 
 sub keystroke_handler {
@@ -67,19 +67,21 @@ sub keystroke_handler {
 
 sub player_move_rel {
     my ($kernel, $heap, $player_id, $x, $y) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2];
-
     $heap->{players}->{$player_id}->move_rel($x,$y);
     $heap->{ui}->refresh();
 }
 
+my $player_id = 0;
 sub new_player {
-    my ($kernel, $heap, $id, $symbol, $fg, $bg, $y, $x) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2, ARG3, ARG4, ARG5];
+    my ($kernel, $heap, $symbol, $fg, $bg, $y, $x) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2, ARG3, ARG4];
     my $player = Player->new(
                         symbol => $symbol,
                         color => $heap->{ui}->colors->{$fg}->{$bg},
                         tile => $heap->{place}->chart->[$y][$x],
                         );
+    my $id = $player_id++;
     $heap->{players}->{$id} = $player;
     $heap->{ui}->output_panel->panel_window->addstr("New player '$symbol' at $x,$y\n");
     $heap->{ui}->refresh();
+    return $id;
 }
