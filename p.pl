@@ -63,7 +63,7 @@ sub keystroke_handler {
          when [KEY_RIGHT, 'l'] { $kernel->yield('player_move_rel',$heap->{my_id},1,0) }
          when 'r' { $heap->{ui}->redraw() }
          when 'd' { $heap->{players}->{$heap->{my_id}}->tile->add(Place::Thing->new(color=>$heap->{ui}->colors->{'green'}->{'black'},symbol=>'%')) }
-         when 'q' {   } # how to tell POE to kill the session?
+         when 'q' { delete $heap->{console}  } # how to tell POE to kill the session?
      }
 }
 
