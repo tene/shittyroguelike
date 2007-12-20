@@ -5,7 +5,7 @@ use strict;
 use FindBin::libs;
 
 use Curses;
-use POE qw(Wheel::Curses);
+use POE qw(Wheel::Curses Wheel::SocketFactory Wheel::ReadWrite Driver::SysRW Filter::Line);
 use Switch 'Perl6';
 
 use Player;
@@ -19,6 +19,11 @@ POE::Session->create
         got_keystroke => \&keystroke_handler,
         player_move_rel => \&player_move_rel,
         new_player => \&new_player,
+        connect_success => \&connect_success,
+        connect_failure => \&connect_failure,
+        server_input => \&server_input,
+        server_error => \&server_error,
+        assign_id => \&assign_id,
       }
   );
 
@@ -34,6 +39,13 @@ sub _start {
         InputEvent => 'got_keystroke'
     );
 
+    $heap->{server} = POE::Wheel::SocketFactory->new(
+           RemoteAddress  => '127.0.0.1',
+           RemotePort     => 3456,
+           SuccessEvent   => 'connect_success',
+           FailureEvent   => 'connect_failure'
+         );
+
     $heap->{ui} = UI->new();
     $heap->{place} = Place->new();
     $heap->{place}->load($ARGV[0] || 'maps/map1.txt',$heap->{ui}->place_panel,$heap->{ui});
@@ -48,7 +60,11 @@ sub _start {
     $heap->{ui}->redraw();
     ungetch('r');
     $heap->{players} = { };
-    $heap->{my_id} = $kernel->call($session,'new_player','@','blue','black',5,5);
+}
+
+sub assign_id {
+    my ($heap, $id) = @_[HEAP, ARG0];
+    $heap->{my_id} = $id;
 }
 
 sub keystroke_handler {
@@ -57,14 +73,19 @@ sub keystroke_handler {
      $heap->{ui}->output_panel->panel_window->addstr("keypress: $keystroke\n");
      $heap->{ui}->refresh();
      given ($keystroke) {
-         when [KEY_UP, 'k'] { $kernel->yield('player_move_rel',$heap->{my_id},0,-1) }
-         when [KEY_DOWN, 'j'] { $kernel->yield('player_move_rel',$heap->{my_id},0,1) }
-         when [KEY_LEFT, 'h'] { $kernel->yield('player_move_rel',$heap->{my_id},-1,0) }
-         when [KEY_RIGHT, 'l'] { $kernel->yield('player_move_rel',$heap->{my_id},1,0) }
+         when [KEY_UP, 'k'] { send_to_socket($heap->{server_socket},'player_move_rel',$heap->{my_id},0,-1) }
+         when [KEY_DOWN, 'j'] { send_to_socket($heap->{server_socket},'player_move_rel',$heap->{my_id},0,1) }
+         when [KEY_LEFT, 'h'] { send_to_socket($heap->{server_socket},'player_move_rel',$heap->{my_id},-1,0) }
+         when [KEY_RIGHT, 'l'] { send_to_socket($heap->{server_socket},'player_move_rel',$heap->{my_id},1,0) }
+         when 'n' { send_to_socket($heap->{server_socket},'new_player',$heap->{my_id},'@','blue','black',5,5) };
          when 'r' { $heap->{ui}->redraw() }
-         when 'd' { $heap->{players}->{$heap->{my_id}}->tile->add(Place::Thing->new(color=>$heap->{ui}->colors->{'green'}->{'black'},symbol=>'%')) }
-         when 'q' { delete $heap->{console}  } # how to tell POE to kill the session?
+         when 'q' { delete $heap->{console}; delete $heap->{server_socket}  } # how to tell POE to kill the session?
      }
+}
+
+sub send_to_socket {
+    my $socket = shift;
+    $socket->put(join ' ', @_);
 }
 
 sub player_move_rel {
@@ -74,10 +95,8 @@ sub player_move_rel {
     $heap->{ui}->refresh();
 }
 
-my $new_player_id = 42;
 sub new_player {
-    my ($kernel, $heap, $symbol, $fg, $bg, $y, $x) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2, ARG3, ARG4];
-    my $id = $new_player_id++;
+    my ($kernel, $heap, $id,$symbol, $fg, $bg, $y, $x) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2, ARG3, ARG4, ARG5];
     my $player = Player->new(
                         symbol => $symbol,
                         color => $heap->{ui}->colors->{$fg}->{$bg},
@@ -87,5 +106,31 @@ sub new_player {
     $heap->{players}->{$id} = $player;
     $heap->{ui}->output_panel->panel_window->addstr("New player '$symbol' at $x,$y id $id\n");
     $heap->{ui}->refresh();
-    return $id;
+}
+
+sub connect_success {
+    my ($kernel, $heap, $socket) = @_[KERNEL, HEAP, ARG0];
+
+    $heap->{server_socket} = POE::Wheel::ReadWrite->new(
+         'Handle'     => $socket,
+         'Driver'     => POE::Driver::SysRW->new,
+         'Filter'     => POE::Filter::Line->new,
+         'InputEvent' => 'server_input',
+         'ErrorEvent' => 'server_error',
+    );
+
+}
+
+sub connect_failure {
+    die "couldn't connect to server\n";
+}
+
+sub server_input {
+    my ($kernel, $heap, $input) = @_[KERNEL, HEAP, ARG0];
+
+    $kernel->yield(split / /, $input);
+}
+
+sub server_error {
+    die "problem with network stuff I guess\n";
 }

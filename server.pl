@@ -89,6 +89,7 @@ sub connection_start {
     );
     # hello, world!\n
     #$heap->{wheel}->put('Connected to server', '', '');
+    $heap->{wheel}->put('assign_id ' . $session->ID);
 }
 
 sub connection_input {
