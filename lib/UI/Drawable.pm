@@ -15,4 +15,9 @@ method draw {
     $.tile->draw();
 }
 
+method clear {
+    $.tile->leave($self);
+    $.tile->draw();
+}
+
 1;

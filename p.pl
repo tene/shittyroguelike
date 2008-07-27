@@ -18,7 +18,8 @@ POE::Session->create
       { _start => \&_start,
         got_keystroke => \&keystroke_handler,
         player_move_rel => \&player_move_rel,
-        new_player => \&new_player,
+        add_player => \&add_player,
+        remove_player => \&remove_player,
         connect_success => \&connect_success,
         connect_failure => \&connect_failure,
         server_input => \&server_input,
@@ -77,15 +78,17 @@ sub keystroke_handler {
          when [KEY_DOWN, 'j'] { send_to_socket($heap->{server_socket},'player_move_rel',$heap->{my_id},0,1) }
          when [KEY_LEFT, 'h'] { send_to_socket($heap->{server_socket},'player_move_rel',$heap->{my_id},-1,0) }
          when [KEY_RIGHT, 'l'] { send_to_socket($heap->{server_socket},'player_move_rel',$heap->{my_id},1,0) }
-         when 'n' { send_to_socket($heap->{server_socket},'new_player',$heap->{my_id},'@','blue','black',5,5) };
+         when 'n' { send_to_socket($heap->{server_socket},'add_player',$heap->{my_id},'@','blue','black',5,5) };
+         when 'm' { send_to_socket($heap->{server_socket},'add_player',$heap->{my_id},'∂','red','black',5,5) };
+         when 'd' { send_to_socket($heap->{server_socket},'remove_player',$heap->{my_id}) };
          when 'r' { $heap->{ui}->redraw() }
-         when 'q' { delete $heap->{console}; delete $heap->{server_socket}  } # how to tell POE to kill the session?
+         when 'q' { send_to_socket($heap->{server_socket},'remove_player',$heap->{my_id}); delete $heap->{console}; delete $heap->{server_socket}  } # how to tell POE to kill the session?
      }
 }
 
 sub send_to_socket {
     my $socket = shift;
-    $socket->put(join ' ', @_);
+    $socket->put((join ' ', @_) . "\n");
 }
 
 sub player_move_rel {
@@ -95,8 +98,8 @@ sub player_move_rel {
     $heap->{ui}->refresh();
 }
 
-sub new_player {
-    my ($kernel, $heap, $id,$symbol, $fg, $bg, $y, $x) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2, ARG3, ARG4, ARG5];
+sub add_player {
+    my ($kernel, $heap, $id, $symbol, $fg, $bg, $y, $x) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2, ARG3, ARG4, ARG5];
     my $player = Player->new(
                         symbol => $symbol,
                         color => $heap->{ui}->colors->{$fg}->{$bg},
@@ -105,6 +108,15 @@ sub new_player {
                         );
     $heap->{players}->{$id} = $player;
     $heap->{ui}->output_panel->panel_window->addstr("New player '$symbol' at $x,$y id $id\n");
+    $heap->{ui}->refresh();
+}
+
+sub remove_player {
+    my ($kernel, $heap, $id) = @_[KERNEL, HEAP, ARG0];
+    my $symbol = $heap->{players}->{$id}->symbol();
+    $heap->{ui}->output_panel->panel_window->addstr("Remove player '$symbol' id $id\n");
+    $heap->{players}->{$id}->clear();
+    delete $heap->{players}->{$id};
     $heap->{ui}->refresh();
 }
 
@@ -117,6 +129,7 @@ sub connect_success {
          'Filter'     => POE::Filter::Line->new,
          'InputEvent' => 'server_input',
          'ErrorEvent' => 'server_error',
+         'AutoFlush'  => 1,
     );
 
 }
