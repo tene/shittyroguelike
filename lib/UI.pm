@@ -1,6 +1,6 @@
 package UI;
 
-use Curses qw(initscr keypad start_color noecho cbreak curs_set endwin new_panel update_panels doupdate init_pair COLOR_BLACK COLOR_BLUE COLOR_CYAN COLOR_GREEN COLOR_MAGENTA COLOR_RED COLOR_WHITE COLOR_YELLOW COLOR_PAIR);
+use Curses qw(initscr keypad start_color noecho cbreak curs_set endwin new_panel update_panels doupdate init_pair COLOR_BLACK COLOR_BLUE COLOR_CYAN COLOR_GREEN COLOR_MAGENTA COLOR_RED COLOR_WHITE COLOR_YELLOW COLOR_PAIR $LINES $COLS);
 
 use Moose;
 use Perl6::Attributes;
@@ -22,10 +22,10 @@ method BUILD ($params) {
     curs_set(0);
     $win->keypad(1);
 
-    my $pw = Curses->new(25,50,0,0);
+    my $pw = Curses->new($LINES-5,$COLS-30,0,0);
     $pw->scrollok(1);
     $pw->leaveok(1);
-    my $dw = Curses->new(5,50,25,0);
+    my $dw = Curses->new(5,$COLS-30,$LINES-5,0);
     $dw->scrollok(1);
     $dw->leaveok(1);
     my $dp = new_panel($dw);

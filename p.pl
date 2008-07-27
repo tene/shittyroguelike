@@ -113,6 +113,10 @@ sub add_player {
 
 sub remove_player {
     my ($kernel, $heap, $id) = @_[KERNEL, HEAP, ARG0];
+    unless ( defined($heap->{players}->{$id}) ) {
+        $heap->{ui}->output_panel->panel_window->addstr("Attempt to remove invalid player id $id\n");
+        return;
+    }
     my $symbol = $heap->{players}->{$id}->symbol();
     $heap->{ui}->output_panel->panel_window->addstr("Remove player '$symbol' id $id\n");
     $heap->{players}->{$id}->clear();
