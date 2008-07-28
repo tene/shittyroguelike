@@ -11,13 +11,19 @@ use Perl6::Subs;
 #===============================================================================
 package CuteGirls::Server;
 
+use FindBin::libs;
+
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite
                     Driver::SysRW Filter::Line);
 use Data::Dumper;
 
+use Server::Player;
+
 my $default_port = 3456;
 
 my $server_session;
+
+my %players;
 
 sub new (?$port) {
     $default_port ||= $port;
@@ -90,13 +96,51 @@ sub connection_start {
     # hello, world!\n
     #$heap->{wheel}->put('Connected to server', '', '');
     $heap->{wheel}->put('assign_id ' . $session->ID);
+    while ( my ($id, $player)  = each %players) {
+        print $player->id(), "\n";
+        $heap->{wheel}->put('add_player ' . join(' ', (
+                    $player->id(),
+                    $player->symbol(),
+                    $player->fg(),
+                    $player->bg(),
+                    $player->y(),
+                    $player->x(),
+                )) . "\n");
+    }
 }
 
 sub connection_input {
-   my ($kernel, $session, $heap, $input) = @_[KERNEL, SESSION, HEAP, ARG0];
+    my ($kernel, $session, $heap, $input) = @_[KERNEL, SESSION, HEAP, ARG0];
 
-   $kernel->post($server_session, 'broadcast', $input);
-
+    my ($command, @args) = split / /, $input;
+    if ($command eq 'add_player') {
+        print "Adding a new player: $input\n";
+        my ($id, $symbol, $fg, $bg, $y, $x) = @args;
+        $players{$id} = Server::Player->new(
+                id     => $id,
+                symbol => $symbol,
+                fg     => $fg,
+                bg     => $bg,
+                y      => $y,
+                x      => $x,
+            );
+        $kernel->post($server_session, 'broadcast', $input);
+    }
+    elsif ($command eq 'player_move_rel') {
+        my ($id, $x, $y) = @args;
+        my $player = $players{$id};
+        $player->x($player->{x} + $x);
+        $player->y($player->{y} + $y);
+        $kernel->post($server_session, 'broadcast', $input);
+    }
+    elsif ($command eq 'remove_player') {
+        my ($id) = @args;
+        delete $players{$id};
+        $kernel->post($server_session, 'broadcast', $input);
+    }
+    else {
+        $kernel->post($server_session, 'broadcast', $input);
+    }
 }
 
 sub connection_broadcast {

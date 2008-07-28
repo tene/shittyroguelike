@@ -66,6 +66,8 @@ sub _start {
 sub assign_id {
     my ($heap, $id) = @_[HEAP, ARG0];
     $heap->{my_id} = $id;
+    $heap->{ui}->output_panel->panel_window->addstr("assigned id: $id\n");
+    $heap->{ui}->refresh();
 }
 
 sub keystroke_handler {
@@ -115,6 +117,7 @@ sub remove_player {
     my ($kernel, $heap, $id) = @_[KERNEL, HEAP, ARG0];
     unless ( defined($heap->{players}->{$id}) ) {
         $heap->{ui}->output_panel->panel_window->addstr("Attempt to remove invalid player id $id\n");
+        $heap->{ui}->refresh();
         return;
     }
     my $symbol = $heap->{players}->{$id}->symbol();
