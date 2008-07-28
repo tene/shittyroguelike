@@ -13,6 +13,9 @@ use Place;
 use Place::Thing;
 use UI;
 
+my @sigils = ('a'..'z', qw(@ & ∂ ! ~ ` ' " ? ^ _ , +));
+my @colors = qw(black blue cyan green magenta red yellow white);
+
 POE::Session->create
   ( inline_states =>
       { _start => \&_start,
@@ -66,6 +69,7 @@ sub _start {
 sub assign_id {
     my ($heap, $id) = @_[HEAP, ARG0];
     $heap->{my_id} = $id;
+    random_player($heap);
     $heap->{ui}->output_panel->panel_window->addstr("assigned id: $id\n");
     $heap->{ui}->refresh();
 }
@@ -80,12 +84,19 @@ sub keystroke_handler {
          when [KEY_DOWN, 'j'] { send_to_socket($heap->{server_socket},'player_move_rel',$heap->{my_id},0,1) }
          when [KEY_LEFT, 'h'] { send_to_socket($heap->{server_socket},'player_move_rel',$heap->{my_id},-1,0) }
          when [KEY_RIGHT, 'l'] { send_to_socket($heap->{server_socket},'player_move_rel',$heap->{my_id},1,0) }
-         when 'n' { send_to_socket($heap->{server_socket},'add_player',$heap->{my_id},'@','blue','black',5,5) };
+         when 'n' { send_to_socket($heap->{server_socket},'remove_player',$heap->{my_id}); random_player($heap); };
          when 'm' { send_to_socket($heap->{server_socket},'add_player',$heap->{my_id},'∂','red','black',5,5) };
-         when 'd' { send_to_socket($heap->{server_socket},'remove_player',$heap->{my_id}) };
          when 'r' { $heap->{ui}->redraw() }
          when 'q' { send_to_socket($heap->{server_socket},'remove_player',$heap->{my_id}); delete $heap->{console}; delete $heap->{server_socket}  } # how to tell POE to kill the session?
      }
+}
+
+sub random_player {
+    my $heap = shift;
+    my $symbol = $sigils[int(rand $#sigils)];
+    my $fg = $colors[1 + int(rand ($#colors - 1))];
+    #my $bg = $colors[int(rand ($#colors - 1))];
+    send_to_socket($heap->{server_socket},'add_player',$heap->{my_id},$symbol,$fg,'black',5,5) 
 }
 
 sub send_to_socket {
