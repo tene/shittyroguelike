@@ -72,7 +72,7 @@ sub _start {
 
     $heap->{place}->chart->[3][3]->enter(Place::Thing->new(color=>$heap->{ui}->colors->{'red'}->{'black'},symbol=>'%'));
 
-    $heap->{ui}->output_panel->panel_window->addstr("Welcome to CuteGirls!\nPress 'n' to regenerate your character.\n");
+    $heap->{ui}->output_panel->panel_window->addstr("Welcome to CuteGirls!\nPress '?' for help.\n");
     $heap->{ui}->refresh();
     $heap->{ui}->redraw();
     ungetch('r');
@@ -100,6 +100,8 @@ sub keystroke_handler {
          when 'n' { send_to_socket($heap->{server_socket},'remove_player',$heap->{my_id}); random_player($heap); };
          when 'm' { send_to_socket($heap->{server_socket},'add_player',$heap->{my_id},'∂','red','black',5,5) };
          when 'r' { $heap->{ui}->redraw() }
+         when '?' { $heap->{ui}->help_panel->top_panel(); $heap->{ui}->redraw() }
+         when '/' { $heap->{ui}->help_panel->bottom_panel(); $heap->{ui}->redraw() }
          when 'q' { send_to_socket($heap->{server_socket},'remove_player',$heap->{my_id}); delete $heap->{console}; delete $heap->{server_socket}  } # how to tell POE to kill the session?
      }
 }
