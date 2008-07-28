@@ -62,6 +62,7 @@ sub _start {
          );
 
     $heap->{ui} = UI->new();
+    $heap->{ui}->output_panel->panel_window->addstr("Building world, please wait...\n");
     $heap->{place} = Place->new();
     $heap->{place}->load($ARGV[0] || 'maps/map1.txt',$heap->{ui}->place_panel,$heap->{ui});
 
