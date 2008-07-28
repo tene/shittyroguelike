@@ -61,6 +61,8 @@ sub _start {
 
     $heap->{place}->chart->[3][3]->enter(Place::Thing->new(color=>$heap->{ui}->colors->{'red'}->{'black'},symbol=>'%'));
 
+    $heap->{ui}->output_panel->panel_window->addstr("Welcome to CuteGirls!\nPress 'n' to regenerate your character.\n");
+    $heap->{ui}->refresh();
     $heap->{ui}->redraw();
     ungetch('r');
     $heap->{players} = { };
