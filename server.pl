@@ -56,6 +56,7 @@ sub poe_accepted {
                                         inline_states=> {
                                             _start => \&connection_start,
                                             input  => \&connection_input,
+                                            error  => \&connection_error,
                                             broadcast => \&connection_broadcast,
                                         },
                                         args => [ $socket, $addr, $port],
@@ -116,6 +117,7 @@ sub connection_input {
     if ($command eq 'add_player') {
         print "Adding a new player: $input\n";
         my ($id, $symbol, $fg, $bg, $y, $x) = @args;
+        $heap->{id} = $id;
         $players{$id} = Server::Player->new(
                 id     => $id,
                 symbol => $symbol,
@@ -141,6 +143,12 @@ sub connection_input {
     else {
         $kernel->post($server_session, 'broadcast', $input);
     }
+}
+
+sub connection_error {
+   my ($kernel, $session, $heap) = @_[KERNEL, SESSION, HEAP];
+   $kernel->post($server_session, 'broadcast', "remove_player $heap->{id}");
+   delete $players{$heap->{id}};
 }
 
 sub connection_broadcast {
