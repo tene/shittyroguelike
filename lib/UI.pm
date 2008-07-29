@@ -112,6 +112,10 @@ method DESTROY {
     $self->teardown();
 }
 
+method output ($message) {
+    $self->output_panel->panel_window->addstr($message);
+}
+
 =head2 Methods
 
 =over 4

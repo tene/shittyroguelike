@@ -12,6 +12,7 @@ use Player;
 use Place;
 use Place::Thing;
 use UI;
+use PadWalker qw(peek_my);
 
 my @sigils = ('a'..'z', qw(
     @ & ! ~ ` ' " ? ^ _ , +
@@ -68,7 +69,7 @@ sub _start {
 
     $heap->{ui}->debug("login info: $username $symbol");
 
-    $heap->{ui}->output_panel->panel_window->addstr("Building world, please wait...\n");
+    output("Building world, please wait...");
     $heap->{ui}->refresh();
 
     $heap->{place} = Place->new();
@@ -81,7 +82,7 @@ sub _start {
 
     $heap->{place}->chart->[3][3]->enter(Place::Thing->new(color=>$heap->{ui}->colors->{'red'}->{'black'},symbol=>'%'));
 
-    $heap->{ui}->output_panel->panel_window->addstr("Welcome to CuteGirls!\nPress '?' for help.\n");
+    output("Welcome to CuteGirls!\nPress '?' for help.\n");
     $heap->{ui}->refresh();
     $heap->{ui}->redraw();
     ungetch('r');
@@ -105,14 +106,14 @@ sub assign_id {
     my ($heap, $id) = @_[HEAP, ARG0];
     $heap->{my_id} = $id;
     random_player($heap);
-    $heap->{ui}->output_panel->panel_window->addstr("assigned id: $id\n");
+    output("assigned id: $id\n");
     $heap->{ui}->refresh();
 }
 
 sub keystroke_handler {
     my ($kernel, $heap, $keystroke, $wheel_id) = @_[KERNEL, HEAP, ARG0, ARG1];
 
-    #$heap->{ui}->output_panel->panel_window->addstr("keypress: $keystroke\n");
+    #output("keypress: $keystroke\n");
      $heap->{ui}->refresh();
      given ($keystroke) {
          when [KEY_UP, 'k'] { send_to_socket($heap->{server_socket},'player_move_rel',$heap->{my_id},0,-1) }
@@ -129,7 +130,7 @@ sub keystroke_handler {
 sub help_handler {
     my ($kernel, $heap, $keystroke, $wheel_id) = @_[KERNEL, HEAP, ARG0, ARG1];
 
-    #$heap->{ui}->output_panel->panel_window->addstr("help keypress: $keystroke\n");
+    #output("help keypress: $keystroke\n");
      $heap->{ui}->refresh();
      given ($keystroke) {
          when '?' { $heap->{ui}->help_panel->bottom_panel(); $heap->{ui}->redraw(); $heap->{console}->[2] = 'got_keystroke'; }
@@ -152,7 +153,7 @@ sub send_to_socket {
 sub player_move_rel {
     my ($kernel, $heap, $player_id, $x, $y) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2];
     $heap->{players}->{$player_id}->move_rel($x,$y);
-    $heap->{ui}->output_panel->panel_window->addstr("Player $player_id moving $x,$y\n");
+    output("Player $player_id moving $x,$y\n");
     $heap->{ui}->refresh();
 }
 
@@ -165,19 +166,19 @@ sub add_player {
                         id => $id,
                         );
     $heap->{players}->{$id} = $player;
-    $heap->{ui}->output_panel->panel_window->addstr("New player '$symbol' at $x,$y id $id\n");
+    output("New player '$symbol' at $x,$y id $id\n");
     $heap->{ui}->refresh();
 }
 
 sub remove_player {
     my ($kernel, $heap, $id) = @_[KERNEL, HEAP, ARG0];
     unless ( defined($heap->{players}->{$id}) ) {
-        $heap->{ui}->output_panel->panel_window->addstr("Attempt to remove invalid player id $id\n");
+        output("Attempt to remove invalid player id $id\n");
         $heap->{ui}->refresh();
         return;
     }
     my $symbol = $heap->{players}->{$id}->symbol();
-    $heap->{ui}->output_panel->panel_window->addstr("Remove player '$symbol' id $id\n");
+    output("Remove player '$symbol' id $id\n");
     $heap->{players}->{$id}->clear();
     delete $heap->{players}->{$id};
     $heap->{ui}->refresh();
@@ -209,4 +210,10 @@ sub server_input {
 
 sub server_error {
     die "problem with network stuff I guess\n";
+}
+
+sub output {
+    my $message = shift;
+    chomp $message;
+    ${peek_my(1)->{'$heap'}}->{ui}->output("$message\n");
 }
