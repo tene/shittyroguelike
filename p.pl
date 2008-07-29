@@ -27,6 +27,12 @@ my @sigils = ('a'..'z', qw(
 ));
 my @colors = qw(black blue cyan green magenta red yellow white);
 
+$_->meta->make_immutable(
+    inline_constructor => 0,
+    inline_accessors   => 1,
+)
+for qw(Player Place Place::Thing Place::Tile UI);
+
 POE::Session->create
   ( inline_states =>
       { _start => \&_start,

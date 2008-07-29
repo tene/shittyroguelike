@@ -147,6 +147,7 @@ sub connection_input {
 
 sub connection_error {
    my ($kernel, $session, $heap) = @_[KERNEL, SESSION, HEAP];
+   return unless defined($players{$heap->{id}});
    $kernel->post($server_session, 'broadcast', "remove_player $heap->{id}");
    delete $players{$heap->{id}};
 }
