@@ -19,14 +19,19 @@ use Data::Dumper;
 
 use Server::Player;
 
+use Perl6::Slurp;
+
 my $default_port = 3456;
 
 my $server_session;
 
 my %players;
 
-sub new (?$port) {
+my $map;
+
+sub new ($self,$mapfile,?$port) {
     $default_port ||= $port;
+    $map = slurp '<:utf8', $mapfile;
     $server_session = POE::Session->create(
         inline_states=> {
             _start => \&poe_start,
@@ -96,6 +101,10 @@ sub connection_start {
     );
     # hello, world!\n
     #$heap->{wheel}->put('Connected to server', '', '');
+    my $tmp = pack('u*', $map);
+    $tmp =~ s/ /s/g;
+    $tmp =~ s/\n/n/g;
+    $heap->{wheel}->put('new_map ' . $tmp);
     $heap->{wheel}->put('assign_id ' . $session->ID);
     while ( my ($id, $player)  = each %players) {
         print $player->id(), "\n";
@@ -164,7 +173,7 @@ package main;
 
 print STDERR "Starting server...\n";
 
-my $server = CuteGirls::Server->new();
+my $server = CuteGirls::Server->new($ARGV[0] || 'maps/map2.txt');
 POE::Kernel->run();
 
 exit;

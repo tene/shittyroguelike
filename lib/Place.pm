@@ -11,13 +11,14 @@ use Data::Dumper;
 
 has chart => (is=>'rw',isa=>'ArrayRef[ArrayRef[Place::Tile]]');
 
-method load ($filename,$panel,$ui) {
-    open (MAP, "<:utf8", $filename);
-
+method load ($map,$panel,$ui) {
+    $map =~ s/s/ /g;
+    $map =~ s/n/\n/g;
+    $map = unpack('u*',$map);
     my $a = [];
     my $y = 0;
     my $prevline;
-    while (<MAP>) {
+    for (split /\n/, $map) {
         chomp;
         my @chars = split //,$_;
         my @tiles = ();

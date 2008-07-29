@@ -41,6 +41,7 @@ POE::Session->create
         help_keystroke => \&help_handler,
         player_move_rel => \&player_move_rel,
         add_player => \&add_player,
+        new_map => \&new_map,
         remove_player => \&remove_player,
         connect_start => \&connect_start,
         connect_success => \&connect_success,
@@ -73,19 +74,13 @@ sub _start {
     $heap->{ui}->refresh();
 
     $heap->{place} = Place->new();
-    $heap->{place}->load($ARGV[0] || 'maps/map1.txt',$heap->{ui}->place_panel,$heap->{ui});
 
     $heap->{ui}->place($heap->{place});
 
     $heap->{ui}->setup();
 
 
-    $heap->{place}->chart->[3][3]->enter(Place::Thing->new(color=>$heap->{ui}->colors->{'red'}->{'black'},symbol=>'%'));
-
     output("Welcome to CuteGirls!\nPress '?' for help.\n");
-    $heap->{ui}->refresh();
-    $heap->{ui}->redraw();
-    ungetch('r');
     $heap->{players} = { };
     $kernel->yield('connect_start');
 }
@@ -167,6 +162,18 @@ sub add_player {
     $heap->{players}->{$id} = $player;
     output("New player '$symbol' at $x,$y id $id\n");
     $heap->{ui}->refresh();
+}
+
+sub new_map {
+    my ($kernel, $heap, $map) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2, ARG3, ARG4, ARG5];
+
+    output("loading new map");
+
+    $heap->{place}->load($map,$heap->{ui}->place_panel,$heap->{ui});
+    $heap->{place}->chart->[3][3]->enter(Place::Thing->new(color=>$heap->{ui}->colors->{'red'}->{'black'},symbol=>'%'));
+    $heap->{ui}->refresh();
+    $heap->{ui}->redraw();
+    ungetch('r');
 }
 
 sub remove_player {
