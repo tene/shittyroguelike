@@ -12,9 +12,6 @@ use Data::Dumper;
 has chart => (is=>'rw',isa=>'ArrayRef[ArrayRef[Place::Tile]]');
 
 method load ($map,$panel,$ui) {
-    $map =~ s/s/ /g;
-    $map =~ s/n/\n/g;
-    $map = unpack('u*',$map);
     my $a = [];
     my $y = 0;
     my $prevline;

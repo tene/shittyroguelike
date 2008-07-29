@@ -5,7 +5,7 @@ use strict;
 use FindBin::libs;
 
 use Curses;
-use POE qw(Wheel::Curses Wheel::SocketFactory Wheel::ReadWrite Driver::SysRW Filter::Line);
+use POE qw(Wheel::Curses Wheel::SocketFactory Wheel::ReadWrite Driver::SysRW Filter::Reference);
 use Switch 'Perl6';
 
 use Player;
@@ -141,7 +141,7 @@ sub random_player {
 
 sub send_to_server {
     my $socket = ${peek_my(1)->{'$heap'}}->{server_socket};
-    $socket->put((join ' ', @_) . "\n");
+    $socket->put(\@_);
 }
 
 sub player_move_rel {
@@ -196,7 +196,7 @@ sub connect_success {
     $heap->{server_socket} = POE::Wheel::ReadWrite->new(
          'Handle'     => $socket,
          'Driver'     => POE::Driver::SysRW->new,
-         'Filter'     => POE::Filter::Line->new,
+         'Filter'     => POE::Filter::Reference->new,
          'InputEvent' => 'server_input',
          'ErrorEvent' => 'server_error',
          'AutoFlush'  => 1,
@@ -211,7 +211,9 @@ sub connect_failure {
 sub server_input {
     my ($kernel, $heap, $input) = @_[KERNEL, HEAP, ARG0];
 
-    $kernel->yield(split / /, $input);
+    my ($cmd, @rest) = @$input;
+
+    $kernel->yield($cmd, @rest);
 }
 
 sub server_error {

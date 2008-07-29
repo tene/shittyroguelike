@@ -14,7 +14,7 @@ package CuteGirls::Server;
 use FindBin::libs;
 
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite
-                    Driver::SysRW Filter::Line);
+                    Driver::SysRW Filter::Reference);
 use Data::Dumper;
 
 use Server::Player;
@@ -95,37 +95,35 @@ sub connection_start {
     $heap->{wheel} = POE::Wheel::ReadWrite->new(
          'Handle'     => $handle,
          'Driver'     => POE::Driver::SysRW->new,
-         'Filter'     => POE::Filter::Line->new,
+         'Filter'     => POE::Filter::Reference->new,
          'InputEvent' => 'input',
          'ErrorEvent' => 'error',
     );
     # hello, world!\n
     #$heap->{wheel}->put('Connected to server', '', '');
-    my $tmp = pack('u*', $map);
-    $tmp =~ s/ /s/g;
-    $tmp =~ s/\n/n/g;
-    $heap->{wheel}->put('new_map ' . $tmp);
-    $heap->{wheel}->put('assign_id ' . $session->ID);
+    $heap->{wheel}->put(['new_map', $map]);
+    $heap->{wheel}->put(['assign_id', $session->ID]);
     while ( my ($id, $player)  = each %players) {
         print $player->id(), "\n";
-        $heap->{wheel}->put('add_player ' . join(' ', (
+        $heap->{wheel}->put(['add_player',
                     $player->id(),
                     $player->symbol(),
                     $player->fg(),
                     $player->bg(),
                     $player->y(),
                     $player->x(),
-                )) . "\n");
+                ]);
     }
 }
 
 sub connection_input {
     my ($kernel, $session, $heap, $input) = @_[KERNEL, SESSION, HEAP, ARG0];
+    #print Dumper($input);
 
-    my ($command, @args) = split / /, $input;
+    my ($command, @args) = @$input;
     if ($command eq 'add_player') {
-        print "Adding a new player: $input\n";
         my ($id, $symbol, $fg, $bg, $y, $x) = @args;
+        print "Adding a new player: $id $symbol $fg $bg $y $x\n";
         $heap->{id} = $id;
         $players{$id} = Server::Player->new(
                 id     => $id,
@@ -157,7 +155,7 @@ sub connection_input {
 sub connection_error {
    my ($kernel, $session, $heap) = @_[KERNEL, SESSION, HEAP];
    return unless defined($players{$heap->{id}});
-   $kernel->post($server_session, 'broadcast', "remove_player $heap->{id}");
+   $kernel->post($server_session, 'broadcast', ['remove_player', $heap->{id}]);
    delete $players{$heap->{id}};
 }
 
