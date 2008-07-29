@@ -118,7 +118,7 @@ sub keystroke_handler {
          when [KEY_LEFT, 'h'] { send_to_server('player_move_rel',$heap->{my_id},-1,0) }
          when [KEY_RIGHT, 'l'] { send_to_server('player_move_rel',$heap->{my_id},1,0) }
          when 'n' { send_to_server('remove_player',$heap->{my_id}); random_player($heap); };
-         when "\r" {
+         when ["\r", "\n"] {
              $heap->{console}->[2] = 'chat_keystroke';
              output_colored($heap->{players}->{$heap->{my_id}}->symbol,$heap->{players}->{$heap->{my_id}}->color,'input');
              $heap->{ui}->output(': ', 'input');
@@ -147,7 +147,7 @@ sub chat_handler {
     #output("help keypress: $keystroke\n");
      $heap->{ui}->refresh();
      given ($keystroke) {
-         when 263 {
+         when [263, ''] {
              my $msg = substr($heap->{chat_message},0,-1);
              $heap->{chat_message} = $msg;
              $heap->{ui}->panels->{input}->panel_window->echochar("\n");
@@ -156,7 +156,7 @@ sub chat_handler {
              $heap->{ui}->panels->{input}->panel_window->addstr($msg);
              $heap->{ui}->redraw() 
          }
-         when "\r" { 
+         when ["\r", "\n"] { 
              send_to_server('player_chat',$heap->{my_id},$heap->{chat_message});
              $heap->{console}->[2] = 'got_keystroke';
              $heap->{chat_message} = '';
