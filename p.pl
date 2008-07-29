@@ -116,15 +116,14 @@ sub keystroke_handler {
     #output("keypress: $keystroke\n");
      $heap->{ui}->refresh();
      given ($keystroke) {
-         when [KEY_UP, 'k'] { send_to_socket($heap->{server_socket},'player_move_rel',$heap->{my_id},0,-1) }
-         when [KEY_DOWN, 'j'] { send_to_socket($heap->{server_socket},'player_move_rel',$heap->{my_id},0,1) }
-         when [KEY_LEFT, 'h'] { send_to_socket($heap->{server_socket},'player_move_rel',$heap->{my_id},-1,0) }
-         when [KEY_RIGHT, 'l'] { send_to_socket($heap->{server_socket},'player_move_rel',$heap->{my_id},1,0) }
-         when 'n' { send_to_socket($heap->{server_socket},'remove_player',$heap->{my_id}); random_player($heap); };
-         when 'm' { send_to_socket($heap->{server_socket},'add_player',$heap->{my_id},'∂','red','black',5,5) };
+         when [KEY_UP, 'k'] { send_to_server('player_move_rel',$heap->{my_id},0,-1) }
+         when [KEY_DOWN, 'j'] { send_to_server('player_move_rel',$heap->{my_id},0,1) }
+         when [KEY_LEFT, 'h'] { send_to_server('player_move_rel',$heap->{my_id},-1,0) }
+         when [KEY_RIGHT, 'l'] { send_to_server('player_move_rel',$heap->{my_id},1,0) }
+         when 'n' { send_to_server('remove_player',$heap->{my_id}); random_player($heap); };
          when 'r' { $heap->{ui}->redraw() }
          when '?' { $heap->{ui}->help_panel->top_panel(); $heap->{ui}->redraw(); $heap->{console}->[2] = 'help_keystroke'; }
-         when 'q' { send_to_socket($heap->{server_socket},'remove_player',$heap->{my_id}); delete $heap->{console}; delete $heap->{server_socket}  } # how to tell POE to kill the session?
+         when 'q' { send_to_server('remove_player',$heap->{my_id}); delete $heap->{console}; delete $heap->{server_socket}  } # how to tell POE to kill the session?
      }
 }
 sub help_handler {
@@ -142,11 +141,11 @@ sub random_player {
     my $symbol = $sigils[int(rand $#sigils)];
     my $fg = $colors[1 + int(rand ($#colors - 1))];
     #my $bg = $colors[int(rand ($#colors - 1))];
-    send_to_socket($heap->{server_socket},'add_player',$heap->{my_id},$symbol,$fg,'black',5,5) 
+    send_to_server('add_player',$heap->{my_id},$symbol,$fg,'black',5,5) 
 }
 
-sub send_to_socket {
-    my $socket = shift;
+sub send_to_server {
+    my $socket = ${peek_my(1)->{'$heap'}}->{server_socket};
     $socket->put((join ' ', @_) . "\n");
 }
 
