@@ -23,11 +23,7 @@ use Perl6::Subs;
 
 use Curses::Forms;
 
-has place_panel => (is=>'rw',isa=>'Curses::Panel');
-has output_panel => (is=>'rw',isa=>'Curses::Panel');
-has form_panel => (is=>'rw',isa=>'Curses::Panel');
-has status_panel => (is=>'rw',isa=>'Curses::Panel');
-has help_panel => (is=>'rw',isa=>'Curses::Panel');
+has panels => (is=>'rw',isa=>'HashRef[Curses::Panel]');
 has place => (is=>'rw',isa=>'Place');
 has win => (is=>'rw',isa=>'Curses::Window');
 has colors => (is=>'rw',isa=>'HashRef[HashRef[Int]]');
@@ -42,7 +38,7 @@ method BUILD ($params) {
     curs_set(0);
     $win->keypad(1);
 
-    my $pw = Curses->new($LINES-5,$COLS-30,0,0);
+    my $pw = Curses->new($LINES-6,$COLS-30,0,0);
     $pw->scrollok(1);
     $pw->leaveok(1);
     my $dw = Curses->new(5,$COLS-30,$LINES-5,0);
@@ -52,28 +48,33 @@ method BUILD ($params) {
     $fw->scrollok(1);
     $fw->leaveok(1);
     $fw->box(0,0);
+    my $iw = Curses->new(1,$COLS-30,$LINES-6,0);
+    $iw->scrollok(1);
+    $iw->leaveok(1);
     my $sw = Curses->new(0,30,0,$COLS-30);
     $sw->scrollok(1);
     $sw->leaveok(1);
-    my $hw = Curses->new(5,50,10,15);
+    my $hw = Curses->new(6,50,10,15);
     $hw->scrollok(1);
     $hw->leaveok(1);
-    $hw->addstr("\n        Press 'n' to make a new character\n       ←↑↓→ and hjkl will move your player\n Press '?' to dismiss this window and 'q' to quit");
+    $hw->addstr("\n               Press Enter to chat\n        Press 'n' to make a new character\n       ←↑↓→ and hjkl will move your player\n Press '?' to dismiss this window and 'q' to quit");
     $hw->box(0,0);
     my $dp = new_panel($dw);
     my $pp = new_panel($pw);
     my $fp = new_panel($fw);
+    my $ip = new_panel($iw);
     my $sp = new_panel($sw);
     my $hp = new_panel($hw);
     $fp->hide_panel();
     $hp->hide_panel();
 
     $.win = $win;
-    $.place_panel = $pp;
-    $.output_panel = $dp;
-    $.form_panel = $fp;
-    $.status_panel = $fp;
-    $.help_panel = $hp;
+    $.panels->{place} = $pp;
+    $.panels->{output} = $dp;
+    $.panels->{form} = $fp;
+    $.panels->{input} = $ip;
+    $.panels->{status} = $sp;
+    $.panels->{help} = $hp;
 
     my @fl = make_login_fields();
     my $form = makeForm(@fl);
@@ -112,8 +113,16 @@ method DESTROY {
     $self->teardown();
 }
 
-method output ($message) {
-    $self->output_panel->panel_window->addstr($message);
+method output ($message,?$panel) {
+    $panel ||= 'output';
+    $self->panels->{$panel}->panel_window->addstr($message);
+}
+
+method output_colored ($message,$color,?$panel) {
+    $panel ||= 'output';
+    $self->panels->{$panel}->panel_window->attron($color);
+    $self->panels->{$panel}->panel_window->addstr($message);
+    $self->panels->{$panel}->panel_window->attroff($color);
 }
 
 =head2 Methods
@@ -160,7 +169,7 @@ Writes a string to the output panel.
 
 sub debug {
     my ($self, $message) = @_;
-    $self->output_panel->panel_window->addstr("» $message\n");
+    $self->panels->{output}->panel_window->addstr("» $message\n");
 }
 
 =item C<teardown()>
@@ -260,7 +269,7 @@ Returns a list of [username, symbol].
 
 sub get_login_info {
     my ($self) = @_;
-    $.form_panel->show_panel();
+    $.panels->{form}->show_panel();
     my ($fg,$bg,$cfg) = qw(white black yellow);
     my @buttons = qw(OK);
 
@@ -321,9 +330,9 @@ sub get_login_info {
         },
       },
     });
-    $form->execute($.form_panel->panel_window->subwin(0,0,($LINES/2)-5,($COLS/2)-12));
+    $form->execute($.panels->{form}->panel_window->subwin(0,0,($LINES/2)-5,($COLS/2)-12));
 
-    $.form_panel->hide_panel();
+    $.panels->{form}->hide_panel();
     return (#$form->getWidget('Buttons')->getField('VALUE'),
       $form->getWidget('Username')->getField('VALUE'),
       $form->getWidget('Symbol')->getField('VALUE'));

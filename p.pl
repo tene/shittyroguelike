@@ -39,8 +39,10 @@ POE::Session->create
       { _start => \&_start,
         got_keystroke => \&keystroke_handler,
         help_keystroke => \&help_handler,
+        chat_keystroke => \&chat_handler,
         player_move_rel => \&player_move_rel,
         add_player => \&add_player,
+        player_chat => \&player_chat,
         new_map => \&new_map,
         remove_player => \&remove_player,
         connect_start => \&connect_start,
@@ -101,7 +103,7 @@ sub assign_id {
     my ($heap, $id) = @_[HEAP, ARG0];
     $heap->{my_id} = $id;
     random_player($heap);
-    output("assigned id: $id\n");
+    #output("assigned id: $id\n");
     $heap->{ui}->refresh();
 }
 
@@ -116,18 +118,57 @@ sub keystroke_handler {
          when [KEY_LEFT, 'h'] { send_to_server('player_move_rel',$heap->{my_id},-1,0) }
          when [KEY_RIGHT, 'l'] { send_to_server('player_move_rel',$heap->{my_id},1,0) }
          when 'n' { send_to_server('remove_player',$heap->{my_id}); random_player($heap); };
+         when "\r" {
+             $heap->{console}->[2] = 'chat_keystroke';
+             output_colored($heap->{players}->{$heap->{my_id}}->symbol,$heap->{players}->{$heap->{my_id}}->color,'input');
+             $heap->{ui}->output(': ', 'input');
+             $heap->{ui}->redraw();
+             curs_set(1);
+         }
          when 'r' { $heap->{ui}->redraw() }
-         when '?' { $heap->{ui}->help_panel->top_panel(); $heap->{ui}->redraw(); $heap->{console}->[2] = 'help_keystroke'; }
+         when '?' { $heap->{ui}->panels->{help}->top_panel(); $heap->{ui}->redraw(); $heap->{console}->[2] = 'help_keystroke'; }
          when 'q' { send_to_server('remove_player',$heap->{my_id}); delete $heap->{console}; delete $heap->{server_socket}  } # how to tell POE to kill the session?
      }
 }
+
 sub help_handler {
     my ($kernel, $heap, $keystroke, $wheel_id) = @_[KERNEL, HEAP, ARG0, ARG1];
 
     #output("help keypress: $keystroke\n");
      $heap->{ui}->refresh();
      given ($keystroke) {
-         when '?' { $heap->{ui}->help_panel->bottom_panel(); $heap->{ui}->redraw(); $heap->{console}->[2] = 'got_keystroke'; }
+         default { $heap->{ui}->panels->{help}->bottom_panel(); $heap->{ui}->redraw(); $heap->{console}->[2] = 'got_keystroke'; }
+     }
+}
+
+sub chat_handler {
+    my ($kernel, $heap, $keystroke, $wheel_id) = @_[KERNEL, HEAP, ARG0, ARG1];
+
+    #output("help keypress: $keystroke\n");
+     $heap->{ui}->refresh();
+     given ($keystroke) {
+         when 263 {
+             my $msg = substr($heap->{chat_message},0,-1);
+             $heap->{chat_message} = $msg;
+             $heap->{ui}->panels->{input}->panel_window->echochar("\n");
+             output_colored($heap->{players}->{$heap->{my_id}}->symbol,$heap->{players}->{$heap->{my_id}}->color,'input');
+             $heap->{ui}->output(': ', 'input');
+             $heap->{ui}->panels->{input}->panel_window->addstr($msg);
+             $heap->{ui}->redraw() 
+         }
+         when "\r" { 
+             send_to_server('player_chat',$heap->{my_id},$heap->{chat_message});
+             $heap->{console}->[2] = 'got_keystroke';
+             $heap->{chat_message} = '';
+             $heap->{ui}->output("\n",'input');
+             $heap->{ui}->redraw();
+             curs_set(0);
+         }
+         default {
+             $heap->{chat_message} .= $keystroke;
+             $heap->{ui}->panels->{input}->panel_window->echochar($keystroke);
+             $heap->{ui}->redraw() 
+         }
      }
 }
 
@@ -147,7 +188,7 @@ sub send_to_server {
 sub player_move_rel {
     my ($kernel, $heap, $player_id, $x, $y) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2];
     $heap->{players}->{$player_id}->move_rel($x,$y);
-    output("Player $player_id moving $x,$y\n");
+    #output("Player $player_id moving $x,$y\n");
     $heap->{ui}->refresh();
 }
 
@@ -164,12 +205,20 @@ sub add_player {
     $heap->{ui}->refresh();
 }
 
+sub player_chat {
+    my ($kernel, $heap, $id, $message) = @_[KERNEL, HEAP, ARG0, ARG1];
+    my $from = $heap->{players}->{$id};
+    output_colored($from->symbol,$from->color);
+    output(": $message");
+    $heap->{ui}->refresh();
+}
+
 sub new_map {
-    my ($kernel, $heap, $map) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2, ARG3, ARG4, ARG5];
+    my ($kernel, $heap, $map) = @_[KERNEL, HEAP, ARG0];
 
-    output("loading new map");
+    #output("loading new map");
 
-    $heap->{place}->load($map,$heap->{ui}->place_panel,$heap->{ui});
+    $heap->{place}->load($map,$heap->{ui}->panels->{place},$heap->{ui});
     $heap->{place}->chart->[3][3]->enter(Place::Thing->new(color=>$heap->{ui}->colors->{'red'}->{'black'},symbol=>'%'));
     $heap->{ui}->refresh();
     $heap->{ui}->redraw();
@@ -222,6 +271,14 @@ sub server_error {
 
 sub output {
     my $message = shift;
+    my $panel = shift;
     chomp $message;
-    ${peek_my(1)->{'$heap'}}->{ui}->output("$message\n");
+    ${peek_my(1)->{'$heap'}}->{ui}->output("$message\n",$panel);
+}
+
+sub output_colored {
+    my $message = shift;
+    my $color = shift;
+    my $panel = shift;
+    ${peek_my(1)->{'$heap'}}->{ui}->output_colored($message,$color,$panel);
 }
