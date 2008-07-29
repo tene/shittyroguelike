@@ -4,9 +4,9 @@ use Curses qw(initscr keypad start_color noecho cbreak curs_set endwin new_panel
     COLOR_BLACK COLOR_BLUE COLOR_CYAN COLOR_GREEN COLOR_MAGENTA COLOR_RED COLOR_WHITE COLOR_YELLOW COLOR_PAIR
     O_ACTIVE O_EDIT A_UNDERLINE
     $LINES $COLS
-    newwin derwin
+    newwin derwin subwin delwin
     box
-    top_panel bottom_panel
+    top_panel bottom_panel hide_panel show_panel
     new_field set_field_buffer field_opts_off set_field_back
     new_form set_form_win set_form_sub post_form unpost_form
     );
@@ -15,9 +15,12 @@ use Moose;
 use Perl6::Attributes;
 use Perl6::Subs;
 
+use Curses::Forms;
+
 has place_panel => (is=>'rw',isa=>'Curses::Panel');
 has output_panel => (is=>'rw',isa=>'Curses::Panel');
 has form_panel => (is=>'rw',isa=>'Curses::Panel');
+has status_panel => (is=>'rw',isa=>'Curses::Panel');
 has help_panel => (is=>'rw',isa=>'Curses::Panel');
 has place => (is=>'rw',isa=>'Place');
 has win => (is=>'rw',isa=>'Curses::Window');
@@ -39,24 +42,31 @@ method BUILD ($params) {
     my $dw = Curses->new(5,$COLS-30,$LINES-5,0);
     $dw->scrollok(1);
     $dw->leaveok(1);
-    my $fw = Curses->new(0,30,0,$COLS-30);
+    my $fw = Curses->new(0,0,0,0);
     $fw->scrollok(1);
     $fw->leaveok(1);
     $fw->box(0,0);
+    my $sw = Curses->new(0,30,0,$COLS-30);
+    $sw->scrollok(1);
+    $sw->leaveok(1);
     my $hw = Curses->new(5,50,10,15);
     $hw->scrollok(1);
     $hw->leaveok(1);
-    $hw->addstr("\n        Press 'n' to make a new character\n       ←↑↓→ and hjkl will move your player\n Press '/' to dismiss this window and 'q' to quit");
+    $hw->addstr("\n        Press 'n' to make a new character\n       ←↑↓→ and hjkl will move your player\n Press '?' to dismiss this window and 'q' to quit");
     $hw->box(0,0);
     my $dp = new_panel($dw);
     my $pp = new_panel($pw);
     my $fp = new_panel($fw);
+    my $sp = new_panel($sw);
     my $hp = new_panel($hw);
+    $fp->hide_panel();
+    $hp->hide_panel();
 
     $.win = $win;
     $.place_panel = $pp;
     $.output_panel = $dp;
     $.form_panel = $fp;
+    $.status_panel = $fp;
     $.help_panel = $hp;
 
     my @fl = make_login_fields();
@@ -110,6 +120,11 @@ sub refresh {
 
 sub setup {
     my ($self) = @_;
+}
+
+sub debug {
+    my ($self, $message) = @_;
+    $self->output_panel->panel_window->addstr("» $message\n");
 }
 
 sub teardown {
@@ -191,6 +206,77 @@ sub makeForm(@) {
         fatal("new_form failed");
     }
     return $form;
+}
+
+sub get_login_info {
+    my ($self) = @_;
+    $.form_panel->show_panel();
+    my ($fg,$bg,$cfg) = qw(white black yellow);
+    my @buttons = qw(OK);
+
+    my $btnexit = sub {
+        my ($f,$key) = @_;
+
+        return unless ($key eq "\r" || $key eq "\n");
+        $f->setField(EXIT => 1);
+    };
+
+    my   $form = Curses::Forms->new({
+    AUTOCENTER    => 1,
+    DERIVED       => 1,
+    COLUMNS       => 23,
+    LINES         => 9,
+    CAPTION       => 'Login Info',
+    CAPTIONCOL    => $cfg,
+    BORDER        => 1,
+    FOREGROUND    => $fg,
+    BACKGROUND    => $bg,
+    FOCUSED       => 'Username',
+    TABORDER      => [qw(Username Symbol Buttons)],
+    WIDGETS       => {
+      Username   => {
+        TYPE      => 'TextField',
+        CAPTION   => 'Username',
+        CAPTIONCOL=> $cfg,
+        Y         => 0,
+        X         => 0,
+        FOREGROUND=> $fg,
+        BACKGROUND=> $bg,
+        COLUMNS   => 21,
+        MAXLENGTH => 32,
+        FOCUSSWITCH => "\t\n\r",
+        },
+      Symbol   => {
+        TYPE      => 'TextField',
+        CAPTION   => 'Symbol',
+        CAPTIONCOL=> $cfg,
+        Y         => 3,
+        X         => 0,
+        FOREGROUND=> $fg,
+        BACKGROUND=> $bg,
+        COLUMNS   => 21,
+        MAXLENGTH => 1,
+        FOCUSSWITCH => "\t\n\r",
+        },
+      Buttons     => {
+        TYPE      => 'ButtonSet',
+        LABELS    => [@buttons],
+        Y         => 6,
+        X         => 5,
+        BORDER    => 1,
+        FOREGROUND=> $fg,
+        BACKGROUND=> $bg,
+        OnExit    => $btnexit,
+        FOCUSSWITCH => "\t\n\r",
+        },
+      },
+    });
+    $form->execute($.form_panel->panel_window->subwin(0,0,($LINES/2)-5,($COLS/2)-12));
+
+    $.form_panel->hide_panel();
+    return (#$form->getWidget('Buttons')->getField('VALUE'),
+      $form->getWidget('Username')->getField('VALUE'),
+      $form->getWidget('Symbol')->getField('VALUE'));
 }
 
 1;

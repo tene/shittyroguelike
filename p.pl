@@ -31,9 +31,11 @@ POE::Session->create
   ( inline_states =>
       { _start => \&_start,
         got_keystroke => \&keystroke_handler,
+        help_keystroke => \&help_handler,
         player_move_rel => \&player_move_rel,
         add_player => \&add_player,
         remove_player => \&remove_player,
+        connect_start => \&connect_start,
         connect_success => \&connect_success,
         connect_failure => \&connect_failure,
         server_input => \&server_input,
@@ -54,14 +56,12 @@ sub _start {
         InputEvent => 'got_keystroke'
     );
 
-    $heap->{server} = POE::Wheel::SocketFactory->new(
-           RemoteAddress  => '127.0.0.1',
-           RemotePort     => 3456,
-           SuccessEvent   => 'connect_success',
-           FailureEvent   => 'connect_failure'
-         );
-
     $heap->{ui} = UI->new();
+
+    my ($username,$symbol) = $heap->{ui}->get_login_info();
+
+    $heap->{ui}->debug("login info: $username $symbol");
+
     $heap->{ui}->output_panel->panel_window->addstr("Building world, please wait...\n");
     $heap->{ui}->refresh();
 
@@ -80,6 +80,19 @@ sub _start {
     $heap->{ui}->redraw();
     ungetch('r');
     $heap->{players} = { };
+    $kernel->yield('connect_start');
+}
+
+sub connect_start {
+    my ($kernel, $heap, $session) = @_[KERNEL, HEAP, SESSION];
+
+    $heap->{server} = POE::Wheel::SocketFactory->new(
+           RemoteAddress  => '127.0.0.1',
+           RemotePort     => 3456,
+           SuccessEvent   => 'connect_success',
+           FailureEvent   => 'connect_failure'
+         );
+
 }
 
 sub assign_id {
@@ -93,7 +106,7 @@ sub assign_id {
 sub keystroke_handler {
     my ($kernel, $heap, $keystroke, $wheel_id) = @_[KERNEL, HEAP, ARG0, ARG1];
 
-     $heap->{ui}->output_panel->panel_window->addstr("keypress: $keystroke\n");
+    #$heap->{ui}->output_panel->panel_window->addstr("keypress: $keystroke\n");
      $heap->{ui}->refresh();
      given ($keystroke) {
          when [KEY_UP, 'k'] { send_to_socket($heap->{server_socket},'player_move_rel',$heap->{my_id},0,-1) }
@@ -103,9 +116,17 @@ sub keystroke_handler {
          when 'n' { send_to_socket($heap->{server_socket},'remove_player',$heap->{my_id}); random_player($heap); };
          when 'm' { send_to_socket($heap->{server_socket},'add_player',$heap->{my_id},'∂','red','black',5,5) };
          when 'r' { $heap->{ui}->redraw() }
-         when '?' { $heap->{ui}->help_panel->top_panel(); $heap->{ui}->redraw() }
-         when '/' { $heap->{ui}->help_panel->bottom_panel(); $heap->{ui}->redraw() }
+         when '?' { $heap->{ui}->help_panel->top_panel(); $heap->{ui}->redraw(); $heap->{console}->[2] = 'help_keystroke'; }
          when 'q' { send_to_socket($heap->{server_socket},'remove_player',$heap->{my_id}); delete $heap->{console}; delete $heap->{server_socket}  } # how to tell POE to kill the session?
+     }
+}
+sub help_handler {
+    my ($kernel, $heap, $keystroke, $wheel_id) = @_[KERNEL, HEAP, ARG0, ARG1];
+
+    #$heap->{ui}->output_panel->panel_window->addstr("help keypress: $keystroke\n");
+     $heap->{ui}->refresh();
+     given ($keystroke) {
+         when '?' { $heap->{ui}->help_panel->bottom_panel(); $heap->{ui}->redraw(); $heap->{console}->[2] = 'got_keystroke'; }
      }
 }
 
