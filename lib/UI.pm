@@ -108,6 +108,10 @@ method BUILD ($params) {
     $.colors = $cols;
 }
 
+method DESTROY {
+    $self->teardown();
+}
+
 =head2 Methods
 
 =over 4
