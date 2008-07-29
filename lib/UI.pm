@@ -1,3 +1,9 @@
+=head1 NAME
+
+UI - Main class for user interface.
+
+=cut
+
 package UI;
 
 use Curses qw(initscr keypad start_color noecho cbreak curs_set endwin new_panel update_panels doupdate init_pair
@@ -102,6 +108,16 @@ method BUILD ($params) {
     $.colors = $cols;
 }
 
+=head2 Methods
+
+=over 4
+
+=item C<redraw>
+
+Redraws each tile in the map, then calls C<refresh()>.
+
+=cut
+
 
 method redraw {
     for my $line (@{$.place->chart}) {
@@ -113,6 +129,12 @@ method redraw {
     refresh();
 }
 
+=item C<refresh()>
+
+Calls Curses' "redraw everything" functions.
+
+=cut
+
 sub refresh {
     update_panels();
     doupdate();
@@ -122,10 +144,22 @@ sub setup {
     my ($self) = @_;
 }
 
+=item C<debug()>
+
+Writes a string to the output panel.
+
+=cut
+
 sub debug {
     my ($self, $message) = @_;
     $self->output_panel->panel_window->addstr("» $message\n");
 }
+
+=item C<teardown()>
+
+Restores the cursor, closes down Curses, prints an exit message.
+
+=cut
 
 sub teardown {
     my ($self) = @_;
@@ -134,6 +168,7 @@ sub teardown {
     print "Thanks for playing!\n";
 }
 
+# Internal function
 sub make_login_fields() {
 
     my $flist = [
@@ -207,6 +242,13 @@ sub makeForm(@) {
     }
     return $form;
 }
+
+=item C<get_login_info()>
+
+Uses Displays a form to get a username and a player symbol.
+Returns a list of [username, symbol].
+
+=cut
 
 sub get_login_info {
     my ($self) = @_;
