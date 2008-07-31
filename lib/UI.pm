@@ -139,11 +139,17 @@ Redraws each tile in the map, then calls C<refresh()>.
 method redraw {
     for my $line (@{$.place->chart}) {
         for my $tile (@$line) {
-            $tile->draw();
+            $self->drawtile($tile);
         }
     }
     update_panels();
     refresh();
+}
+
+method drawtile ($tile) {
+    $self->panels->{place}->panel_window->attron($tile->color);
+    $self->panels->{place}->panel_window->addstr($tile->y,$tile->x,$tile->symbol);
+    $self->panels->{place}->panel_window->attroff($tile->color);
 }
 
 =item C<refresh()>

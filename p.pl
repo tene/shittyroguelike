@@ -178,7 +178,11 @@ sub send_to_server {
 
 sub player_move_rel {
     my ($kernel, $heap, $player_id, $x, $y) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2];
-    $heap->{players}->{$player_id}->move_rel($x,$y);
+    my $player = $heap->{players}->{$player_id};
+    my $before = $player->tile;
+    $player->move_rel($x,$y);
+    $heap->{ui}->drawtile($before);
+    $heap->{ui}->drawtile($player->tile);
     #output("Player $player_id moving $x,$y\n");
     $heap->{ui}->refresh();
 }
@@ -193,6 +197,7 @@ sub add_player {
                         );
     $heap->{players}->{$id} = $player;
     output("New player '$symbol' at $x,$y id $id\n");
+    $heap->{ui}->drawtile($player->tile);
     $heap->{ui}->refresh();
 }
 
@@ -226,6 +231,7 @@ sub remove_player {
     my $symbol = $heap->{players}->{$id}->symbol();
     output("Remove player '$symbol' id $id\n");
     $heap->{players}->{$id}->clear();
+    $heap->{ui}->drawtile($heap->{players}->{$id}->tile);
     delete $heap->{players}->{$id};
     $heap->{ui}->refresh();
 }

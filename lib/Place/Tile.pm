@@ -4,7 +4,6 @@ use Moose;
 use Perl6::Attributes;
 use Perl6::Subs;
 
-has panel        => (is=>'rw',isa=>'Curses::Panel',required=>1);
 has x            => (is=>'rw',isa=>'Int',required=>1);
 has y            => (is=>'rw',isa=>'Int',required=>1);
 has vasru        => (is=>'rw',isa=>'Bool');
@@ -18,13 +17,6 @@ has down         => (is=>'rw',isa=>'Place::Tile');
 has 'symbol' => (is=>'rw',isa=>'Str',required=>1);
 has 'color' => (is=>'rw');
    
-method draw {
-    $.panel->panel_window->attron($.color);
-    $.panel->panel_window->addstr($.y,$.x,$.symbol);
-    $.panel->panel_window->attroff($.color);
-}
- 
-
 method BUILD ($params) {
     $.floor_symbol = $params->{'symbol'};
     $.floor_color = $params->{'color'} || undef;
@@ -36,7 +28,6 @@ method enter ($obj) {
     $.symbol = $obj->symbol;
     $.color = $obj->color;
     ./add($obj);
-    ./draw();
     $.vasru = 0;
 }
 
@@ -52,7 +43,6 @@ method leave ($obj) {
         $.color = $.floor_color;
     }
     $.vasru = 1;
-    ./draw();
 }
 
 method remove ($obj) {
