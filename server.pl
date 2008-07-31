@@ -110,6 +110,7 @@ sub connection_start {
         print $player->id(), "\n";
         $heap->{wheel}->put(['add_player',
                     $player->id(),
+                    $player->username(),
                     $player->symbol(),
                     $player->fg(),
                     $player->bg(),
@@ -125,15 +126,16 @@ sub connection_input {
 
     my ($command, @args) = @$input;
     if ($command eq 'add_player') {
-        my ($id, $symbol, $fg, $bg, $y, $x) = @args;
+        my ($id, $username, $symbol, $fg, $bg, $y, $x) = @args;
         print "Adding a new player: $id $symbol $fg $bg $y $x\n";
         $heap->{id} = $id;
         $players{$id} = Server::Player->new(
-                id     => $id,
-                symbol => $symbol,
-                fg     => $fg,
-                bg     => $bg,
-                tile   => $place->[$y]->[$x],
+                id       => $id,
+                username => $username,
+                symbol   => $symbol,
+                fg       => $fg,
+                bg       => $bg,
+                tile     => $place->[$y]->[$x],
             );
         $players{$id}->{tile}->{vasru} = 1;
         $kernel->post($server_session, 'broadcast', $input);

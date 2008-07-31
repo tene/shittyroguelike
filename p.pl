@@ -60,10 +60,11 @@ sub _start {
     $heap->{ui} = UI->new();
 
     my ($username,$symbol) = $heap->{ui}->get_login_info();
+    $heap->{username} = $username;
+    $heap->{symbol} = $symbol;
 
     $heap->{ui}->debug("login info: $username $symbol");
 
-    output("Building world, please wait...");
     $heap->{ui}->refresh();
 
     $heap->{place} = Place->new();
@@ -138,7 +139,7 @@ sub chat_handler {
     #output("help keypress: $keystroke\n");
      $heap->{ui}->refresh();
      given ($keystroke) {
-         when [263, ''] {
+         when [263, ''] { # handle backspace
              my $msg = substr($heap->{chat_message},0,-1);
              $heap->{chat_message} = $msg;
              $heap->{ui}->panels->{input}->panel_window->echochar("\n");
@@ -165,10 +166,11 @@ sub chat_handler {
 
 sub random_player {
     my $heap = shift;
-    my $symbol = $sigils[int(rand $#sigils)];
+    my $symbol = $heap->{symbol} || $sigils[int(rand $#sigils)];
+    my $username = $heap->{username} || 'Player' . $heap->{my_id};
     my $fg = $colors[1 + int(rand ($#colors - 1))];
     #my $bg = $colors[int(rand ($#colors - 1))];
-    send_to_server('add_player',$heap->{my_id},$symbol,$fg,'black',5,5) 
+    send_to_server('add_player',$heap->{my_id},$username,$symbol,$fg,'black',5,5) 
 }
 
 sub send_to_server {
@@ -188,15 +190,16 @@ sub player_move_rel {
 }
 
 sub add_player {
-    my ($kernel, $heap, $id, $symbol, $fg, $bg, $y, $x) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2, ARG3, ARG4, ARG5];
+    my ($kernel, $heap, $id, $username, $symbol, $fg, $bg, $y, $x) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2, ARG3, ARG4, ARG5, ARG6];
     my $player = Player->new(
+                        username => $username,
                         symbol => $symbol,
                         color => $heap->{ui}->colors->{$fg}->{$bg},
                         tile => $heap->{place}->chart->[$y][$x],
                         id => $id,
                         );
     $heap->{players}->{$id} = $player;
-    output("New player '$symbol' at $x,$y id $id\n");
+    output("New player $username($symbol) at $x,$y id $id\n");
     $heap->{ui}->drawtile($player->tile);
     $heap->{ui}->refresh();
 }
@@ -204,15 +207,16 @@ sub add_player {
 sub player_chat {
     my ($kernel, $heap, $id, $message) = @_[KERNEL, HEAP, ARG0, ARG1];
     my $from = $heap->{players}->{$id};
+    output("$from->{username}(");
     output_colored($from->symbol,$from->color);
-    output(": $message");
+    output("): $message\n");
     $heap->{ui}->refresh();
 }
 
 sub new_map {
     my ($kernel, $heap, $map) = @_[KERNEL, HEAP, ARG0];
 
-    #output("loading new map");
+    output("Building world, please wait...\n");
 
     $heap->{place}->load($map,$heap->{ui}->panels->{place},$heap->{ui});
     #$heap->{place}->chart->[3][3]->enter(Place::Thing->new(color=>$heap->{ui}->colors->{'red'}->{'black'},symbol=>'%'));
@@ -269,8 +273,7 @@ sub server_error {
 sub output {
     my $message = shift;
     my $panel = shift;
-    chomp $message;
-    ${peek_my(1)->{'$heap'}}->{ui}->output("$message\n",$panel);
+    ${peek_my(1)->{'$heap'}}->{ui}->output($message,$panel);
 }
 
 sub output_colored {
