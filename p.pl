@@ -210,7 +210,7 @@ sub new_map {
     #output("loading new map");
 
     $heap->{place}->load($map,$heap->{ui}->panels->{place},$heap->{ui});
-    $heap->{place}->chart->[3][3]->enter(Place::Thing->new(color=>$heap->{ui}->colors->{'red'}->{'black'},symbol=>'%'));
+    #$heap->{place}->chart->[3][3]->enter(Place::Thing->new(color=>$heap->{ui}->colors->{'red'}->{'black'},symbol=>'%'));
     $heap->{ui}->refresh();
     $heap->{ui}->redraw();
     ungetch('r');

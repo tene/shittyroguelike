@@ -29,9 +29,12 @@ my %players;
 
 my $map;
 
+my $place;
+
 sub new ($self,$mapfile,?$port) {
     $default_port ||= $port;
     $map = slurp '<:utf8', $mapfile;
+    $place = loadmap($map);
     $server_session = POE::Session->create(
         inline_states=> {
             _start => \&poe_start,
@@ -110,8 +113,8 @@ sub connection_start {
                     $player->symbol(),
                     $player->fg(),
                     $player->bg(),
-                    $player->y(),
-                    $player->x(),
+                    $player->tile->{y},
+                    $player->tile->{x},
                 ]);
     }
 }
@@ -130,20 +133,39 @@ sub connection_input {
                 symbol => $symbol,
                 fg     => $fg,
                 bg     => $bg,
-                y      => $y,
-                x      => $x,
+                tile   => $place->[$y]->[$x],
             );
+        $players{$id}->{tile}->{vasru} = 1;
         $kernel->post($server_session, 'broadcast', $input);
     }
     elsif ($command eq 'player_move_rel') {
         my ($id, $x, $y) = @args;
         my $player = $players{$id};
-        $player->x($player->{x} + $x);
-        $player->y($player->{y} + $y);
+        my $dest = $player->tile;
+        my $xdir = ($x < 0)? 'left' : 'right';
+        my $ydir = ($y < 0)? 'up' : 'down';
+
+        $x = abs $x;
+        $y = abs $y;
+
+        while ($x-- > 0) {
+            $dest = $dest->{$xdir} || return;
+        }
+
+        while ($y-- > 0) {
+            $dest = $dest->{$ydir} || return;
+        }
+
+        return if $dest->{vasru};
+        $player->tile->{vasru} = 0;
+        $dest->{vasru} = 1;
+        $player->tile($dest);
+
         $kernel->post($server_session, 'broadcast', $input);
     }
     elsif ($command eq 'remove_player') {
         my ($id) = @args;
+        $players{$id}->tile->{vasru} = 0;
         delete $players{$id};
         $kernel->post($server_session, 'broadcast', $input);
     }
@@ -156,6 +178,7 @@ sub connection_error {
    my ($kernel, $session, $heap) = @_[KERNEL, SESSION, HEAP];
    return unless defined($players{$heap->{id}});
    $kernel->post($server_session, 'broadcast', ['remove_player', $heap->{id}]);
+   $players{$heap->{id}}->tile->{vasru} = 0;
    delete $players{$heap->{id}};
 }
 
@@ -165,6 +188,48 @@ sub connection_broadcast {
    $heap->{wheel}->put($message);
 }
 
+sub loadmap {
+    my $map = shift;
+    my $a = [];
+    my $y = 0;
+    my $prevline;
+    for (split /\n/, $map) {
+        chomp;
+        my @chars = split //,$_;
+        my @tiles = ();
+        my $x = 0;
+        my $prevtile;
+        for my $char (@chars) {
+            my $tile = {symbol=>$char,x=>$x,y=>$y,fg=>'white',bg=>'black'};
+            if($char eq '.') {
+                $tile->{vasru}=0;
+            }
+            else {
+                $tile->{vasru}=1;
+            }
+            if($char eq '#') {
+                $tile->{fg}='green';
+            }
+
+            if ($prevtile) {
+                $prevtile->{right}=$tile;
+                $tile->{left}=$prevtile;
+            }
+            $prevtile = $tile;
+
+            if (defined $prevline && defined $prevline->[$x]) {
+                $prevline->[$x]->{down} = $tile;
+                $tile->{up} = $prevline->[$x];
+            }
+            push @tiles, $tile;
+            $x++;
+        }
+        $prevline = \@tiles;
+        push @$a, [@tiles];
+        $y++;
+    }
+    return $a;
+}
 
 #===============================================================================
 package main;
