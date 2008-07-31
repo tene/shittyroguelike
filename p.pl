@@ -63,6 +63,9 @@ sub _start {
     $heap->{username} = $username;
     $heap->{symbol} = $symbol;
 
+    $heap->{ui}->panels->{status}->show_panel();
+    $heap->{ui}->panels->{status}->panel_window->addstr(1,1,' 'x(12-((length $username)/2)) . "$username($symbol)");
+
     $heap->{ui}->debug("login info: $username $symbol");
 
     $heap->{ui}->refresh();

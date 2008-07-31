@@ -52,8 +52,9 @@ method BUILD ($params) {
     $iw->scrollok(1);
     $iw->leaveok(1);
     my $sw = Curses->new(0,30,0,$COLS-30);
-    $sw->scrollok(1);
+    $sw->scrollok(0);
     $sw->leaveok(1);
+    $sw->box(0,0);
     my $hw = Curses->new(6,50,10,15);
     $hw->scrollok(1);
     $hw->leaveok(1);
@@ -65,6 +66,7 @@ method BUILD ($params) {
     my $ip = new_panel($iw);
     my $sp = new_panel($sw);
     my $hp = new_panel($hw);
+    $sp->hide_panel();
     $fp->hide_panel();
     $hp->hide_panel();
 
