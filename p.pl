@@ -115,7 +115,8 @@ sub keystroke_handler {
          when 'n' { send_to_server('remove_player',$heap->{my_id}); random_player($heap); };
          when ["\r", "\n"] {
              $heap->{console}->[2] = 'chat_keystroke';
-             output_colored($heap->{players}->{$heap->{my_id}}->symbol,$heap->{players}->{$heap->{my_id}}->color,'input');
+             my $player = $heap->{players}->{$heap->{my_id}};
+             output_colored($player->symbol,$player->fg,$player->bg,'input');
              $heap->{ui}->output(': ', 'input');
              $heap->{ui}->redraw();
              curs_set(1);
