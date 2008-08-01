@@ -150,9 +150,10 @@ method redraw {
 }
 
 method drawtile ($tile) {
-    my $color = $.colors->{$tile->fg}->{$tile->bg};
+    my $obj = $tile->contents->[-1] || $tile;
+    my $color = $.colors->{$obj->fg}->{$obj->bg};
     $self->panels->{place}->panel_window->attron($color);
-    $self->panels->{place}->panel_window->addstr($tile->y,$tile->x,$tile->symbol);
+    $self->panels->{place}->panel_window->addstr($tile->y,$tile->x,$obj->symbol);
     $self->panels->{place}->panel_window->attroff($color);
 }
 

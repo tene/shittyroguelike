@@ -203,7 +203,9 @@ sub add_player {
                         id => $id,
                         );
     $heap->{players}->{$id} = $player;
-    output("New player $username($symbol) at $x,$y id $id\n");
+    output("New player $username(");
+    output_colored($symbol,$fg,$bg);
+    output(") at $x,$y id $id\n");
     $heap->{ui}->drawtile($player->tile);
     $heap->{ui}->refresh();
 }
