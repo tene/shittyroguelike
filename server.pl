@@ -18,6 +18,7 @@ use POE qw(Wheel::SocketFactory Wheel::ReadWrite
 use Data::Dumper;
 
 use Server::Player;
+use Place;
 
 use Perl6::Slurp;
 
@@ -34,7 +35,8 @@ my $place;
 sub new ($self,$mapfile,?$port) {
     $default_port ||= $port;
     $map = slurp '<:utf8', $mapfile;
-    $place = loadmap($map);
+    $place = Place->new();
+    $place->load($map);
     $server_session = POE::Session->create(
         inline_states=> {
             _start => \&poe_start,
@@ -104,7 +106,7 @@ sub connection_start {
     );
     # hello, world!\n
     #$heap->{wheel}->put('Connected to server', '', '');
-    $heap->{wheel}->put(['new_map', $map]);
+    $heap->{wheel}->put(['new_map', $place]);
     $heap->{wheel}->put(['assign_id', $session->ID]);
     while ( my ($id, $player)  = each %players) {
         print $player->id(), "\n";
@@ -114,8 +116,8 @@ sub connection_start {
                     $player->symbol(),
                     $player->fg(),
                     $player->bg(),
-                    $player->tile->{y},
-                    $player->tile->{x},
+                    $player->tile->y,
+                    $player->tile->x,
                 ]);
     }
 }
@@ -135,9 +137,9 @@ sub connection_input {
                 symbol   => $symbol,
                 fg       => $fg,
                 bg       => $bg,
-                tile     => $place->[$y]->[$x],
+                tile     => $place->chart->[$y][$x],
             );
-        $players{$id}->{tile}->{vasru} = 1;
+        $players{$id}->{tile}->vasru(1);
         $kernel->post($server_session, 'broadcast', $input);
     }
     elsif ($command eq 'player_move_rel') {
@@ -151,23 +153,23 @@ sub connection_input {
         $y = abs $y;
 
         while ($x-- > 0) {
-            $dest = $dest->{$xdir} || return;
+            $dest = $dest->$xdir || return;
         }
 
         while ($y-- > 0) {
-            $dest = $dest->{$ydir} || return;
+            $dest = $dest->$ydir || return;
         }
 
-        return if $dest->{vasru};
-        $player->tile->{vasru} = 0;
-        $dest->{vasru} = 1;
+        return unless $dest->vasru;
+        $player->tile->vasru(1);
+        $dest->vasru(0);
         $player->tile($dest);
 
         $kernel->post($server_session, 'broadcast', $input);
     }
     elsif ($command eq 'remove_player') {
         my ($id) = @args;
-        $players{$id}->tile->{vasru} = 0;
+        $players{$id}->tile->vasru(1);
         delete $players{$id};
         $kernel->post($server_session, 'broadcast', $input);
     }
@@ -180,7 +182,7 @@ sub connection_error {
    my ($kernel, $session, $heap) = @_[KERNEL, SESSION, HEAP];
    return unless defined($players{$heap->{id}});
    $kernel->post($server_session, 'broadcast', ['remove_player', $heap->{id}]);
-   $players{$heap->{id}}->tile->{vasru} = 0;
+   $players{$heap->{id}}->tile->vasru(1);
    delete $players{$heap->{id}};
 }
 
@@ -188,49 +190,6 @@ sub connection_broadcast {
    my ($kernel, $session, $heap, $message) = @_[KERNEL, SESSION, HEAP, ARG0];
 
    $heap->{wheel}->put($message);
-}
-
-sub loadmap {
-    my $map = shift;
-    my $a = [];
-    my $y = 0;
-    my $prevline;
-    for (split /\n/, $map) {
-        chomp;
-        my @chars = split //,$_;
-        my @tiles = ();
-        my $x = 0;
-        my $prevtile;
-        for my $char (@chars) {
-            my $tile = {symbol=>$char,x=>$x,y=>$y,fg=>'white',bg=>'black'};
-            if($char eq '.') {
-                $tile->{vasru}=0;
-            }
-            else {
-                $tile->{vasru}=1;
-            }
-            if($char eq '#') {
-                $tile->{fg}='green';
-            }
-
-            if ($prevtile) {
-                $prevtile->{right}=$tile;
-                $tile->{left}=$prevtile;
-            }
-            $prevtile = $tile;
-
-            if (defined $prevline && defined $prevline->[$x]) {
-                $prevline->[$x]->{down} = $tile;
-                $tile->{up} = $prevline->[$x];
-            }
-            push @tiles, $tile;
-            $x++;
-        }
-        $prevline = \@tiles;
-        push @$a, [@tiles];
-        $y++;
-    }
-    return $a;
 }
 
 #===============================================================================

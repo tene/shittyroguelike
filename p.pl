@@ -218,11 +218,12 @@ sub player_chat {
 }
 
 sub new_map {
-    my ($kernel, $heap, $map) = @_[KERNEL, HEAP, ARG0];
+    my ($kernel, $heap, $place) = @_[KERNEL, HEAP, ARG0];
 
     output("Building world, please wait...\n");
 
-    $heap->{place}->load($map);
+    $heap->{place} = $place;
+    $heap->{ui}->{place} = $place;
     #$heap->{place}->chart->[3][3]->enter(Place::Thing->new(color=>$heap->{ui}->colors->{'red'}->{'black'},symbol=>'%'));
     $heap->{ui}->refresh();
     $heap->{ui}->redraw();
