@@ -9,24 +9,28 @@ has y            => (is=>'rw',isa=>'Int',required=>1);
 has vasru        => (is=>'rw',isa=>'Bool');
 has contents     => (is=>'rw',isa=>'ArrayRef[Object]',auto_deref=>1);
 has floor_symbol => (is=>'rw',isa=>'Str');
-has floor_color  => (is=>'rw',isa=>'Str');
+has floor_fg     => (is=>'rw',isa=>'Str');
+has floor_bg     => (is=>'rw',isa=>'Str');
 has left         => (is=>'rw',isa=>'Place::Tile');
 has right        => (is=>'rw',isa=>'Place::Tile');
 has up           => (is=>'rw',isa=>'Place::Tile');
 has down         => (is=>'rw',isa=>'Place::Tile');
 has 'symbol' => (is=>'rw',isa=>'Str',required=>1);
-has 'color' => (is=>'rw');
+has 'fg'         => (is=>'rw',isa=>'Str');
+has 'bg'         => (is=>'rw',isa=>'Str');
    
 method BUILD ($params) {
     $.floor_symbol = $params->{'symbol'};
-    $.floor_color = $params->{'color'} || undef;
+    $.floor_fg = $params->{'fg'} || undef;
+    $.floor_bg = $params->{'bg'} || undef;
 }
 
 method enter ($obj) {
     $obj->tile($self);
 
     $.symbol = $obj->symbol;
-    $.color = $obj->color;
+    $.fg = $obj->fg;
+    $.bg = $obj->bg;
     ./add($obj);
     $.vasru = 0;
 }
@@ -36,11 +40,13 @@ method leave ($obj) {
     my @l = ./contents;
     if(@l) {
         $.symbol = $l[-1]->symbol;
-        $.color = $l[-1]->color;
+        $.fg = $l[-1]->fg;
+        $.bg = $l[-1]->bg;
     }
     else {
         $.symbol = $.floor_symbol;
-        $.color = $.floor_color;
+        $.fg = $.floor_fg;
+        $.bg = $.floor_bg;
     }
     $.vasru = 1;
 }

@@ -11,7 +11,7 @@ use Data::Dumper;
 
 has chart => (is=>'rw',isa=>'ArrayRef[ArrayRef[Place::Tile]]');
 
-method load ($map,$panel,$ui) {
+method load ($map) {
     my $a = [];
     my $y = 0;
     my $prevline;
@@ -22,7 +22,7 @@ method load ($map,$panel,$ui) {
         my $x = 0;
         my $prevtile;
         for my $char (@chars) {
-            my $tile = Place::Tile->new(symbol=>$char,x=>$x,y=>$y,panel=>$panel,color=>$ui->colors->{'white'}->{'black'});
+            my $tile = Place::Tile->new(symbol=>$char,x=>$x,y=>$y,fg=>'white',bg=>'black');
             if($char eq '.') {
                 $tile->vasru(1);
             }
@@ -30,7 +30,7 @@ method load ($map,$panel,$ui) {
                 $tile->vasru(0);
             }
             if($char eq '#') {
-                $tile->color($ui->colors->{green}->{black});
+                $tile->fg('green');
             }
 
             if ($prevtile) {

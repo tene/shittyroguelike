@@ -120,8 +120,9 @@ method output ($message,?$panel) {
     $self->panels->{$panel}->panel_window->addstr($message);
 }
 
-method output_colored ($message,$color,?$panel) {
+method output_colored ($message,$fg,$bg,?$panel) {
     $panel ||= 'output';
+    my $color = $.colors->{$fg}->{$bg};
     $self->panels->{$panel}->panel_window->attron($color);
     $self->panels->{$panel}->panel_window->addstr($message);
     $self->panels->{$panel}->panel_window->attroff($color);
@@ -149,9 +150,10 @@ method redraw {
 }
 
 method drawtile ($tile) {
-    $self->panels->{place}->panel_window->attron($tile->color);
+    my $color = $.colors->{$tile->fg}->{$tile->bg};
+    $self->panels->{place}->panel_window->attron($color);
     $self->panels->{place}->panel_window->addstr($tile->y,$tile->x,$tile->symbol);
-    $self->panels->{place}->panel_window->attroff($tile->color);
+    $self->panels->{place}->panel_window->attroff($color);
 }
 
 =item C<refresh()>

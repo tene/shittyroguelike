@@ -8,7 +8,8 @@ my $counter = 0;
 
 has 'tile' => (is=>'rw',isa=>'Place::Tile');
 has 'symbol' => (is=>'rw',isa=>'Str',required=>1);
-has 'color' => (is=>'rw');
+has 'fg' => (is=>'rw');
+has 'bg' => (is=>'rw');
 has 'id' => (is=>'rw',isa=>'Int',required=>1,default=>sub {1000 + $counter++});
 
 method clear {

@@ -197,7 +197,8 @@ sub add_player {
     my $player = Player->new(
                         username => $username,
                         symbol => $symbol,
-                        color => $heap->{ui}->colors->{$fg}->{$bg},
+                        fg => $fg,
+                        bg => $bg,
                         tile => $heap->{place}->chart->[$y][$x],
                         id => $id,
                         );
@@ -211,7 +212,7 @@ sub player_chat {
     my ($kernel, $heap, $id, $message) = @_[KERNEL, HEAP, ARG0, ARG1];
     my $from = $heap->{players}->{$id};
     output("$from->{username}(");
-    output_colored($from->symbol,$from->color);
+    output_colored($from->symbol,$from->fg,$from->bg);
     output("): $message\n");
     $heap->{ui}->refresh();
 }
@@ -221,7 +222,7 @@ sub new_map {
 
     output("Building world, please wait...\n");
 
-    $heap->{place}->load($map,$heap->{ui}->panels->{place},$heap->{ui});
+    $heap->{place}->load($map);
     #$heap->{place}->chart->[3][3]->enter(Place::Thing->new(color=>$heap->{ui}->colors->{'red'}->{'black'},symbol=>'%'));
     $heap->{ui}->refresh();
     $heap->{ui}->redraw();
@@ -281,7 +282,8 @@ sub output {
 
 sub output_colored {
     my $message = shift;
-    my $color = shift;
+    my $fg = shift;
+    my $bg = shift;
     my $panel = shift;
-    ${peek_my(1)->{'$heap'}}->{ui}->output_colored($message,$color,$panel);
+    ${peek_my(1)->{'$heap'}}->{ui}->output_colored($message,$fg,$bg,$panel);
 }
