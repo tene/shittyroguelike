@@ -15,6 +15,8 @@ has down         => (is=>'rw',isa=>'Place::Tile');
 has 'symbol' => (is=>'rw',isa=>'Str',required=>1);
 has 'fg'         => (is=>'rw',isa=>'Str');
 has 'bg'         => (is=>'rw',isa=>'Str');
+
+__PACKAGE__->meta->make_immutable;
    
 method BUILD ($params) {
     $.symbol = $params->{'symbol'};
