@@ -118,7 +118,7 @@ sub keystroke_handler {
              my $player = $heap->{place}->objects->{$heap->{my_id}};
              output_colored($player->symbol,$player->fg,$player->bg,'input');
              $heap->{ui}->output(': ', 'input');
-             $heap->{ui}->redraw();
+             $heap->{ui}->refresh();
              curs_set(1);
          }
          when 'd' {
@@ -127,7 +127,7 @@ sub keystroke_handler {
          }
          when 'r' { $heap->{ui}->redraw() }
          when 's' { $heap->{ui}->update_status() }
-         when '?' { $heap->{ui}->panels->{help}->top_panel(); $heap->{ui}->redraw(); $heap->{console}->[2] = 'help_keystroke'; }
+         when '?' { $heap->{ui}->panels->{help}->top_panel(); $heap->{ui}->refresh(); $heap->{console}->[2] = 'help_keystroke'; }
          when 'q' { send_to_server('remove_object',$heap->{my_id}); delete $heap->{console}; delete $heap->{server_socket}  } # how to tell POE to kill the session?
      }
 }
@@ -138,7 +138,7 @@ sub help_handler {
     #output("help keypress: $keystroke\n");
      $heap->{ui}->refresh();
      given ($keystroke) {
-         default { $heap->{ui}->panels->{help}->bottom_panel(); $heap->{ui}->redraw(); $heap->{console}->[2] = 'got_keystroke'; }
+         default { $heap->{ui}->panels->{help}->bottom_panel(); $heap->{ui}->refresh(); $heap->{console}->[2] = 'got_keystroke'; }
      }
 }
 
@@ -152,7 +152,7 @@ sub chat_handler {
              $heap->{console}->[2] = 'got_keystroke';
              $heap->{chat_message} = '';
              $heap->{ui}->output("\n",'input');
-             $heap->{ui}->redraw();
+             $heap->{ui}->refresh();
              curs_set(0);
          }
          when [263, ''] { # handle backspace
@@ -163,20 +163,20 @@ sub chat_handler {
              output_colored($player->symbol,$player->fg,$player->bg,'input');
              $heap->{ui}->output(': ', 'input');
              $heap->{ui}->panels->{input}->panel_window->addstr($msg);
-             $heap->{ui}->redraw() 
+             $heap->{ui}->refresh() 
          }
          when ["\r", "\n"] { 
              send_to_server('chat',$heap->{my_id},$heap->{chat_message}) if ((length $heap->{chat_message}) > 0);
              $heap->{console}->[2] = 'got_keystroke';
              $heap->{chat_message} = '';
              $heap->{ui}->output("\n",'input');
-             $heap->{ui}->redraw();
+             $heap->{ui}->refresh();
              curs_set(0);
          }
          default {
              $heap->{chat_message} .= $keystroke;
              $heap->{ui}->panels->{input}->panel_window->echochar($keystroke);
-             $heap->{ui}->redraw();
+             $heap->{ui}->refresh();
          }
      }
 }
