@@ -71,6 +71,7 @@ sub poe_accepted {
                     object_move_rel => \&object_move_rel,
                     drop_item => \&drop_item,
                     remove_object => \&remove_object,
+                    change_object => \&change_object,
                     chat => \&chat,
                 },
                 args => [ $socket, $addr, $port],
@@ -169,13 +170,23 @@ sub drop_item {
     $place->objects->{$obj->id} = $obj;
     $kernel->post($server_session,'broadcast',['drop_item',$heap->{id},$obj]);
     $player->tile->enter($obj);
-    $kernel->delay_set('remove_object',5+rand(rand(rand(100))),$obj->id);
+    my $rand = 5+rand(rand(rand(100)));
+    $kernel->delay_set('change_object',$rand/2,$obj->id,{'symbol'=>'°','fg'=>'magenta'});
+    $kernel->delay_set('remove_object',$rand,$obj->id);
 }
 sub remove_object {
     my ($kernel, $session, $heap, $id) = @_[KERNEL, SESSION, HEAP, ARG0];
     $place->objects->{$id}->tile->leave($place->objects->{$id});
     delete $place->objects->{$id};
     $kernel->post($server_session, 'broadcast', ['remove_object', $id]);
+}
+sub change_object {
+    my ($kernel, $session, $heap, $id, $changes) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1];
+    my $obj = $place->objects->{$id};
+    for my $attr (keys %{$changes}) {
+        $obj->$attr($changes->{$attr});
+    }
+    $kernel->post($server_session, 'broadcast', ['change_object', $id, $changes]);
 }
 sub chat {
     my ($kernel, $session, $heap, $id, $message) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1];

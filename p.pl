@@ -37,6 +37,7 @@ POE::Session->create
         new_map => \&new_map,
         drop_item => \&drop_item,
         remove_object => \&remove_object,
+        change_object => \&change_object,
         connect_start => \&connect_start,
         connect_success => \&connect_success,
         connect_failure => \&connect_failure,
@@ -260,7 +261,7 @@ sub drop_item {
 sub remove_object {
     my ($kernel, $heap, $id) = @_[KERNEL, HEAP, ARG0];
     unless ( defined($heap->{place}->objects->{$id}) ) {
-        output("Attempt to remove invalid player id $id\n");
+        output("Attempt to remove invalid object id $id\n");
         $heap->{ui}->refresh();
         return;
     }
@@ -268,6 +269,22 @@ sub remove_object {
     $heap->{place}->objects->{$id}->clear();
     $heap->{ui}->drawtile($heap->{place}->objects->{$id}->tile);
     delete $heap->{place}->objects->{$id};
+    $heap->{ui}->update_status();
+    $heap->{ui}->refresh();
+}
+
+sub change_object {
+    my ($kernel, $heap, $id, $changes) = @_[KERNEL, HEAP, ARG0, ARG1];
+    unless ( defined($heap->{place}->objects->{$id}) ) {
+        output("Attempt to change invalid object id $id\n");
+        $heap->{ui}->refresh();
+        return;
+    }
+    my $obj = $heap->{place}->objects->{$id};
+    for my $attr (keys %{$changes}) {
+        $obj->$attr($changes->{$attr});
+    }
+    $heap->{ui}->drawtile($heap->{place}->objects->{$id}->tile);
     $heap->{ui}->update_status();
     $heap->{ui}->refresh();
 }
