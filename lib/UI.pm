@@ -11,7 +11,7 @@ use Curses qw(initscr keypad start_color noecho cbreak curs_set endwin new_panel
     O_ACTIVE O_EDIT A_UNDERLINE
     $LINES $COLS
     newwin derwin subwin delwin
-    clear
+    erase
     box
     top_panel bottom_panel hide_panel show_panel
     new_field set_field_buffer field_opts_off set_field_back
@@ -175,7 +175,7 @@ method update_status {
     my $i = 1;
     my @players = sort {$a->username cmp $b->username} grep {(ref $_) eq 'Player'} values %{$self->place->objects};
     my @objects = sort {$a->id cmp $b->id} grep {(ref $_) ne 'Player'} values %{$self->place->objects};
-    $self->panels->{status}->panel_window->clear();
+    $self->panels->{status}->panel_window->erase();
     $self->panels->{status}->panel_window->box(0,0);
     for my $player (@players) {
         $self->panels->{status}->panel_window->addstr($i++,1,' 'x(12-((length $player->username)/2)) . "$player->{username}(");
