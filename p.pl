@@ -25,6 +25,8 @@ $_->meta->make_immutable(
 )
 for qw(Player Place Place::Thing Place::Tile UI);
 
+my $place;
+
 POE::Session->create
   ( inline_states =>
       { _start => \&_start,
@@ -71,9 +73,9 @@ sub _start {
 
     $heap->{ui}->refresh();
 
-    $heap->{place} = Place->new();
+    $place = Place->new();
 
-    $heap->{ui}->place($heap->{place});
+    $heap->{ui}->place($place);
 
     $heap->{ui}->setup();
 
@@ -115,14 +117,14 @@ sub keystroke_handler {
          when 'n' { send_to_server('remove_object',$heap->{my_id}); random_player($heap); };
          when ["\r", "\n"] {
              $heap->{console}->[2] = 'chat_keystroke';
-             my $player = $heap->{place}->objects->{$heap->{my_id}};
+             my $player = $place->objects->{$heap->{my_id}};
              output_colored($player->symbol,$player->fg,$player->bg,'input');
              $heap->{ui}->output(': ', 'input');
              $heap->{ui}->refresh();
              curs_set(1);
          }
          when 'd' {
-             my $player = $heap->{place}->objects->{$heap->{my_id}};
+             my $player = $place->objects->{$heap->{my_id}};
              send_to_server('drop_item','*','red','black'); 
          }
          when 'r' { $heap->{ui}->redraw() }
@@ -159,7 +161,7 @@ sub chat_handler {
              my $msg = substr($heap->{chat_message},0,-1);
              $heap->{chat_message} = $msg;
              $heap->{ui}->panels->{input}->panel_window->echochar("\n");
-             my $player = $heap->{place}->objects->{$heap->{my_id}};
+             my $player = $place->objects->{$heap->{my_id}};
              output_colored($player->symbol,$player->fg,$player->bg,'input');
              $heap->{ui}->output(': ', 'input');
              $heap->{ui}->panels->{input}->panel_window->addstr($msg);
@@ -197,7 +199,7 @@ sub send_to_server {
 
 sub object_move_rel {
     my ($kernel, $heap, $player_id, $x, $y) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2];
-    my $player = $heap->{place}->objects->{$player_id};
+    my $player = $place->objects->{$player_id};
     my $before = $player->tile;
     $player->move_rel($x,$y);
     $heap->{ui}->drawtile($before);
@@ -213,10 +215,10 @@ sub add_player {
                         symbol => $symbol,
                         fg => $fg,
                         bg => $bg,
-                        tile => $heap->{place}->chart->[$y][$x],
+                        tile => $place->chart->[$y][$x],
                         id => $id,
                         );
-    $heap->{place}->objects->{$id} = $player;
+    $place->objects->{$id} = $player;
     output("New player $username(");
     output_colored($symbol,$fg,$bg);
     output(") at $x,$y id $id\n");
@@ -227,7 +229,7 @@ sub add_player {
 
 sub chat {
     my ($kernel, $heap, $id, $message) = @_[KERNEL, HEAP, ARG0, ARG1];
-    my $from = $heap->{place}->objects->{$id};
+    my $from = $place->objects->{$id};
     output("$from->{username}(");
     output_colored($from->symbol,$from->fg,$from->bg);
     output("): $message\n");
@@ -235,14 +237,14 @@ sub chat {
 }
 
 sub new_map {
-    my ($kernel, $heap, $place) = @_[KERNEL, HEAP, ARG0];
+    my ($kernel, $heap, $newplace) = @_[KERNEL, HEAP, ARG0];
 
     output("Building world, please wait...\n");
 
-    $heap->{place} = $place;
-    $heap->{ui}->{place} = $place;
+    $place = $newplace;
+    $heap->{ui}->{place} = $newplace;
     $heap->{ui}->update_status;
-    #$heap->{place}->chart->[3][3]->enter(Place::Thing->new(color=>$heap->{ui}->colors->{'red'}->{'black'},symbol=>'%'));
+    #$place->chart->[3][3]->enter(Place::Thing->new(color=>$heap->{ui}->colors->{'red'}->{'black'},symbol=>'%'));
     $heap->{ui}->refresh();
     $heap->{ui}->redraw();
     ungetch('r');
@@ -250,9 +252,9 @@ sub new_map {
 
 sub drop_item {
     my ($kernel, $heap, $id, $obj) = @_[KERNEL, HEAP, ARG0, ARG1];
-    my $player = $heap->{place}->objects->{$id};
+    my $player = $place->objects->{$id};
     $player->tile->enter($obj);
-    $heap->{place}->objects->{$obj->id} = $obj;
+    $place->objects->{$obj->id} = $obj;
     $heap->{ui}->drawtile($player->tile);
     $heap->{ui}->update_status();
     $heap->{ui}->refresh();
@@ -260,31 +262,31 @@ sub drop_item {
 
 sub remove_object {
     my ($kernel, $heap, $id) = @_[KERNEL, HEAP, ARG0];
-    unless ( defined($heap->{place}->objects->{$id}) ) {
+    unless ( defined($place->objects->{$id}) ) {
         output("Attempt to remove invalid object id $id\n");
         $heap->{ui}->refresh();
         return;
     }
-    my $symbol = $heap->{place}->objects->{$id}->symbol();
-    $heap->{place}->objects->{$id}->clear();
-    $heap->{ui}->drawtile($heap->{place}->objects->{$id}->tile);
-    delete $heap->{place}->objects->{$id};
+    my $symbol = $place->objects->{$id}->symbol();
+    $place->objects->{$id}->clear();
+    $heap->{ui}->drawtile($place->objects->{$id}->tile);
+    delete $place->objects->{$id};
     $heap->{ui}->update_status();
     $heap->{ui}->refresh();
 }
 
 sub change_object {
     my ($kernel, $heap, $id, $changes) = @_[KERNEL, HEAP, ARG0, ARG1];
-    unless ( defined($heap->{place}->objects->{$id}) ) {
+    unless ( defined($place->objects->{$id}) ) {
         output("Attempt to change invalid object id $id\n");
         $heap->{ui}->refresh();
         return;
     }
-    my $obj = $heap->{place}->objects->{$id};
+    my $obj = $place->objects->{$id};
     for my $attr (keys %{$changes}) {
         $obj->$attr($changes->{$attr});
     }
-    $heap->{ui}->drawtile($heap->{place}->objects->{$id}->tile);
+    $heap->{ui}->drawtile($place->objects->{$id}->tile);
     $heap->{ui}->update_status();
     $heap->{ui}->refresh();
 }
