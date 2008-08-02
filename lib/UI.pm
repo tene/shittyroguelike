@@ -173,8 +173,8 @@ Redraws the status panel.
 
 method update_status {
     my $i = 1;
-    my @players = sort {$a->username cmp $b->username} values %{$self->place->players};
-    my @objects = sort {$a->id cmp $b->id} values %{$self->place->objects};
+    my @players = sort {$a->username cmp $b->username} grep {(ref $_) eq 'Player'} values %{$self->place->objects};
+    my @objects = sort {$a->id cmp $b->id} grep {(ref $_) ne 'Player'} values %{$self->place->objects};
     $self->panels->{status}->panel_window->clear();
     $self->panels->{status}->panel_window->box(0,0);
     for my $player (@players) {

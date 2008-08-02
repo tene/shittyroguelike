@@ -68,11 +68,10 @@ sub poe_accepted {
                     error  => \&connection_error,
                     broadcast => \&connection_broadcast,
                     add_player => \&add_player,
-                    player_move_rel => \&player_move_rel,
+                    object_move_rel => \&object_move_rel,
                     drop_item => \&drop_item,
-                    delete_item => \&delete_item,
-                    remove_player => \&remove_player,
-                    player_chat => \&player_chat,
+                    remove_object => \&remove_object,
+                    chat => \&chat,
                 },
                 args => [ $socket, $addr, $port],
             );
@@ -127,7 +126,7 @@ sub add_player {
     my ($kernel, $session, $heap, $id, $username, $symbol, $fg, $bg, $y, $x) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2, ARG3, ARG4, ARG5, ARG6];
     print "Adding a new player: $id $symbol $fg $bg $y $x\n";
     $heap->{id} = $id;
-    $place->players->{$id} = Player->new(
+    $place->objects->{$id} = Player->new(
             id       => $id,
             username => $username,
             symbol   => $symbol,
@@ -135,12 +134,12 @@ sub add_player {
             bg       => $bg,
             tile     => $place->chart->[$y][$x],
         );
-    $place->players->{$id}->{tile}->vasru(1);
+    $place->objects->{$id}->{tile}->vasru(1);
     $kernel->post($server_session, 'broadcast', ['add_player', $id, $username, $symbol, $fg, $bg, $y, $x]);
 }
-sub player_move_rel {
+sub object_move_rel {
     my ($kernel, $session, $heap, $id, $ox, $oy) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2];
-    my $player = $place->players->{$id};
+    my $player = $place->objects->{$id};
     my $dest = $player->tile;
     my $xdir = ($ox < 0)? 'left' : 'right';
     my $ydir = ($oy < 0)? 'up' : 'down';
@@ -161,42 +160,34 @@ sub player_move_rel {
     $dest->enter($player);
     $player->tile($dest);
 
-    $kernel->post($server_session, 'broadcast', ['player_move_rel', $id, $ox, $oy]);
+    $kernel->post($server_session, 'broadcast', ['object_move_rel', $id, $ox, $oy]);
 }
 sub drop_item {
     my ($kernel, $session, $heap, $symbol,$fg,$bg) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2];
-    my $player = $place->players->{$heap->{id}};
+    my $player = $place->objects->{$heap->{id}};
     my $obj = Place::Thing->new(fg=>$fg,bg=>$bg,symbol=>$symbol);
     $place->objects->{$obj->id} = $obj;
     $kernel->post($server_session,'broadcast',['drop_item',$heap->{id},$obj]);
     $player->tile->enter($obj);
-    $kernel->delay_set('delete_item',5+rand(rand(rand(100))),$obj->id);
+    $kernel->delay_set('remove_object',5+rand(rand(rand(100))),$obj->id);
 }
-sub delete_item {
+sub remove_object {
     my ($kernel, $session, $heap, $id) = @_[KERNEL, SESSION, HEAP, ARG0];
-    my $obj = $place->objects->{$id};
-    return unless $obj;
-    $obj->tile->leave($obj);
+    $place->objects->{$id}->tile->leave($place->objects->{$id});
     delete $place->objects->{$id};
-    $kernel->post($server_session,'broadcast',['delete_item',$id]);
+    $kernel->post($server_session, 'broadcast', ['remove_object', $id]);
 }
-sub remove_player {
-    my ($kernel, $session, $heap, $id) = @_[KERNEL, SESSION, HEAP, ARG0];
-    $place->players->{$id}->tile->leave($place->players->{$id});
-    delete $place->players->{$id};
-    $kernel->post($server_session, 'broadcast', ['remove_player', $id]);
-}
-sub player_chat {
+sub chat {
     my ($kernel, $session, $heap, $id, $message) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1];
-    $kernel->post($server_session, 'broadcast', ['player_chat', $id, $message]);
+    $kernel->post($server_session, 'broadcast', ['chat', $id, $message]);
 }
 
 sub connection_error {
    my ($kernel, $session, $heap) = @_[KERNEL, SESSION, HEAP];
-   return unless defined($place->players->{$heap->{id}});
-   $kernel->post($server_session, 'broadcast', ['remove_player', $heap->{id}]);
-   $place->players->{$heap->{id}}->tile->leave($place->players->{$heap->{id}});
-   delete $place->players->{$heap->{id}};
+   return unless defined($place->objects->{$heap->{id}});
+   $kernel->post($server_session, 'broadcast', ['remove_object', $heap->{id}]);
+   $place->objects->{$heap->{id}}->tile->leave($place->objects->{$heap->{id}});
+   delete $place->objects->{$heap->{id}};
 }
 
 sub connection_broadcast {

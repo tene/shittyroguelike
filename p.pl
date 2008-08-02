@@ -31,13 +31,12 @@ POE::Session->create
         got_keystroke => \&keystroke_handler,
         help_keystroke => \&help_handler,
         chat_keystroke => \&chat_handler,
-        player_move_rel => \&player_move_rel,
+        object_move_rel => \&object_move_rel,
         add_player => \&add_player,
-        player_chat => \&player_chat,
+        chat => \&chat,
         new_map => \&new_map,
         drop_item => \&drop_item,
-        delete_item => \&delete_item,
-        remove_player => \&remove_player,
+        remove_object => \&remove_object,
         connect_start => \&connect_start,
         connect_success => \&connect_success,
         connect_failure => \&connect_failure,
@@ -108,27 +107,27 @@ sub keystroke_handler {
     #output("keypress: $keystroke\n");
      $heap->{ui}->refresh();
      given ($keystroke) {
-         when [KEY_UP, 'k'] { send_to_server('player_move_rel',$heap->{my_id},0,-1) }
-         when [KEY_DOWN, 'j'] { send_to_server('player_move_rel',$heap->{my_id},0,1) }
-         when [KEY_LEFT, 'h'] { send_to_server('player_move_rel',$heap->{my_id},-1,0) }
-         when [KEY_RIGHT, 'l'] { send_to_server('player_move_rel',$heap->{my_id},1,0) }
-         when 'n' { send_to_server('remove_player',$heap->{my_id}); random_player($heap); };
+         when [KEY_UP, 'k'] { send_to_server('object_move_rel',$heap->{my_id},0,-1) }
+         when [KEY_DOWN, 'j'] { send_to_server('object_move_rel',$heap->{my_id},0,1) }
+         when [KEY_LEFT, 'h'] { send_to_server('object_move_rel',$heap->{my_id},-1,0) }
+         when [KEY_RIGHT, 'l'] { send_to_server('object_move_rel',$heap->{my_id},1,0) }
+         when 'n' { send_to_server('remove_object',$heap->{my_id}); random_player($heap); };
          when ["\r", "\n"] {
              $heap->{console}->[2] = 'chat_keystroke';
-             my $player = $heap->{place}->players->{$heap->{my_id}};
+             my $player = $heap->{place}->objects->{$heap->{my_id}};
              output_colored($player->symbol,$player->fg,$player->bg,'input');
              $heap->{ui}->output(': ', 'input');
              $heap->{ui}->redraw();
              curs_set(1);
          }
          when 'd' {
-             my $player = $heap->{place}->players->{$heap->{my_id}};
+             my $player = $heap->{place}->objects->{$heap->{my_id}};
              send_to_server('drop_item','*','red','black'); 
          }
          when 'r' { $heap->{ui}->redraw() }
          when 's' { $heap->{ui}->update_status() }
          when '?' { $heap->{ui}->panels->{help}->top_panel(); $heap->{ui}->redraw(); $heap->{console}->[2] = 'help_keystroke'; }
-         when 'q' { send_to_server('remove_player',$heap->{my_id}); delete $heap->{console}; delete $heap->{server_socket}  } # how to tell POE to kill the session?
+         when 'q' { send_to_server('remove_object',$heap->{my_id}); delete $heap->{console}; delete $heap->{server_socket}  } # how to tell POE to kill the session?
      }
 }
 
@@ -159,14 +158,14 @@ sub chat_handler {
              my $msg = substr($heap->{chat_message},0,-1);
              $heap->{chat_message} = $msg;
              $heap->{ui}->panels->{input}->panel_window->echochar("\n");
-             my $player = $heap->{place}->players->{$heap->{my_id}};
+             my $player = $heap->{place}->objects->{$heap->{my_id}};
              output_colored($player->symbol,$player->fg,$player->bg,'input');
              $heap->{ui}->output(': ', 'input');
              $heap->{ui}->panels->{input}->panel_window->addstr($msg);
              $heap->{ui}->redraw() 
          }
          when ["\r", "\n"] { 
-             send_to_server('player_chat',$heap->{my_id},$heap->{chat_message}) if ((length $heap->{chat_message}) > 0);
+             send_to_server('chat',$heap->{my_id},$heap->{chat_message}) if ((length $heap->{chat_message}) > 0);
              $heap->{console}->[2] = 'got_keystroke';
              $heap->{chat_message} = '';
              $heap->{ui}->output("\n",'input');
@@ -195,9 +194,9 @@ sub send_to_server {
     $socket->put(\@_);
 }
 
-sub player_move_rel {
+sub object_move_rel {
     my ($kernel, $heap, $player_id, $x, $y) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2];
-    my $player = $heap->{place}->players->{$player_id};
+    my $player = $heap->{place}->objects->{$player_id};
     my $before = $player->tile;
     $player->move_rel($x,$y);
     $heap->{ui}->drawtile($before);
@@ -216,7 +215,7 @@ sub add_player {
                         tile => $heap->{place}->chart->[$y][$x],
                         id => $id,
                         );
-    $heap->{place}->players->{$id} = $player;
+    $heap->{place}->objects->{$id} = $player;
     output("New player $username(");
     output_colored($symbol,$fg,$bg);
     output(") at $x,$y id $id\n");
@@ -225,9 +224,9 @@ sub add_player {
     $heap->{ui}->refresh();
 }
 
-sub player_chat {
+sub chat {
     my ($kernel, $heap, $id, $message) = @_[KERNEL, HEAP, ARG0, ARG1];
-    my $from = $heap->{place}->players->{$id};
+    my $from = $heap->{place}->objects->{$id};
     output("$from->{username}(");
     output_colored($from->symbol,$from->fg,$from->bg);
     output("): $message\n");
@@ -250,7 +249,7 @@ sub new_map {
 
 sub drop_item {
     my ($kernel, $heap, $id, $obj) = @_[KERNEL, HEAP, ARG0, ARG1];
-    my $player = $heap->{place}->players->{$id};
+    my $player = $heap->{place}->objects->{$id};
     $player->tile->enter($obj);
     $heap->{place}->objects->{$obj->id} = $obj;
     $heap->{ui}->drawtile($player->tile);
@@ -258,30 +257,17 @@ sub drop_item {
     $heap->{ui}->refresh();
 }
 
-sub delete_item {
+sub remove_object {
     my ($kernel, $heap, $id) = @_[KERNEL, HEAP, ARG0];
-    my $obj = $heap->{place}->objects->{$id};
-    my $tile = $obj->tile;
-    $tile->leave($obj);
-    delete $heap->{place}->objects->{$id};
-    $heap->{ui}->drawtile($tile);
-    $heap->{ui}->update_status();
-    $heap->{ui}->refresh();
-}
-
-
-sub remove_player {
-    my ($kernel, $heap, $id) = @_[KERNEL, HEAP, ARG0];
-    unless ( defined($heap->{place}->players->{$id}) ) {
+    unless ( defined($heap->{place}->objects->{$id}) ) {
         output("Attempt to remove invalid player id $id\n");
         $heap->{ui}->refresh();
         return;
     }
-    my $symbol = $heap->{place}->players->{$id}->symbol();
-    output("Remove player '$symbol' id $id\n");
-    $heap->{place}->players->{$id}->clear();
-    $heap->{ui}->drawtile($heap->{place}->players->{$id}->tile);
-    delete $heap->{place}->players->{$id};
+    my $symbol = $heap->{place}->objects->{$id}->symbol();
+    $heap->{place}->objects->{$id}->clear();
+    $heap->{ui}->drawtile($heap->{place}->objects->{$id}->tile);
+    delete $heap->{place}->objects->{$id};
     $heap->{ui}->update_status();
     $heap->{ui}->refresh();
 }
