@@ -142,17 +142,25 @@ sub chat_handler {
     #output("help keypress: $keystroke\n");
      $heap->{ui}->refresh();
      given ($keystroke) {
+         when '' { # escape
+             $heap->{console}->[2] = 'got_keystroke';
+             $heap->{chat_message} = '';
+             $heap->{ui}->output("\n",'input');
+             $heap->{ui}->redraw();
+             curs_set(0);
+         }
          when [263, ''] { # handle backspace
              my $msg = substr($heap->{chat_message},0,-1);
              $heap->{chat_message} = $msg;
              $heap->{ui}->panels->{input}->panel_window->echochar("\n");
-             output_colored($heap->{place}->players->{$heap->{my_id}}->symbol,$heap->{place}->players->{$heap->{my_id}}->color,'input');
+             my $player = $heap->{place}->players->{$heap->{my_id}};
+             output_colored($player->symbol,$player->fg,$player->bg,'input');
              $heap->{ui}->output(': ', 'input');
              $heap->{ui}->panels->{input}->panel_window->addstr($msg);
              $heap->{ui}->redraw() 
          }
          when ["\r", "\n"] { 
-             send_to_server('player_chat',$heap->{my_id},$heap->{chat_message});
+             send_to_server('player_chat',$heap->{my_id},$heap->{chat_message}) if ((length $heap->{chat_message}) > 0);
              $heap->{console}->[2] = 'got_keystroke';
              $heap->{chat_message} = '';
              $heap->{ui}->output("\n",'input');
@@ -162,7 +170,7 @@ sub chat_handler {
          default {
              $heap->{chat_message} .= $keystroke;
              $heap->{ui}->panels->{input}->panel_window->echochar($keystroke);
-             $heap->{ui}->redraw() 
+             $heap->{ui}->redraw();
          }
      }
 }
