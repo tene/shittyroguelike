@@ -19,6 +19,7 @@ use Data::Dumper;
 
 use Player;
 use Place;
+use Place::Thing;
 
 use Perl6::Slurp;
 
@@ -61,14 +62,19 @@ sub poe_start {
 sub poe_accepted {
     my ($heap, $socket, $addr, $port) = @_[HEAP,ARG0,ARG1,ARG2];
     push @{$heap->{connections}},   POE::Session->create(
-                                        inline_states=> {
-                                            _start => \&connection_start,
-                                            input  => \&connection_input,
-                                            error  => \&connection_error,
-                                            broadcast => \&connection_broadcast,
-                                        },
-                                        args => [ $socket, $addr, $port],
-                                    );
+                inline_states=> {
+                    _start => \&connection_start,
+                    input  => \&connection_input,
+                    error  => \&connection_error,
+                    broadcast => \&connection_broadcast,
+                    add_player => \&add_player,
+                    player_move_rel => \&player_move_rel,
+                    drop_item => \&drop_item,
+                    remove_player => \&remove_player,
+                    player_chat => \&player_chat,
+                },
+                args => [ $socket, $addr, $port],
+            );
 }
 
 # Upon error, log the error and stop the server.  Client sessions may
@@ -113,55 +119,65 @@ sub connection_input {
     #print Dumper($input);
 
     my ($command, @args) = @$input;
-    if ($command eq 'add_player') {
-        my ($id, $username, $symbol, $fg, $bg, $y, $x) = @args;
-        print "Adding a new player: $id $symbol $fg $bg $y $x\n";
-        $heap->{id} = $id;
-        $place->players->{$id} = Player->new(
-                id       => $id,
-                username => $username,
-                symbol   => $symbol,
-                fg       => $fg,
-                bg       => $bg,
-                tile     => $place->chart->[$y][$x],
-            );
-        $place->players->{$id}->{tile}->vasru(1);
-        $kernel->post($server_session, 'broadcast', $input);
+    $kernel->post($session, $command, @args);
+}
+
+sub add_player {
+    my ($kernel, $session, $heap, $id, $username, $symbol, $fg, $bg, $y, $x) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2, ARG3, ARG4, ARG5, ARG6];
+    print "Adding a new player: $id $symbol $fg $bg $y $x\n";
+    $heap->{id} = $id;
+    $place->players->{$id} = Player->new(
+            id       => $id,
+            username => $username,
+            symbol   => $symbol,
+            fg       => $fg,
+            bg       => $bg,
+            tile     => $place->chart->[$y][$x],
+        );
+    $place->players->{$id}->{tile}->vasru(1);
+    $kernel->post($server_session, 'broadcast', ['add_player', $id, $username, $symbol, $fg, $bg, $y, $x]);
+}
+sub player_move_rel {
+    my ($kernel, $session, $heap, $id, $ox, $oy) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2];
+    my $player = $place->players->{$id};
+    my $dest = $player->tile;
+    my $xdir = ($ox < 0)? 'left' : 'right';
+    my $ydir = ($oy < 0)? 'up' : 'down';
+
+    my $x = abs $ox;
+    my $y = abs $oy;
+
+    while ($x-- > 0) {
+        $dest = $dest->$xdir || return;
     }
-    elsif ($command eq 'player_move_rel') {
-        my ($id, $x, $y) = @args;
-        my $player = $place->players->{$id};
-        my $dest = $player->tile;
-        my $xdir = ($x < 0)? 'left' : 'right';
-        my $ydir = ($y < 0)? 'up' : 'down';
 
-        $x = abs $x;
-        $y = abs $y;
-
-        while ($x-- > 0) {
-            $dest = $dest->$xdir || return;
-        }
-
-        while ($y-- > 0) {
-            $dest = $dest->$ydir || return;
-        }
-
-        return unless $dest->vasru;
-        $player->tile->leave($player);
-        $dest->enter($player);
-        $player->tile($dest);
-
-        $kernel->post($server_session, 'broadcast', $input);
+    while ($y-- > 0) {
+        $dest = $dest->$ydir || return;
     }
-    elsif ($command eq 'remove_player') {
-        my ($id) = @args;
-        $place->players->{$id}->tile->leave($place->players->{$id});
-        delete $place->players->{$id};
-        $kernel->post($server_session, 'broadcast', $input);
-    }
-    else {
-        $kernel->post($server_session, 'broadcast', $input);
-    }
+
+    return unless $dest->vasru;
+    $player->tile->leave($player);
+    $dest->enter($player);
+    $player->tile($dest);
+
+    $kernel->post($server_session, 'broadcast', ['player_move_rel', $id, $ox, $oy]);
+}
+sub drop_item {
+    my ($kernel, $session, $heap, $symbol,$fg,$bg) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2];
+    my $player = $place->players->{$heap->{id}};
+    my $obj = Place::Thing->new(fg=>$fg,bg=>$bg,symbol=>$symbol);
+    $kernel->post($server_session,'broadcast',['drop_item',$heap->{id},$obj]);
+    $player->tile->enter($obj);
+}
+sub remove_player {
+    my ($kernel, $session, $heap, $id) = @_[KERNEL, SESSION, HEAP, ARG0];
+    $place->players->{$id}->tile->leave($place->players->{$id});
+    delete $place->players->{$id};
+    $kernel->post($server_session, 'broadcast', ['remove_player', $id]);
+}
+sub player_chat {
+    my ($kernel, $session, $heap, $id, $message) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1];
+    $kernel->post($server_session, 'broadcast', ['player_chat', $id, $message]);
 }
 
 sub connection_error {

@@ -35,6 +35,7 @@ POE::Session->create
         add_player => \&add_player,
         player_chat => \&player_chat,
         new_map => \&new_map,
+        drop_item => \&drop_item,
         remove_player => \&remove_player,
         connect_start => \&connect_start,
         connect_success => \&connect_success,
@@ -118,6 +119,10 @@ sub keystroke_handler {
              $heap->{ui}->output(': ', 'input');
              $heap->{ui}->redraw();
              curs_set(1);
+         }
+         when 'd' {
+             my $player = $heap->{place}->players->{$heap->{my_id}};
+             send_to_server('drop_item','*','red','black'); 
          }
          when 'r' { $heap->{ui}->redraw() }
          when 's' { $heap->{ui}->update_status() }
@@ -241,6 +246,14 @@ sub new_map {
     $heap->{ui}->redraw();
     ungetch('r');
 }
+
+sub drop_item {
+    my ($kernel, $heap, $id, $obj) = @_[KERNEL, HEAP, ARG0, ARG1];
+    my $player = $heap->{place}->players->{$id};
+    $player->tile->enter($obj);
+    $heap->{ui}->drawtile($player->tile);
+}
+
 
 sub remove_player {
     my ($kernel, $heap, $id) = @_[KERNEL, HEAP, ARG0];
