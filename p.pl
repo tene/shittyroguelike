@@ -64,7 +64,6 @@ sub _start {
     $heap->{symbol} = $symbol;
 
     $heap->{ui}->panels->{status}->show_panel();
-    $heap->{ui}->panels->{status}->panel_window->addstr(1,1,' 'x(12-((length $username)/2)) . "$username($symbol)");
 
     $heap->{ui}->debug("login info: $username $symbol");
 
@@ -121,6 +120,7 @@ sub keystroke_handler {
              curs_set(1);
          }
          when 'r' { $heap->{ui}->redraw() }
+         when 's' { $heap->{ui}->update_status() }
          when '?' { $heap->{ui}->panels->{help}->top_panel(); $heap->{ui}->redraw(); $heap->{console}->[2] = 'help_keystroke'; }
          when 'q' { send_to_server('remove_player',$heap->{my_id}); delete $heap->{console}; delete $heap->{server_socket}  } # how to tell POE to kill the session?
      }
@@ -207,6 +207,7 @@ sub add_player {
     output_colored($symbol,$fg,$bg);
     output(") at $x,$y id $id\n");
     $heap->{ui}->drawtile($player->tile);
+    $heap->{ui}->update_status;
     $heap->{ui}->refresh();
 }
 
@@ -226,6 +227,7 @@ sub new_map {
 
     $heap->{place} = $place;
     $heap->{ui}->{place} = $place;
+    $heap->{ui}->update_status;
     #$heap->{place}->chart->[3][3]->enter(Place::Thing->new(color=>$heap->{ui}->colors->{'red'}->{'black'},symbol=>'%'));
     $heap->{ui}->refresh();
     $heap->{ui}->redraw();
@@ -244,6 +246,7 @@ sub remove_player {
     $heap->{place}->players->{$id}->clear();
     $heap->{ui}->drawtile($heap->{place}->players->{$id}->tile);
     delete $heap->{place}->players->{$id};
+    $heap->{ui}->update_status();
     $heap->{ui}->refresh();
 }
 

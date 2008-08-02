@@ -11,6 +11,7 @@ use Curses qw(initscr keypad start_color noecho cbreak curs_set endwin new_panel
     O_ACTIVE O_EDIT A_UNDERLINE
     $LINES $COLS
     newwin derwin subwin delwin
+    clear
     box
     top_panel bottom_panel hide_panel show_panel
     new_field set_field_buffer field_opts_off set_field_back
@@ -135,6 +136,7 @@ method output_colored ($message,$fg,$bg,?$panel) {
 =item C<redraw>
 
 Redraws each tile in the map, then calls C<refresh()>.
+Just calls C<drawtile()> on each tile in place->chart.
 
 =cut
 
@@ -149,12 +151,36 @@ method redraw {
     refresh();
 }
 
+=item C<drawtile($tile)>
+
+Draws the tile to the place panel.
+
+=cut
+
 method drawtile ($tile) {
     my $obj = $tile->contents->[-1] || $tile;
     my $color = $.colors->{$obj->fg}->{$obj->bg};
     $self->panels->{place}->panel_window->attron($color);
     $self->panels->{place}->panel_window->addstr($tile->y,$tile->x,$obj->symbol);
     $self->panels->{place}->panel_window->attroff($color);
+}
+
+=item C<update_status()>
+
+Redraws the status panel.
+
+=cut
+
+method update_status {
+    my $i = 1;
+    my @players = sort {$a->username cmp $b->username} values %{$self->place->players};
+    $self->panels->{status}->panel_window->clear();
+    $self->panels->{status}->panel_window->box(0,0);
+    for my $player (@players) {
+        $self->panels->{status}->panel_window->addstr($i++,1,' 'x(12-((length $player->username)/2)) . "$player->{username}(");
+        $self->output_colored($player->symbol,$player->fg,$player->bg,'status');
+        $self->output(')','status');
+    }
 }
 
 =item C<refresh()>
