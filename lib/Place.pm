@@ -15,6 +15,7 @@ has objects => (is=>'rw',isa=>'HashRef');
 
 method BUILD ($params) {
     $.players = {};
+    $.objects = {};
 }
 
 method load ($map) {

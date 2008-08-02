@@ -70,6 +70,7 @@ sub poe_accepted {
                     add_player => \&add_player,
                     player_move_rel => \&player_move_rel,
                     drop_item => \&drop_item,
+                    delete_item => \&delete_item,
                     remove_player => \&remove_player,
                     player_chat => \&player_chat,
                 },
@@ -166,8 +167,18 @@ sub drop_item {
     my ($kernel, $session, $heap, $symbol,$fg,$bg) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2];
     my $player = $place->players->{$heap->{id}};
     my $obj = Place::Thing->new(fg=>$fg,bg=>$bg,symbol=>$symbol);
+    $place->objects->{$obj->id} = $obj;
     $kernel->post($server_session,'broadcast',['drop_item',$heap->{id},$obj]);
     $player->tile->enter($obj);
+    $kernel->delay_set('delete_item',5+rand(rand(rand(100))),$obj->id);
+}
+sub delete_item {
+    my ($kernel, $session, $heap, $id) = @_[KERNEL, SESSION, HEAP, ARG0];
+    my $obj = $place->objects->{$id};
+    return unless $obj;
+    $obj->tile->leave($obj);
+    delete $place->objects->{$id};
+    $kernel->post($server_session,'broadcast',['delete_item',$id]);
 }
 sub remove_player {
     my ($kernel, $session, $heap, $id) = @_[KERNEL, SESSION, HEAP, ARG0];

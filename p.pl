@@ -36,6 +36,7 @@ POE::Session->create
         player_chat => \&player_chat,
         new_map => \&new_map,
         drop_item => \&drop_item,
+        delete_item => \&delete_item,
         remove_player => \&remove_player,
         connect_start => \&connect_start,
         connect_success => \&connect_success,
@@ -251,7 +252,21 @@ sub drop_item {
     my ($kernel, $heap, $id, $obj) = @_[KERNEL, HEAP, ARG0, ARG1];
     my $player = $heap->{place}->players->{$id};
     $player->tile->enter($obj);
+    $heap->{place}->objects->{$obj->id} = $obj;
     $heap->{ui}->drawtile($player->tile);
+    $heap->{ui}->update_status();
+    $heap->{ui}->refresh();
+}
+
+sub delete_item {
+    my ($kernel, $heap, $id) = @_[KERNEL, HEAP, ARG0];
+    my $obj = $heap->{place}->objects->{$id};
+    my $tile = $obj->tile;
+    $tile->leave($obj);
+    delete $heap->{place}->objects->{$id};
+    $heap->{ui}->drawtile($tile);
+    $heap->{ui}->update_status();
+    $heap->{ui}->refresh();
 }
 
 

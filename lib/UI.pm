@@ -56,10 +56,10 @@ method BUILD ($params) {
     $sw->scrollok(0);
     $sw->leaveok(1);
     $sw->box(0,0);
-    my $hw = Curses->new(6,50,10,15);
+    my $hw = Curses->new(5,50,10,15);
     $hw->scrollok(1);
     $hw->leaveok(1);
-    $hw->addstr("\n               Press Enter to chat\n        Press 'n' to make a new character\n       ←↑↓→ and hjkl will move your player\n Press '?' to dismiss this window and 'q' to quit");
+    $hw->addstr("\n               Press Enter to chat\n         Press 'd' to drop a new asterisk\n       ←↑↓→ and hjkl will move your player\n Press '?' to dismiss this window and 'q' to quit");
     $hw->box(0,0);
     my $dp = new_panel($dw);
     my $pp = new_panel($pw);
@@ -174,11 +174,18 @@ Redraws the status panel.
 method update_status {
     my $i = 1;
     my @players = sort {$a->username cmp $b->username} values %{$self->place->players};
+    my @objects = sort {$a->id cmp $b->id} values %{$self->place->objects};
     $self->panels->{status}->panel_window->clear();
     $self->panels->{status}->panel_window->box(0,0);
     for my $player (@players) {
         $self->panels->{status}->panel_window->addstr($i++,1,' 'x(12-((length $player->username)/2)) . "$player->{username}(");
         $self->output_colored($player->symbol,$player->fg,$player->bg,'status');
+        $self->output(')','status');
+    }
+    $i++;
+    for my $obj (@objects) {
+        $self->panels->{status}->panel_window->addstr($i++,1,' 'x9 . $obj->{id} .'(');
+        $self->output_colored($obj->symbol,$obj->fg,$obj->bg,'status');
         $self->output(')','status');
     }
 }

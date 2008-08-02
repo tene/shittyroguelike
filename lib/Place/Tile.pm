@@ -40,7 +40,14 @@ method remove ($obj) {
 }
 
 method add ($obj) {
-    $.contents = [./contents(), $obj];
+    my $top = $.contents[-1];
+    if (ref $top eq 'Player') {
+        my $a = pop @{$.contents};
+        push @{$.contents}, ($obj, $a);
+    }
+    else {
+        $.contents = [./contents(), $obj];
+    }
 }
 
 1;
