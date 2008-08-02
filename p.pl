@@ -78,7 +78,6 @@ sub _start {
 
 
     output("Welcome to CuteGirls!\nPress '?' for help.\n");
-    $heap->{players} = { };
     $kernel->yield('connect_start');
 }
 
@@ -115,7 +114,7 @@ sub keystroke_handler {
          when 'n' { send_to_server('remove_player',$heap->{my_id}); random_player($heap); };
          when ["\r", "\n"] {
              $heap->{console}->[2] = 'chat_keystroke';
-             my $player = $heap->{players}->{$heap->{my_id}};
+             my $player = $heap->{place}->players->{$heap->{my_id}};
              output_colored($player->symbol,$player->fg,$player->bg,'input');
              $heap->{ui}->output(': ', 'input');
              $heap->{ui}->redraw();
@@ -147,7 +146,7 @@ sub chat_handler {
              my $msg = substr($heap->{chat_message},0,-1);
              $heap->{chat_message} = $msg;
              $heap->{ui}->panels->{input}->panel_window->echochar("\n");
-             output_colored($heap->{players}->{$heap->{my_id}}->symbol,$heap->{players}->{$heap->{my_id}}->color,'input');
+             output_colored($heap->{place}->players->{$heap->{my_id}}->symbol,$heap->{place}->players->{$heap->{my_id}}->color,'input');
              $heap->{ui}->output(': ', 'input');
              $heap->{ui}->panels->{input}->panel_window->addstr($msg);
              $heap->{ui}->redraw() 
@@ -184,7 +183,7 @@ sub send_to_server {
 
 sub player_move_rel {
     my ($kernel, $heap, $player_id, $x, $y) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2];
-    my $player = $heap->{players}->{$player_id};
+    my $player = $heap->{place}->players->{$player_id};
     my $before = $player->tile;
     $player->move_rel($x,$y);
     $heap->{ui}->drawtile($before);
@@ -203,7 +202,7 @@ sub add_player {
                         tile => $heap->{place}->chart->[$y][$x],
                         id => $id,
                         );
-    $heap->{players}->{$id} = $player;
+    $heap->{place}->players->{$id} = $player;
     output("New player $username(");
     output_colored($symbol,$fg,$bg);
     output(") at $x,$y id $id\n");
@@ -213,7 +212,7 @@ sub add_player {
 
 sub player_chat {
     my ($kernel, $heap, $id, $message) = @_[KERNEL, HEAP, ARG0, ARG1];
-    my $from = $heap->{players}->{$id};
+    my $from = $heap->{place}->players->{$id};
     output("$from->{username}(");
     output_colored($from->symbol,$from->fg,$from->bg);
     output("): $message\n");
@@ -235,16 +234,16 @@ sub new_map {
 
 sub remove_player {
     my ($kernel, $heap, $id) = @_[KERNEL, HEAP, ARG0];
-    unless ( defined($heap->{players}->{$id}) ) {
+    unless ( defined($heap->{place}->players->{$id}) ) {
         output("Attempt to remove invalid player id $id\n");
         $heap->{ui}->refresh();
         return;
     }
-    my $symbol = $heap->{players}->{$id}->symbol();
+    my $symbol = $heap->{place}->players->{$id}->symbol();
     output("Remove player '$symbol' id $id\n");
-    $heap->{players}->{$id}->clear();
-    $heap->{ui}->drawtile($heap->{players}->{$id}->tile);
-    delete $heap->{players}->{$id};
+    $heap->{place}->players->{$id}->clear();
+    $heap->{ui}->drawtile($heap->{place}->players->{$id}->tile);
+    delete $heap->{place}->players->{$id};
     $heap->{ui}->refresh();
 }
 

@@ -17,7 +17,7 @@ use POE qw(Wheel::SocketFactory Wheel::ReadWrite
                     Driver::SysRW Filter::Reference);
 use Data::Dumper;
 
-use Server::Player;
+use Player;
 use Place;
 
 use Perl6::Slurp;
@@ -25,8 +25,6 @@ use Perl6::Slurp;
 my $default_port = 3456;
 
 my $server_session;
-
-my %players;
 
 my $map;
 
@@ -108,18 +106,6 @@ sub connection_start {
     #$heap->{wheel}->put('Connected to server', '', '');
     $heap->{wheel}->put(['new_map', $place]);
     $heap->{wheel}->put(['assign_id', $session->ID]);
-    while ( my ($id, $player)  = each %players) {
-        print $player->id(), "\n";
-        $heap->{wheel}->put(['add_player',
-                    $player->id(),
-                    $player->username(),
-                    $player->symbol(),
-                    $player->fg(),
-                    $player->bg(),
-                    $player->tile->y,
-                    $player->tile->x,
-                ]);
-    }
 }
 
 sub connection_input {
@@ -131,7 +117,7 @@ sub connection_input {
         my ($id, $username, $symbol, $fg, $bg, $y, $x) = @args;
         print "Adding a new player: $id $symbol $fg $bg $y $x\n";
         $heap->{id} = $id;
-        $players{$id} = Server::Player->new(
+        $place->players->{$id} = Player->new(
                 id       => $id,
                 username => $username,
                 symbol   => $symbol,
@@ -139,12 +125,12 @@ sub connection_input {
                 bg       => $bg,
                 tile     => $place->chart->[$y][$x],
             );
-        $players{$id}->{tile}->vasru(1);
+        $place->players->{$id}->{tile}->vasru(1);
         $kernel->post($server_session, 'broadcast', $input);
     }
     elsif ($command eq 'player_move_rel') {
         my ($id, $x, $y) = @args;
-        my $player = $players{$id};
+        my $player = $place->players->{$id};
         my $dest = $player->tile;
         my $xdir = ($x < 0)? 'left' : 'right';
         my $ydir = ($y < 0)? 'up' : 'down';
@@ -161,16 +147,16 @@ sub connection_input {
         }
 
         return unless $dest->vasru;
-        $player->tile->vasru(1);
-        $dest->vasru(0);
+        $player->tile->leave($player);
+        $dest->enter($player);
         $player->tile($dest);
 
         $kernel->post($server_session, 'broadcast', $input);
     }
     elsif ($command eq 'remove_player') {
         my ($id) = @args;
-        $players{$id}->tile->vasru(1);
-        delete $players{$id};
+        $place->players->{$id}->tile->leave($place->players->{$id});
+        delete $place->players->{$id};
         $kernel->post($server_session, 'broadcast', $input);
     }
     else {
@@ -180,10 +166,10 @@ sub connection_input {
 
 sub connection_error {
    my ($kernel, $session, $heap) = @_[KERNEL, SESSION, HEAP];
-   return unless defined($players{$heap->{id}});
+   return unless defined($place->players->{$heap->{id}});
    $kernel->post($server_session, 'broadcast', ['remove_player', $heap->{id}]);
-   $players{$heap->{id}}->tile->vasru(1);
-   delete $players{$heap->{id}};
+   $place->players->{$heap->{id}}->tile->leave($place->players->{$heap->{id}});
+   delete $place->players->{$heap->{id}};
 }
 
 sub connection_broadcast {

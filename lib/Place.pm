@@ -10,6 +10,12 @@ use Perl6::Subs;
 use Data::Dumper;
 
 has chart => (is=>'rw',isa=>'ArrayRef[ArrayRef[Place::Tile]]');
+has players => (is=>'rw',isa=>'HashRef[Player]');
+has objects => (is=>'rw',isa=>'HashRef');
+
+method BUILD ($params) {
+    $.players = {};
+}
 
 method load ($map) {
     my $a = [];

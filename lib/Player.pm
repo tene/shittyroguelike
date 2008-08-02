@@ -12,13 +12,6 @@ method BUILD ($params) {
     $params->{'tile'}->enter($self) if $params->{'tile'};
 }
 
-method move_to ($dest) {
-    return unless $dest->vasru();
-    $.tile->leave($self) if $.tile;
-    $.tile = $dest;
-    $.tile->enter($self);
-}
-
 method move_rel ($x,$y) {
     my $dest = $.tile;
 
@@ -35,8 +28,6 @@ method move_rel ($x,$y) {
     while ($y-- > 0) {
         $dest = $dest->$ydir || return;
     }
-
-    return unless $dest->vasru();
 
     $.tile->leave($self) if $.tile;
     $dest->enter($self);
