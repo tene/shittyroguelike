@@ -115,7 +115,7 @@ sub connection_input {
 }
 
 sub add_player {
-    my ($kernel, $session, $heap, $id, $username, $symbol, $fg, $bg, $y, $x) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2, ARG3, ARG4, ARG5, ARG6];
+    my ($kernel, $session, $heap, $id, $username, $symbol, $fg, $bg, $hp, $y, $x) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2, ARG3, ARG4, ARG5, ARG6, ARG7];
     print "Adding a new player: $id $symbol $fg $bg $y $x\n";
     $heap->{id} = $id;
     $place->objects->{$id} = Player->new(
@@ -125,9 +125,11 @@ sub add_player {
             fg       => $fg,
             bg       => $bg,
             tile     => $place->chart->[$y][$x],
+            max_hp   => $hp,
+            cur_hp   => $hp,
         );
     $place->objects->{$id}->{tile}->vasru(1);
-    $kernel->post($server_session, 'broadcast', ['add_player', $id, $username, $symbol, $fg, $bg, $y, $x]);
+    $kernel->post($server_session, 'broadcast', ['add_player', $id, $username, $symbol, $fg, $bg, $hp, $y, $x]);
 }
 sub object_move_rel {
     my ($kernel, $session, $heap, $id, $ox, $oy) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2];

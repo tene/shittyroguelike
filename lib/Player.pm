@@ -7,6 +7,8 @@ use Perl6::Subs;
 with 'UI::Drawable';
 
 has 'username' => (is=>'rw',isa=>'Str');
+has 'max_hp'       => (is=>'rw',isa=>'Int');
+has 'cur_hp'       => (is=>'rw',isa=>'Int');
 
 method BUILD ($params) {
     $params->{'tile'}->enter($self) if $params->{'tile'};

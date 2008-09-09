@@ -178,9 +178,9 @@ method update_status {
     $self->panels->{status}->panel_window->erase();
     $self->panels->{status}->panel_window->box(0,0);
     for my $player (@players) {
-        $self->panels->{status}->panel_window->addstr($i++,1,' 'x(12-((length $player->username)/2)) . "$player->{username}(");
+        $self->panels->{status}->panel_window->addstr($i++,1,' 'x(9-((length $player->username)/2)) . "$player->{username}(");
         $self->output_colored($player->symbol,$player->fg,$player->bg,'status');
-        $self->output(')','status');
+        $self->output(") $player->{cur_hp}/$player->{max_hp}",'status');
     }
     $i++;
     for my $obj (@objects) {

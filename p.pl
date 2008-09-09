@@ -189,7 +189,7 @@ sub random_player {
     my $username = $heap->{username} || 'Player' . $heap->{my_id};
     my $fg = $colors[1 + int(rand ($#colors - 1))];
     #my $bg = $colors[int(rand ($#colors - 1))];
-    send_to_server('add_player',$heap->{my_id},$username,$symbol,$fg,'black',5,5) 
+    send_to_server('add_player',$heap->{my_id},$username,$symbol,$fg,'black',50,5,5) 
 }
 
 sub send_to_server {
@@ -209,7 +209,7 @@ sub object_move_rel {
 }
 
 sub add_player {
-    my ($kernel, $heap, $id, $username, $symbol, $fg, $bg, $y, $x) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2, ARG3, ARG4, ARG5, ARG6];
+    my ($kernel, $heap, $id, $username, $symbol, $fg, $bg, $hp, $y, $x) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2, ARG3, ARG4, ARG5, ARG6, ARG7];
     my $player = Player->new(
                         username => $username,
                         symbol => $symbol,
@@ -217,6 +217,8 @@ sub add_player {
                         bg => $bg,
                         tile => $place->chart->[$y][$x],
                         id => $id,
+                        max_hp => $hp,
+                        cur_hp => $hp,
                         );
     $place->objects->{$id} = $player;
     output("New player $username(");
