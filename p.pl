@@ -46,6 +46,7 @@ POE::Session->create
         server_input => \&server_input,
         server_error => \&server_error,
         assign_id => \&assign_id,
+        hp_change => \&hp_change,
       }
   );
 
@@ -136,7 +137,15 @@ sub keystroke_handler {
 
 sub move {
     my ($heap,$x,$y) = @_;
-    send_to_server('player_move_rel',$x,$y);
+    my $self = $place->objects->{$heap->{my_id}};
+    my $dest = $self->get_tile_rel($x,$y);
+    my ($player) = grep {(ref $_) eq 'Player'} @{$dest->contents};
+    if ($player) {
+        send_to_server('attack',$player->id,$x,$y);
+    }
+    else {
+        send_to_server('player_move_rel',$x,$y);
+    }
 }
 
 sub help_handler {
@@ -297,6 +306,13 @@ sub change_object {
     $heap->{ui}->update_status();
     $heap->{ui}->refresh();
 }
+sub hp_change {
+    my ($kernel, $heap, $id, $amount) = @_[KERNEL, HEAP, ARG0, ARG1];
+    my $target = $place->objects->{$id};
+    $target->cur_hp($target->cur_hp + $amount);
+    $heap->{ui}->update_status();
+    $heap->{ui}->refresh();
+}
 
 sub connect_success {
     my ($kernel, $heap, $socket) = @_[KERNEL, HEAP, ARG0];
@@ -331,7 +347,9 @@ sub server_error {
 sub output {
     my $message = shift;
     my $panel = shift;
-    ${peek_my(1)->{'$heap'}}->{ui}->output($message,$panel);
+    my $heap = ${peek_my(1)->{'$heap'}};
+    $heap->{ui}->output($message,$panel);
+    $heap->{ui}->refresh();
 }
 
 sub output_colored {
@@ -339,5 +357,7 @@ sub output_colored {
     my $fg = shift;
     my $bg = shift;
     my $panel = shift;
-    ${peek_my(1)->{'$heap'}}->{ui}->output_colored($message,$fg,$bg,$panel);
+    my $heap = ${peek_my(1)->{'$heap'}};
+    $heap->{ui}->output_colored($message,$fg,$bg,$panel);
+    $heap->{ui}->refresh();
 }

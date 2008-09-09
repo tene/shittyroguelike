@@ -61,6 +61,7 @@ sub poe_accepted {
                     add_player => \&add_player,
                     object_move_rel => \&object_move_rel,
                     player_move_rel => \&player_move_rel,
+                    attack => \&attack,
                     drop_item => \&drop_item,
                     remove_object => \&remove_object,
                     change_object => \&change_object,
@@ -135,20 +136,7 @@ sub add_player {
 sub object_move_rel {
     my ($kernel, $session, $heap, $id, $ox, $oy) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2];
     my $player = $place->objects->{$id};
-    my $dest = $player->tile;
-    my $xdir = ($ox < 0)? 'left' : 'right';
-    my $ydir = ($oy < 0)? 'up' : 'down';
-
-    my $x = abs $ox;
-    my $y = abs $oy;
-
-    while ($x-- > 0) {
-        $dest = $dest->$xdir || return;
-    }
-
-    while ($y-- > 0) {
-        $dest = $dest->$ydir || return;
-    }
+    my $dest = $player->get_tile_rel($ox,$oy);
 
     return unless $dest->vasru;
     $player->tile->leave($player);
@@ -160,6 +148,16 @@ sub object_move_rel {
 sub player_move_rel {
     my ($kernel, $session, $heap, $ox, $oy) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1];
     $kernel->call($session, 'object_move_rel', $session->ID, $ox, $oy);
+}
+sub attack {
+    my ($kernel, $session, $heap, $id, $ox, $oy) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2];
+    my $self = $place->objects->{$session->ID};
+    my $other = $place->objects->{$id};
+    my $dest = $self->get_tile_rel($ox,$oy);
+    return unless $dest == $other->tile;
+    print $self->symbol, '→', $other->symbol, "\n";
+    $self->cur_hp($self->cur_hp - 11);
+    $kernel->post($server_session, 'broadcast', ['hp_change', $id, -11]);
 }
 sub drop_item {
     my ($kernel, $session, $heap, $symbol,$fg,$bg) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2];
