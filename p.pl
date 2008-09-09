@@ -136,7 +136,7 @@ sub move {
     my ($x,$y) = @_;
     my $self = $place->objects->{$my_id};
     my $dest = $self->get_tile_rel($x,$y);
-    my ($player) = grep {(ref $_) eq 'Player'} @{$dest->contents};
+    my ($player) = grep {$_->meta->does_role('Actor::Alive')} @{$dest->contents};
     if ($player) {
         send_to_server('attack',$player->id,$x,$y);
     }
