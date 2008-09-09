@@ -4,6 +4,7 @@ use strict;
 
 use FindBin::libs;
 
+use Getopt::Long;
 use Curses;
 use POE qw(Wheel::Curses Wheel::SocketFactory Wheel::ReadWrite Driver::SysRW Filter::Reference);
 use Switch 'Perl6';
@@ -28,6 +29,7 @@ for qw(Player Place Place::Thing Place::Tile UI);
 my $place;
 my $ui;
 my $my_id;
+my $server;
 
 POE::Session->create
   ( inline_states =>
@@ -57,6 +59,10 @@ exit;
 sub _start {
     my ($kernel, $heap, $session) = @_[KERNEL, HEAP, SESSION];
 
+    my ($username,$symbol);
+    GetOptions("user:s" => \$username,
+               "server:s" => \$server,);
+
     binmode(STDOUT,':utf8');
 
     $heap->{console} = POE::Wheel::Curses->new(
@@ -65,7 +71,12 @@ sub _start {
 
     $ui = UI->new();
 
-    my ($username,$symbol) = $ui->get_login_info();
+    if ($username) {
+        $symbol = substr $username, 0, 1;
+    }
+    else {
+        ($username,$symbol) = $ui->get_login_info();
+    }
     $heap->{username} = $username;
     $heap->{symbol} = $symbol;
 
@@ -88,7 +99,7 @@ sub connect_start {
     my ($kernel, $heap, $session) = @_[KERNEL, HEAP, SESSION];
 
     $heap->{server} = POE::Wheel::SocketFactory->new(
-           RemoteAddress  => '127.0.0.1',
+           RemoteAddress  => $server || '127.0.0.1',
            RemotePort     => 3456,
            SuccessEvent   => 'connect_success',
            FailureEvent   => 'connect_failure'
@@ -299,6 +310,10 @@ sub change_object {
     $ui->drawtile($place->objects->{$id}->tile);
     $ui->update_status();
     $ui->refresh();
+    if ($place->objects->{$my_id}->alive == 0) {
+        send_to_server('remove_object',$my_id);
+        random_player($heap);
+    }
 }
 
 sub connect_success {

@@ -6,7 +6,7 @@ use Perl6::Subs;
 
 has 'max_hp'       => (is=>'rw',isa=>'Int');
 has 'cur_hp'       => (isa=>'Int');
-has 'alive'        => (is=>'rw',isa=>'Bool');
+has 'alive'        => (is=>'rw',isa=>'Bool',default=>1);
 
 method cur_hp (?$hp) {
     if (defined $hp) {
