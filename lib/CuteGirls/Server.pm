@@ -156,7 +156,7 @@ sub attack {
     my $dest = $self->get_tile_rel($ox,$oy);
     return unless $dest == $other->tile;
     print $self->symbol, '→', $other->symbol, "\n";
-    $self->cur_hp($self->cur_hp - 11);
+    $other->cur_hp($other->cur_hp - 11);
     $kernel->post($server_session, 'broadcast', ['hp_change', $id, -11]);
 }
 sub drop_item {

@@ -26,6 +26,7 @@ $_->meta->make_immutable(
 for qw(Player Place Place::Thing Place::Tile UI);
 
 my $place;
+my $ui;
 
 POE::Session->create
   ( inline_states =>
@@ -62,23 +63,23 @@ sub _start {
         InputEvent => 'got_keystroke'
     );
 
-    $heap->{ui} = UI->new();
+    $ui = UI->new();
 
-    my ($username,$symbol) = $heap->{ui}->get_login_info();
+    my ($username,$symbol) = $ui->get_login_info();
     $heap->{username} = $username;
     $heap->{symbol} = $symbol;
 
-    $heap->{ui}->panels->{status}->show_panel();
+    $ui->panels->{status}->show_panel();
 
-    $heap->{ui}->debug("login info: $username $symbol");
+    $ui->debug("login info: $username $symbol");
 
-    $heap->{ui}->refresh();
+    $ui->refresh();
 
     $place = Place->new();
 
-    $heap->{ui}->place($place);
+    $ui->place($place);
 
-    $heap->{ui}->setup();
+    $ui->setup();
 
 
     output("Welcome to CuteGirls!\nPress '?' for help.\n");
@@ -102,14 +103,14 @@ sub assign_id {
     $heap->{my_id} = $id;
     random_player($heap);
     #output("assigned id: $id\n");
-    $heap->{ui}->refresh();
+    $ui->refresh();
 }
 
 sub keystroke_handler {
     my ($kernel, $heap, $keystroke, $wheel_id) = @_[KERNEL, HEAP, ARG0, ARG1];
 
     #output("keypress: $keystroke\n");
-     $heap->{ui}->refresh();
+     $ui->refresh();
      given ($keystroke) {
          when [KEY_UP, 'k'] { move($heap,0,-1) }
          when [KEY_DOWN, 'j'] { move($heap,0,1) }
@@ -120,17 +121,17 @@ sub keystroke_handler {
              $heap->{console}->[2] = 'chat_keystroke';
              my $player = $place->objects->{$heap->{my_id}};
              output_colored($player->symbol,$player->fg,$player->bg,'input');
-             $heap->{ui}->output(': ', 'input');
-             $heap->{ui}->refresh();
+             $ui->output(': ', 'input');
+             $ui->refresh();
              curs_set(1);
          }
          when 'd' {
              my $player = $place->objects->{$heap->{my_id}};
              send_to_server('drop_item','*','red','black'); 
          }
-         when 'r' { $heap->{ui}->redraw() }
-         when 's' { $heap->{ui}->update_status() }
-         when '?' { $heap->{ui}->panels->{help}->top_panel(); $heap->{ui}->refresh(); $heap->{console}->[2] = 'help_keystroke'; }
+         when 'r' { $ui->redraw() }
+         when 's' { $ui->update_status() }
+         when '?' { $ui->panels->{help}->top_panel(); $ui->refresh(); $heap->{console}->[2] = 'help_keystroke'; }
          when 'q' { send_to_server('remove_object',$heap->{my_id}); delete $heap->{console}; delete $heap->{server_socket}  } # how to tell POE to kill the session?
      }
 }
@@ -152,9 +153,9 @@ sub help_handler {
     my ($kernel, $heap, $keystroke, $wheel_id) = @_[KERNEL, HEAP, ARG0, ARG1];
 
     #output("help keypress: $keystroke\n");
-     $heap->{ui}->refresh();
+     $ui->refresh();
      given ($keystroke) {
-         default { $heap->{ui}->panels->{help}->bottom_panel(); $heap->{ui}->refresh(); $heap->{console}->[2] = 'got_keystroke'; }
+         default { $ui->panels->{help}->bottom_panel(); $ui->refresh(); $heap->{console}->[2] = 'got_keystroke'; }
      }
 }
 
@@ -162,37 +163,37 @@ sub chat_handler {
     my ($kernel, $heap, $keystroke, $wheel_id) = @_[KERNEL, HEAP, ARG0, ARG1];
 
     #output("help keypress: $keystroke\n");
-     $heap->{ui}->refresh();
+     $ui->refresh();
      given ($keystroke) {
          when '' { # escape
              $heap->{console}->[2] = 'got_keystroke';
              $heap->{chat_message} = '';
-             $heap->{ui}->output("\n",'input');
-             $heap->{ui}->refresh();
+             $ui->output("\n",'input');
+             $ui->refresh();
              curs_set(0);
          }
          when [263, ''] { # handle backspace
              my $msg = substr($heap->{chat_message},0,-1);
              $heap->{chat_message} = $msg;
-             $heap->{ui}->panels->{input}->panel_window->echochar("\n");
+             $ui->panels->{input}->panel_window->echochar("\n");
              my $player = $place->objects->{$heap->{my_id}};
              output_colored($player->symbol,$player->fg,$player->bg,'input');
-             $heap->{ui}->output(': ', 'input');
-             $heap->{ui}->panels->{input}->panel_window->addstr($msg);
-             $heap->{ui}->refresh() 
+             $ui->output(': ', 'input');
+             $ui->panels->{input}->panel_window->addstr($msg);
+             $ui->refresh() 
          }
          when ["\r", "\n"] { 
              send_to_server('chat',$heap->{my_id},$heap->{chat_message}) if ((length $heap->{chat_message}) > 0);
              $heap->{console}->[2] = 'got_keystroke';
              $heap->{chat_message} = '';
-             $heap->{ui}->output("\n",'input');
-             $heap->{ui}->refresh();
+             $ui->output("\n",'input');
+             $ui->refresh();
              curs_set(0);
          }
          default {
              $heap->{chat_message} .= $keystroke;
-             $heap->{ui}->panels->{input}->panel_window->echochar($keystroke);
-             $heap->{ui}->refresh();
+             $ui->panels->{input}->panel_window->echochar($keystroke);
+             $ui->refresh();
          }
      }
 }
@@ -216,10 +217,10 @@ sub object_move_rel {
     my $player = $place->objects->{$player_id};
     my $before = $player->tile;
     $player->move_rel($x,$y);
-    $heap->{ui}->drawtile($before);
-    $heap->{ui}->drawtile($player->tile);
+    $ui->drawtile($before);
+    $ui->drawtile($player->tile);
     #output("Player $player_id moving $x,$y\n");
-    $heap->{ui}->refresh();
+    $ui->refresh();
 }
 
 sub add_player {
@@ -238,9 +239,9 @@ sub add_player {
     output("New player $username(");
     output_colored($symbol,$fg,$bg);
     output(") at $x,$y id $id\n");
-    $heap->{ui}->drawtile($player->tile);
-    $heap->{ui}->update_status;
-    $heap->{ui}->refresh();
+    $ui->drawtile($player->tile);
+    $ui->update_status;
+    $ui->refresh();
 }
 
 sub chat {
@@ -249,7 +250,7 @@ sub chat {
     output("$from->{username}(");
     output_colored($from->symbol,$from->fg,$from->bg);
     output("): $message\n");
-    $heap->{ui}->refresh();
+    $ui->refresh();
 }
 
 sub new_map {
@@ -258,11 +259,11 @@ sub new_map {
     output("Building world, please wait...\n");
 
     $place = $newplace;
-    $heap->{ui}->{place} = $newplace;
-    $heap->{ui}->update_status;
-    #$place->chart->[3][3]->enter(Place::Thing->new(color=>$heap->{ui}->colors->{'red'}->{'black'},symbol=>'%'));
-    $heap->{ui}->refresh();
-    $heap->{ui}->redraw();
+    $ui->{place} = $newplace;
+    $ui->update_status;
+    #$place->chart->[3][3]->enter(Place::Thing->new(color=>$ui->colors->{'red'}->{'black'},symbol=>'%'));
+    $ui->refresh();
+    $ui->redraw();
     ungetch('r');
 }
 
@@ -271,47 +272,47 @@ sub drop_item {
     my $player = $place->objects->{$id};
     $player->tile->enter($obj);
     $place->objects->{$obj->id} = $obj;
-    $heap->{ui}->drawtile($player->tile);
-    $heap->{ui}->update_status();
-    $heap->{ui}->refresh();
+    $ui->drawtile($player->tile);
+    $ui->update_status();
+    $ui->refresh();
 }
 
 sub remove_object {
     my ($kernel, $heap, $id) = @_[KERNEL, HEAP, ARG0];
     unless ( defined($place->objects->{$id}) ) {
         output("Attempt to remove invalid object id $id\n");
-        $heap->{ui}->refresh();
+        $ui->refresh();
         return;
     }
     my $symbol = $place->objects->{$id}->symbol();
     $place->objects->{$id}->clear();
-    $heap->{ui}->drawtile($place->objects->{$id}->tile);
+    $ui->drawtile($place->objects->{$id}->tile);
     delete $place->objects->{$id};
-    $heap->{ui}->update_status();
-    $heap->{ui}->refresh();
+    $ui->update_status();
+    $ui->refresh();
 }
 
 sub change_object {
     my ($kernel, $heap, $id, $changes) = @_[KERNEL, HEAP, ARG0, ARG1];
     unless ( defined($place->objects->{$id}) ) {
         output("Attempt to change invalid object id $id\n");
-        $heap->{ui}->refresh();
+        $ui->refresh();
         return;
     }
     my $obj = $place->objects->{$id};
     for my $attr (keys %{$changes}) {
         $obj->$attr($changes->{$attr});
     }
-    $heap->{ui}->drawtile($place->objects->{$id}->tile);
-    $heap->{ui}->update_status();
-    $heap->{ui}->refresh();
+    $ui->drawtile($place->objects->{$id}->tile);
+    $ui->update_status();
+    $ui->refresh();
 }
 sub hp_change {
     my ($kernel, $heap, $id, $amount) = @_[KERNEL, HEAP, ARG0, ARG1];
     my $target = $place->objects->{$id};
     $target->cur_hp($target->cur_hp + $amount);
-    $heap->{ui}->update_status();
-    $heap->{ui}->refresh();
+    $ui->update_status();
+    $ui->refresh();
 }
 
 sub connect_success {
@@ -348,8 +349,8 @@ sub output {
     my $message = shift;
     my $panel = shift;
     my $heap = ${peek_my(1)->{'$heap'}};
-    $heap->{ui}->output($message,$panel);
-    $heap->{ui}->refresh();
+    $ui->output($message,$panel);
+    $ui->refresh();
 }
 
 sub output_colored {
@@ -358,6 +359,6 @@ sub output_colored {
     my $bg = shift;
     my $panel = shift;
     my $heap = ${peek_my(1)->{'$heap'}};
-    $heap->{ui}->output_colored($message,$fg,$bg,$panel);
-    $heap->{ui}->refresh();
+    $ui->output_colored($message,$fg,$bg,$panel);
+    $ui->refresh();
 }
