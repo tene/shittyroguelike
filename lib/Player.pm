@@ -14,7 +14,7 @@ method BUILD ($params) {
     $params->{'tile'}->enter($self) if $params->{'tile'};
 }
 
-method move_rel ($x,$y) {
+method get_tile_rel ($x,$y) {
     my $dest = $.tile;
 
     my $xdir = ($x < 0)? 'left' : 'right';
@@ -31,10 +31,15 @@ method move_rel ($x,$y) {
         $dest = $dest->$ydir || return;
     }
 
+    return $dest;
+}
+
+method move_rel ($x,$y) {
+    my $dest = $self->get_tile_rel($x,$y);
+
     $.tile->leave($self) if $.tile;
     $dest->enter($self);
     $self->tile($dest);
-
 }
 
 1;
