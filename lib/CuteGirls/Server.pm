@@ -102,15 +102,12 @@ sub connection_start {
          'InputEvent' => 'input',
          'ErrorEvent' => 'error',
     );
-    # hello, world!\n
-    #$heap->{wheel}->put('Connected to server', '', '');
     $heap->{wheel}->put(['new_map', $place]);
     $heap->{wheel}->put(['assign_id', $session->ID]);
 }
 
 sub connection_input {
     my ($kernel, $session, $heap, $input) = @_[KERNEL, SESSION, HEAP, ARG0];
-    #print Dumper($input);
 
     my ($command, @args) = @$input;
     $kernel->post($session, $command, @args);

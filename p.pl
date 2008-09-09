@@ -73,11 +73,9 @@ sub _start {
     $ui->panels->{status}->show_panel();
 
     $ui->debug("login info: $username $symbol");
-
     $ui->refresh();
 
     $place = Place->new();
-
     $ui->place($place);
 
     $ui->setup();
@@ -103,38 +101,36 @@ sub assign_id {
     my ($heap, $id) = @_[HEAP, ARG0];
     $my_id = $id;
     random_player($heap);
-    #output("assigned id: $id\n");
     $ui->refresh();
 }
 
 sub keystroke_handler {
     my ($kernel, $heap, $keystroke, $wheel_id) = @_[KERNEL, HEAP, ARG0, ARG1];
 
-    #output("keypress: $keystroke\n");
-     $ui->refresh();
-     given ($keystroke) {
-         when [KEY_UP, 'k'] { move(0,-1) }
-         when [KEY_DOWN, 'j'] { move(0,1) }
-         when [KEY_LEFT, 'h'] { move(-1,0) }
-         when [KEY_RIGHT, 'l'] { move(1,0) }
-         when 'n' { send_to_server('remove_object',$my_id); random_player($heap); };
-         when ["\r", "\n"] {
-             $heap->{console}->[2] = 'chat_keystroke';
-             my $player = $place->objects->{$my_id};
-             output_colored($player->symbol,$player->fg,$player->bg,'input');
-             $ui->output(': ', 'input');
-             $ui->refresh();
-             curs_set(1);
-         }
-         when 'd' {
-             my $player = $place->objects->{$my_id};
-             send_to_server('drop_item','*','red','black'); 
-         }
-         when 'r' { $ui->redraw() }
-         when 's' { $ui->update_status() }
-         when '?' { $ui->panels->{help}->top_panel(); $ui->refresh(); $heap->{console}->[2] = 'help_keystroke'; }
-         when 'q' { send_to_server('remove_object',$my_id); delete $heap->{console}; delete $heap->{server_socket}  } # how to tell POE to kill the session?
-     }
+    $ui->refresh();
+    given ($keystroke) {
+        when [KEY_UP, 'k'] { move(0,-1) }
+        when [KEY_DOWN, 'j'] { move(0,1) }
+        when [KEY_LEFT, 'h'] { move(-1,0) }
+        when [KEY_RIGHT, 'l'] { move(1,0) }
+        when 'n' { send_to_server('remove_object',$my_id); random_player($heap); };
+        when ["\r", "\n"] {
+            $heap->{console}->[2] = 'chat_keystroke';
+            my $player = $place->objects->{$my_id};
+            output_colored($player->symbol,$player->fg,$player->bg,'input');
+            $ui->output(': ', 'input');
+            $ui->refresh();
+            curs_set(1);
+        }
+        when 'd' {
+            my $player = $place->objects->{$my_id};
+            send_to_server('drop_item','*','red','black'); 
+        }
+        when 'r' { $ui->redraw() }
+        when 's' { $ui->update_status() }
+        when '?' { $ui->panels->{help}->top_panel(); $ui->refresh(); $heap->{console}->[2] = 'help_keystroke'; }
+        when 'q' { send_to_server('remove_object',$my_id); delete $heap->{console}; delete $heap->{server_socket}  } # how to tell POE to kill the session?
+    }
 }
 
 sub move {
@@ -153,50 +149,48 @@ sub move {
 sub help_handler {
     my ($kernel, $heap, $keystroke, $wheel_id) = @_[KERNEL, HEAP, ARG0, ARG1];
 
-    #output("help keypress: $keystroke\n");
-     $ui->refresh();
-     given ($keystroke) {
-         default { $ui->panels->{help}->bottom_panel(); $ui->refresh(); $heap->{console}->[2] = 'got_keystroke'; }
-     }
+    $ui->refresh();
+    given ($keystroke) {
+        default { $ui->panels->{help}->bottom_panel(); $ui->refresh(); $heap->{console}->[2] = 'got_keystroke'; }
+    }
 }
 
 sub chat_handler {
     my ($kernel, $heap, $keystroke, $wheel_id) = @_[KERNEL, HEAP, ARG0, ARG1];
 
-    #output("help keypress: $keystroke\n");
-     $ui->refresh();
-     given ($keystroke) {
-         when '' { # escape
-             $heap->{console}->[2] = 'got_keystroke';
-             $heap->{chat_message} = '';
-             $ui->output("\n",'input');
-             $ui->refresh();
-             curs_set(0);
-         }
-         when [263, ''] { # handle backspace
-             my $msg = substr($heap->{chat_message},0,-1);
-             $heap->{chat_message} = $msg;
-             $ui->panels->{input}->panel_window->echochar("\n");
-             my $player = $place->objects->{$my_id};
-             output_colored($player->symbol,$player->fg,$player->bg,'input');
-             $ui->output(': ', 'input');
-             $ui->panels->{input}->panel_window->addstr($msg);
-             $ui->refresh() 
-         }
-         when ["\r", "\n"] { 
-             send_to_server('chat',$my_id,$heap->{chat_message}) if ((length $heap->{chat_message}) > 0);
-             $heap->{console}->[2] = 'got_keystroke';
-             $heap->{chat_message} = '';
-             $ui->output("\n",'input');
-             $ui->refresh();
-             curs_set(0);
-         }
-         default {
-             $heap->{chat_message} .= $keystroke;
-             $ui->panels->{input}->panel_window->echochar($keystroke);
-             $ui->refresh();
-         }
-     }
+    $ui->refresh();
+    given ($keystroke) {
+        when '' { # escape
+            $heap->{console}->[2] = 'got_keystroke';
+            $heap->{chat_message} = '';
+            $ui->output("\n",'input');
+            $ui->refresh();
+            curs_set(0);
+        }
+        when [263, ''] { # handle backspace
+            my $msg = substr($heap->{chat_message},0,-1);
+            $heap->{chat_message} = $msg;
+            $ui->panels->{input}->panel_window->echochar("\n");
+            my $player = $place->objects->{$my_id};
+            output_colored($player->symbol,$player->fg,$player->bg,'input');
+            $ui->output(': ', 'input');
+            $ui->panels->{input}->panel_window->addstr($msg);
+            $ui->refresh() 
+        }
+        when ["\r", "\n"] { 
+            send_to_server('chat',$my_id,$heap->{chat_message}) if ((length $heap->{chat_message}) > 0);
+            $heap->{console}->[2] = 'got_keystroke';
+            $heap->{chat_message} = '';
+            $ui->output("\n",'input');
+            $ui->refresh();
+            curs_set(0);
+        }
+        default {
+            $heap->{chat_message} .= $keystroke;
+            $ui->panels->{input}->panel_window->echochar($keystroke);
+            $ui->refresh();
+        }
+    }
 }
 
 sub random_player {
@@ -221,7 +215,6 @@ sub object_move_rel {
     $player->move_rel($x,$y);
     $ui->drawtile($before);
     $ui->drawtile($player->tile);
-    #output("Player $player_id moving $x,$y\n");
     $ui->refresh();
 }
 
@@ -263,7 +256,6 @@ sub new_map {
     $place = $newplace;
     $ui->{place} = $newplace;
     $ui->update_status;
-    #$place->chart->[3][3]->enter(Place::Thing->new(color=>$ui->colors->{'red'}->{'black'},symbol=>'%'));
     $ui->refresh();
     $ui->redraw();
     ungetch('r');
