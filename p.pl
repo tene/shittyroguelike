@@ -27,6 +27,7 @@ for qw(Player Place Place::Thing Place::Tile UI);
 
 my $place;
 my $ui;
+my $my_id;
 
 POE::Session->create
   ( inline_states =>
@@ -100,7 +101,7 @@ sub connect_start {
 
 sub assign_id {
     my ($heap, $id) = @_[HEAP, ARG0];
-    $heap->{my_id} = $id;
+    $my_id = $id;
     random_player($heap);
     #output("assigned id: $id\n");
     $ui->refresh();
@@ -112,33 +113,33 @@ sub keystroke_handler {
     #output("keypress: $keystroke\n");
      $ui->refresh();
      given ($keystroke) {
-         when [KEY_UP, 'k'] { move($heap,0,-1) }
-         when [KEY_DOWN, 'j'] { move($heap,0,1) }
-         when [KEY_LEFT, 'h'] { move($heap,-1,0) }
-         when [KEY_RIGHT, 'l'] { move($heap,1,0) }
-         when 'n' { send_to_server('remove_object',$heap->{my_id}); random_player($heap); };
+         when [KEY_UP, 'k'] { move(0,-1) }
+         when [KEY_DOWN, 'j'] { move(0,1) }
+         when [KEY_LEFT, 'h'] { move(-1,0) }
+         when [KEY_RIGHT, 'l'] { move(1,0) }
+         when 'n' { send_to_server('remove_object',$my_id); random_player($heap); };
          when ["\r", "\n"] {
              $heap->{console}->[2] = 'chat_keystroke';
-             my $player = $place->objects->{$heap->{my_id}};
+             my $player = $place->objects->{$my_id};
              output_colored($player->symbol,$player->fg,$player->bg,'input');
              $ui->output(': ', 'input');
              $ui->refresh();
              curs_set(1);
          }
          when 'd' {
-             my $player = $place->objects->{$heap->{my_id}};
+             my $player = $place->objects->{$my_id};
              send_to_server('drop_item','*','red','black'); 
          }
          when 'r' { $ui->redraw() }
          when 's' { $ui->update_status() }
          when '?' { $ui->panels->{help}->top_panel(); $ui->refresh(); $heap->{console}->[2] = 'help_keystroke'; }
-         when 'q' { send_to_server('remove_object',$heap->{my_id}); delete $heap->{console}; delete $heap->{server_socket}  } # how to tell POE to kill the session?
+         when 'q' { send_to_server('remove_object',$my_id); delete $heap->{console}; delete $heap->{server_socket}  } # how to tell POE to kill the session?
      }
 }
 
 sub move {
-    my ($heap,$x,$y) = @_;
-    my $self = $place->objects->{$heap->{my_id}};
+    my ($x,$y) = @_;
+    my $self = $place->objects->{$my_id};
     my $dest = $self->get_tile_rel($x,$y);
     my ($player) = grep {(ref $_) eq 'Player'} @{$dest->contents};
     if ($player) {
@@ -176,14 +177,14 @@ sub chat_handler {
              my $msg = substr($heap->{chat_message},0,-1);
              $heap->{chat_message} = $msg;
              $ui->panels->{input}->panel_window->echochar("\n");
-             my $player = $place->objects->{$heap->{my_id}};
+             my $player = $place->objects->{$my_id};
              output_colored($player->symbol,$player->fg,$player->bg,'input');
              $ui->output(': ', 'input');
              $ui->panels->{input}->panel_window->addstr($msg);
              $ui->refresh() 
          }
          when ["\r", "\n"] { 
-             send_to_server('chat',$heap->{my_id},$heap->{chat_message}) if ((length $heap->{chat_message}) > 0);
+             send_to_server('chat',$my_id,$heap->{chat_message}) if ((length $heap->{chat_message}) > 0);
              $heap->{console}->[2] = 'got_keystroke';
              $heap->{chat_message} = '';
              $ui->output("\n",'input');
@@ -201,14 +202,15 @@ sub chat_handler {
 sub random_player {
     my $heap = shift;
     my $symbol = $heap->{symbol} || $sigils[int(rand $#sigils)];
-    my $username = $heap->{username} || 'Player' . $heap->{my_id};
+    my $username = $heap->{username} || 'Player' . $my_id;
     my $fg = $colors[1 + int(rand ($#colors - 1))];
     #my $bg = $colors[int(rand ($#colors - 1))];
-    send_to_server('add_player',$heap->{my_id},$username,$symbol,$fg,'black',50,5,5) 
+    send_to_server('add_player',$my_id,$username,$symbol,$fg,'black',50,5,5) 
 }
 
 sub send_to_server {
-    my $socket = ${peek_my(1)->{'$heap'}}->{server_socket};
+    my $heap = ${peek_my(1)->{'$heap'} || peek_my(2)->{'$heap'}};
+    my $socket = $heap->{server_socket};
     $socket->put(\@_);
 }
 
@@ -348,7 +350,6 @@ sub server_error {
 sub output {
     my $message = shift;
     my $panel = shift;
-    my $heap = ${peek_my(1)->{'$heap'}};
     $ui->output($message,$panel);
     $ui->refresh();
 }
@@ -358,7 +359,6 @@ sub output_colored {
     my $fg = shift;
     my $bg = shift;
     my $panel = shift;
-    my $heap = ${peek_my(1)->{'$heap'}};
     $ui->output_colored($message,$fg,$bg,$panel);
     $ui->refresh();
 }
