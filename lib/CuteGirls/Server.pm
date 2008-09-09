@@ -60,6 +60,7 @@ sub poe_accepted {
                     broadcast => \&connection_broadcast,
                     add_player => \&add_player,
                     object_move_rel => \&object_move_rel,
+                    player_move_rel => \&player_move_rel,
                     drop_item => \&drop_item,
                     remove_object => \&remove_object,
                     change_object => \&change_object,
@@ -155,6 +156,10 @@ sub object_move_rel {
     $player->tile($dest);
 
     $kernel->post($server_session, 'broadcast', ['object_move_rel', $id, $ox, $oy]);
+}
+sub player_move_rel {
+    my ($kernel, $session, $heap, $ox, $oy) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1];
+    $kernel->call($session, 'object_move_rel', $session->ID, $ox, $oy);
 }
 sub drop_item {
     my ($kernel, $session, $heap, $symbol,$fg,$bg) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2];

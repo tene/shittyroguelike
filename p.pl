@@ -110,10 +110,10 @@ sub keystroke_handler {
     #output("keypress: $keystroke\n");
      $heap->{ui}->refresh();
      given ($keystroke) {
-         when [KEY_UP, 'k'] { send_to_server('object_move_rel',$heap->{my_id},0,-1) }
-         when [KEY_DOWN, 'j'] { send_to_server('object_move_rel',$heap->{my_id},0,1) }
-         when [KEY_LEFT, 'h'] { send_to_server('object_move_rel',$heap->{my_id},-1,0) }
-         when [KEY_RIGHT, 'l'] { send_to_server('object_move_rel',$heap->{my_id},1,0) }
+         when [KEY_UP, 'k'] { move($heap,0,-1) }
+         when [KEY_DOWN, 'j'] { move($heap,0,1) }
+         when [KEY_LEFT, 'h'] { move($heap,-1,0) }
+         when [KEY_RIGHT, 'l'] { move($heap,1,0) }
          when 'n' { send_to_server('remove_object',$heap->{my_id}); random_player($heap); };
          when ["\r", "\n"] {
              $heap->{console}->[2] = 'chat_keystroke';
@@ -132,6 +132,11 @@ sub keystroke_handler {
          when '?' { $heap->{ui}->panels->{help}->top_panel(); $heap->{ui}->refresh(); $heap->{console}->[2] = 'help_keystroke'; }
          when 'q' { send_to_server('remove_object',$heap->{my_id}); delete $heap->{console}; delete $heap->{server_socket}  } # how to tell POE to kill the session?
      }
+}
+
+sub move {
+    my ($heap,$x,$y) = @_;
+    send_to_server('player_move_rel',$x,$y);
 }
 
 sub help_handler {
