@@ -48,7 +48,6 @@ POE::Session->create
         server_input => \&server_input,
         server_error => \&server_error,
         assign_id => \&assign_id,
-        hp_change => \&hp_change,
       }
   );
 
@@ -298,13 +297,6 @@ sub change_object {
         $obj->$attr($changes->{$attr});
     }
     $ui->drawtile($place->objects->{$id}->tile);
-    $ui->update_status();
-    $ui->refresh();
-}
-sub hp_change {
-    my ($kernel, $heap, $id, $amount) = @_[KERNEL, HEAP, ARG0, ARG1];
-    my $target = $place->objects->{$id};
-    $target->cur_hp($target->cur_hp + $amount);
     $ui->update_status();
     $ui->refresh();
 }
