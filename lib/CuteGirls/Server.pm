@@ -129,7 +129,7 @@ sub add_player {
             max_hp   => $hp,
             cur_hp   => $hp,
         );
-    $place->objects->{$id}->{tile}->vasru(1);
+    $place->objects->{$id}->{tile}->vasru(0);
     $kernel->post($server_session, 'broadcast', ['add_player', $id, $username, $symbol, $fg, $bg, $hp, $y, $x]);
 }
 sub object_move_rel {
