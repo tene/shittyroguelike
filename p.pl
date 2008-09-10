@@ -209,7 +209,7 @@ sub random_player {
     my $username = $heap->{username} || 'Player' . $my_id;
     my $fg = $colors[1 + int(rand ($#colors - 1))];
     #my $bg = $colors[int(rand ($#colors - 1))];
-    send_to_server('add_player',$my_id,$username,$symbol,$fg,'black',50,5,5) 
+    send_to_server('add_player',$my_id,$username,$symbol,$fg,'black',50) 
 }
 
 sub send_to_server {

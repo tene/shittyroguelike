@@ -114,7 +114,9 @@ sub connection_input {
 }
 
 sub add_player {
-    my ($kernel, $session, $heap, $id, $username, $symbol, $fg, $bg, $hp, $y, $x) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2, ARG3, ARG4, ARG5, ARG6, ARG7];
+    my ($kernel, $session, $heap, $id, $username, $symbol, $fg, $bg, $hp) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2, ARG3, ARG4, ARG5];
+    my ($origin) = grep {(ref $_) eq 'Entrance'} values %{$place->objects};
+    my ($x, $y) = ($origin->tile->x, $origin->tile->y);
     print "Adding a new player: $id $symbol $fg $bg $y $x\n";
     $heap->{id} = $id;
     $place->objects->{$id} = Player->new(
