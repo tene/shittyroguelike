@@ -29,12 +29,12 @@ method enter ($obj) {
     $obj->tile($self);
 
     ./add($obj);
-    $.vasru = 0;
+    $.vasru = 0 if (ref $obj eq 'Player');
 }
 
 method leave ($obj) {
     ./remove($obj);
-    $.vasru = 1;
+    $.vasru = 1 if (ref $obj eq 'Player');
 }
 
 method remove ($obj) {

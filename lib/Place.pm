@@ -1,6 +1,7 @@
 package Place;
 
 use Place::Tile;
+use Entrance;
 
 use Moose;
 
@@ -14,6 +15,11 @@ has objects => (is=>'rw',isa=>'HashRef');
 
 method BUILD ($params) {
     $.objects = {};
+}
+
+method insert ($obj,$x,$y) {
+    $.objects->{$obj->id} = $obj;
+    $.chart->[$y]->[$x]->enter($obj);
 }
 
 method load ($map) {
@@ -57,6 +63,11 @@ method load ($map) {
     }
 
     $.chart = $a;
+    ./insert(Entrance->new(
+                symbol => '<',
+                fg     => 'blue',
+                bg     => 'black',
+            ),5,5);
 }
 
 1;
