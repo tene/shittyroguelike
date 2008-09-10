@@ -303,17 +303,15 @@ sub change_object {
         $ui->refresh();
         return;
     }
+    my $tile = $place->objects->{$id}->tile;
     my $obj = $place->objects->{$id};
     for my $attr (keys %{$changes}) {
         $obj->$attr($changes->{$attr});
     }
     $ui->drawtile($place->objects->{$id}->tile);
+    $ui->drawtile($tile);
     $ui->update_status();
     $ui->refresh();
-    if ($place->objects->{$my_id}->alive == 0) {
-        send_to_server('remove_object',$my_id);
-        random_player($heap);
-    }
 }
 
 sub connect_success {

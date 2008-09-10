@@ -155,7 +155,13 @@ sub attack {
     my $dest = $self->get_tile_rel($ox,$oy);
     return unless $dest == $other->tile;
     print $self->symbol, '→', $other->symbol, "\n";
-    $kernel->post($session, 'change_object',$other->id,{'cur_hp'=>$other->cur_hp - 11});
+    $other->cur_hp($other->cur_hp - 11);
+    if ($other->alive) {
+        $kernel->post($server_session, 'broadcast', ['change_object', $other->id, {'cur_hp'=>$other->cur_hp}]);
+    }
+    else {
+        $kernel->post($server_session, 'broadcast', ['change_object', $other->id, $other->death()]);
+    }
 }
 sub drop_item {
     my ($kernel, $session, $heap, $symbol,$fg,$bg) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2];

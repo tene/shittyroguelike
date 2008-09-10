@@ -13,32 +13,11 @@ method BUILD ($params) {
     $params->{'tile'}->enter($self) if $params->{'tile'};
 }
 
-method get_tile_rel ($x,$y) {
-    my $dest = $.tile;
+method death {
+    my ($origin) = grep {(ref $_) eq 'Entrance'} values %{$self->tile->place->objects};
+    $self->cur_hp($self->max_hp);
+    $self->move_to_id($origin->id);
 
-    my $xdir = ($x < 0)? 'left' : 'right';
-    my $ydir = ($y < 0)? 'up' : 'down';
-
-    $x = abs $x;
-    $y = abs $y;
-
-    while ($x-- > 0) {
-        $dest = $dest->$xdir || return;
-    }
-
-    while ($y-- > 0) {
-        $dest = $dest->$ydir || return;
-    }
-
-    return $dest;
+    return {'cur_hp'=>$self->max_hp,'move_to_id'=>$origin->id};
 }
-
-method move_rel ($x,$y) {
-    my $dest = $self->get_tile_rel($x,$y);
-
-    $.tile->leave($self) if $.tile;
-    $dest->enter($self);
-    $self->tile($dest);
-}
-
 1;

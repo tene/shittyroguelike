@@ -33,7 +33,7 @@ method load ($map) {
         my $x = 0;
         my $prevtile;
         for my $char (@chars) {
-            my $tile = Place::Tile->new(symbol=>$char,x=>$x,y=>$y,fg=>'white',bg=>'black');
+            my $tile = Place::Tile->new(symbol=>$char,x=>$x,y=>$y,fg=>'white',bg=>'black',place=>$self);
             if($char eq '.') {
                 $tile->vasru(1);
             }
