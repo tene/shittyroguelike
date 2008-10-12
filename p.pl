@@ -41,6 +41,7 @@ POE::Session->create
         create_player => \&create_player,
         add_player => \&add_player,
         chat => \&chat,
+        announce => \&announce,
         new_map => \&new_map,
         drop_item => \&drop_item,
         remove_object => \&remove_object,
@@ -227,9 +228,9 @@ sub object_move_rel {
 }
 
 sub create_player {
-    my ($kernel, $heap, $message) = @_[KERNEL, HEAP, ARG0];
-    my ($username,$symbol) = $ui->get_new_player_info($message);
-    send_to_server('register',$username,$symbol);
+    my ($kernel, $heap, $message, $gods) = @_[KERNEL, HEAP, ARG0, ARG1];
+    my ($username,$symbol,$god) = $ui->get_new_player_info($message,$gods);
+    send_to_server('register',$username,$symbol,$god);
 }
 
 sub add_player {
@@ -260,6 +261,12 @@ sub chat {
     output("$from->{username}(");
     output_colored($from->symbol,$from->fg,$from->bg);
     output("): $message\n");
+    $ui->refresh();
+}
+
+sub announce {
+    my ($kernel, $heap, $message) = @_[KERNEL, HEAP, ARG0, ARG1];
+    output("announcement: $message\n");
     $ui->refresh();
 }
 

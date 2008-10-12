@@ -297,7 +297,7 @@ Returns a list of [username, symbol].
 =cut
 
 sub get_new_player_info {
-    my ($self,$message) = @_;
+    my ($self,$message,$gods) = @_;
     $.panels->{form}->show_panel();
     my ($fg,$bg,$cfg) = qw(white black yellow);
     my @buttons = qw(OK);
@@ -312,15 +312,15 @@ sub get_new_player_info {
     my   $form = Curses::Forms->new({
     AUTOCENTER    => 1,
     DERIVED       => 1,
-    COLUMNS       => 23,
-    LINES         => 9,
+    COLUMNS       => 25,
+    LINES         => 18,
     CAPTION       => $message,
     CAPTIONCOL    => $cfg,
     BORDER        => 1,
     FOREGROUND    => $fg,
     BACKGROUND    => $bg,
     FOCUSED       => 'Username',
-    TABORDER      => [qw(Username Symbol Buttons)],
+    TABORDER      => [qw(Username God Symbol Buttons)],
     WIDGETS       => {
       Username   => {
         TYPE      => 'TextField',
@@ -334,11 +334,25 @@ sub get_new_player_info {
         MAXLENGTH => 32,
         FOCUSSWITCH => "\t\n\r",
         },
+      God   => {
+        TYPE      => 'ComboBox',
+        CAPTION   => 'God',
+        CAPTIONCOL=> $cfg,
+        Y         => 3,
+        X         => 0,
+        FOREGROUND=> $fg,
+        BACKGROUND=> $bg,
+        COLUMNS   => 21,
+        LISTITEMS => $gods,
+        VALUE     => $gods->[0],
+        READONLY  => 1,
+        FOCUSSWITCH => "\t\n\r",
+        },
       Symbol   => {
         TYPE      => 'TextField',
         CAPTION   => 'Symbol',
         CAPTIONCOL=> $cfg,
-        Y         => 3,
+        Y         => 6,
         X         => 0,
         FOREGROUND=> $fg,
         BACKGROUND=> $bg,
@@ -349,7 +363,7 @@ sub get_new_player_info {
       Buttons     => {
         TYPE      => 'ButtonSet',
         LABELS    => [@buttons],
-        Y         => 6,
+        Y         => 9,
         X         => 5,
         BORDER    => 1,
         FOREGROUND=> $fg,
@@ -359,12 +373,14 @@ sub get_new_player_info {
         },
       },
     });
-    $form->execute($.panels->{form}->panel_window->subwin(0,0,($LINES/2)-5,($COLS/2)-12));
+    $form->execute($.panels->{form}->panel_window->subwin(0,0,2,10));
 
     $.panels->{form}->hide_panel();
     return (#$form->getWidget('Buttons')->getField('VALUE'),
       $form->getWidget('Username')->getField('VALUE'),
-      $form->getWidget('Symbol')->getField('VALUE'));
+      $form->getWidget('Symbol')->getField('VALUE'),
+      $form->getWidget('God')->getField('VALUE'),
+    );
 }
 
 1;

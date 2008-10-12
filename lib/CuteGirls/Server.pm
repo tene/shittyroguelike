@@ -117,17 +117,17 @@ sub login {
         $heap->{wheel}->put(['assign_id', $session->ID]);
     }
     else {
-        $heap->{wheel}->put(['create_player','Create a new player']);
+        $heap->{wheel}->put(['create_player','Create a new player',['Eris','Burn Shit','Cthulhu']]);
     }
 }
 
 sub register {
-    my ($kernel, $session, $heap, $username, $symbol) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1];
+    my ($kernel, $session, $heap, $username, $symbol, $god) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2];
     if (defined $players->{$username}) {
-        $heap->{wheel}->put(['create_player','username already taken']);
+        $heap->{wheel}->put(['create_player','username already taken',['Eris','Burn Shit','Cthulhu']]);
     }
     else {
-        $players->{$username} = $symbol;
+        $players->{$username} = {symbol=>$symbol,god=>$god};
         $heap->{wheel}->put(['new_map', $place]);
         $heap->{wheel}->put(['assign_id', $session->ID]);
     }
@@ -135,7 +135,9 @@ sub register {
 
 sub add_player {
     my ($kernel, $session, $heap, $id, $username, $fg, $bg, $hp) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2, ARG3, ARG4, ARG5];
-    my $symbol = $players->{$username};
+    my $symbol = $players->{$username}->{symbol};
+    my $god = $players->{$username}->{god};
+    $kernel->post($server_session, 'broadcast', ['announce', "$username, a loyal follower of $god, has arrived."]);
     my ($origin) = grep {(ref $_) eq 'Entrance'} values %{$place->objects};
     my ($x, $y) = ($origin->tile->x, $origin->tile->y);
     print "Adding a new player: $id $symbol $fg $bg $y $x\n";
