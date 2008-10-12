@@ -58,6 +58,7 @@ sub poe_accepted {
                     input  => \&connection_input,
                     error  => \&connection_error,
                     broadcast => \&connection_broadcast,
+                    login => \&login,
                     add_player => \&add_player,
                     object_move_rel => \&object_move_rel,
                     player_move_rel => \&player_move_rel,
@@ -102,8 +103,6 @@ sub connection_start {
          'InputEvent' => 'input',
          'ErrorEvent' => 'error',
     );
-    $heap->{wheel}->put(['new_map', $place]);
-    $heap->{wheel}->put(['assign_id', $session->ID]);
 }
 
 sub connection_input {
@@ -111,6 +110,12 @@ sub connection_input {
 
     my ($command, @args) = @$input;
     $kernel->post($session, $command, @args);
+}
+
+sub login {
+    my ($kernel, $session, $heap, $username, $symbol) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1];
+    $heap->{wheel}->put(['new_map', $place]);
+    $heap->{wheel}->put(['assign_id', $session->ID]);
 }
 
 sub add_player {
