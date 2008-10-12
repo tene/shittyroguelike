@@ -229,7 +229,8 @@ sub object_move_rel {
 
 sub create_player {
     my ($kernel, $heap, $message, $gods) = @_[KERNEL, HEAP, ARG0, ARG1];
-    my ($username,$symbol,$god) = $ui->get_new_player_info($message,$gods);
+    my ($symbol,$god) = $ui->get_new_player_info($message,$gods);
+    my $username = $heap->{username};
     send_to_server('register',$username,$symbol,$god);
 }
 

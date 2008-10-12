@@ -127,6 +127,8 @@ sub register {
         $heap->{wheel}->put(['create_player','username already taken',['Eris','Burn Shit','Cthulhu']]);
     }
     else {
+        $username ||= 'nobody';
+        $symbol ||= substr $username,0,1;
         $players->{$username} = {symbol=>$symbol,god=>$god};
         $heap->{wheel}->put(['new_map', $place]);
         $heap->{wheel}->put(['assign_id', $session->ID]);
