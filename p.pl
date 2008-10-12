@@ -38,6 +38,7 @@ POE::Session->create
         help_keystroke => \&help_handler,
         chat_keystroke => \&chat_handler,
         object_move_rel => \&object_move_rel,
+        create_player => \&create_player,
         add_player => \&add_player,
         chat => \&chat,
         new_map => \&new_map,
@@ -59,7 +60,7 @@ exit;
 sub _start {
     my ($kernel, $heap, $session) = @_[KERNEL, HEAP, SESSION];
 
-    my ($username,$symbol);
+    my ($username);
     GetOptions("user:s" => \$username,
                "server:s" => \$server,);
 
@@ -72,17 +73,15 @@ sub _start {
     $ui = UI->new();
 
     if ($username) {
-        $symbol = substr $username, 0, 1;
     }
     else {
-        ($username,$symbol) = $ui->get_login_info();
+        ($username) = $ui->get_login_info();
     }
     $heap->{username} = $username;
-    $heap->{symbol} = $symbol;
 
     $ui->panels->{status}->show_panel();
 
-    $ui->debug("login info: $username $symbol");
+    $ui->debug("login info: $username");
     $ui->refresh();
 
     $place = Place->new();
@@ -205,11 +204,10 @@ sub chat_handler {
 
 sub random_player {
     my $heap = shift;
-    my $symbol = $heap->{symbol} || $sigils[int(rand $#sigils)];
     my $username = $heap->{username} || 'Player' . $my_id;
     my $fg = $colors[1 + int(rand ($#colors - 1))];
     #my $bg = $colors[int(rand ($#colors - 1))];
-    send_to_server('add_player',$my_id,$username,$symbol,$fg,'black',50);
+    send_to_server('add_player',$my_id,$username,$fg,'black',50);
 }
 
 sub send_to_server {
@@ -226,6 +224,12 @@ sub object_move_rel {
     $ui->drawtile($before);
     $ui->drawtile($player->tile);
     $ui->refresh();
+}
+
+sub create_player {
+    my ($kernel, $heap, $message) = @_[KERNEL, HEAP, ARG0];
+    my ($username,$symbol) = $ui->get_new_player_info($message);
+    send_to_server('register',$username,$symbol);
 }
 
 sub add_player {
@@ -326,7 +330,7 @@ sub connect_success {
          'ErrorEvent' => 'server_error',
          'AutoFlush'  => 1,
     );
-    send_to_server('login',$heap->{username},$heap->{symbol});
+    send_to_server('login',$heap->{username});
 }
 
 sub connect_failure {

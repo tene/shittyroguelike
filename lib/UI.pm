@@ -306,8 +306,8 @@ sub makeForm(@) {
 
 =item C<get_login_info()>
 
-Uses Displays a form to get a username and a player symbol.
-Returns a list of [username, symbol].
+Uses Displays a form to get a username.
+Returns the username.
 
 =cut
 
@@ -330,6 +330,72 @@ sub get_login_info {
     COLUMNS       => 23,
     LINES         => 9,
     CAPTION       => 'Login Info',
+    CAPTIONCOL    => $cfg,
+    BORDER        => 1,
+    FOREGROUND    => $fg,
+    BACKGROUND    => $bg,
+    FOCUSED       => 'Username',
+    TABORDER      => [qw(Username Buttons)],
+    WIDGETS       => {
+      Username   => {
+        TYPE      => 'TextField',
+        CAPTION   => 'Username',
+        CAPTIONCOL=> $cfg,
+        Y         => 0,
+        X         => 0,
+        FOREGROUND=> $fg,
+        BACKGROUND=> $bg,
+        COLUMNS   => 21,
+        MAXLENGTH => 32,
+        FOCUSSWITCH => "\t\n\r",
+        },
+      Buttons     => {
+        TYPE      => 'ButtonSet',
+        LABELS    => [@buttons],
+        Y         => 3,
+        X         => 5,
+        BORDER    => 1,
+        FOREGROUND=> $fg,
+        BACKGROUND=> $bg,
+        OnExit    => $btnexit,
+        FOCUSSWITCH => "\t\n\r",
+        },
+      },
+    });
+    $form->execute($.panels->{form}->panel_window->subwin(0,0,($LINES/2)-5,($COLS/2)-12));
+
+    $.panels->{form}->hide_panel();
+    return (#$form->getWidget('Buttons')->getField('VALUE'),
+      $form->getWidget('Username')->getField('VALUE'),
+      );
+}
+
+=item C<get_new_player_info()>
+
+Uses Displays a form to get information to create a new player.
+Returns a list of [username, symbol].
+
+=cut
+
+sub get_new_player_info {
+    my ($self,$message) = @_;
+    $.panels->{form}->show_panel();
+    my ($fg,$bg,$cfg) = qw(white black yellow);
+    my @buttons = qw(OK);
+
+    my $btnexit = sub {
+        my ($f,$key) = @_;
+
+        return unless ($key eq "\r" || $key eq "\n");
+        $f->setField(EXIT => 1);
+    };
+
+    my   $form = Curses::Forms->new({
+    AUTOCENTER    => 1,
+    DERIVED       => 1,
+    COLUMNS       => 23,
+    LINES         => 9,
+    CAPTION       => $message,
     CAPTIONCOL    => $cfg,
     BORDER        => 1,
     FOREGROUND    => $fg,

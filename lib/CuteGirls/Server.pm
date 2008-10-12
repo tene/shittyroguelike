@@ -15,12 +15,10 @@ use Perl6::Subs;
 use Switch 'Perl6';
 
 my $default_port = 3456;
-
 my $server_session;
-
 my $map;
-
 my $place;
+my $players;
 
 sub new ($self,$mapfile,?$port) {
     $default_port ||= $port;
@@ -59,6 +57,7 @@ sub poe_accepted {
                     error  => \&connection_error,
                     broadcast => \&connection_broadcast,
                     login => \&login,
+                    register => \&register,
                     add_player => \&add_player,
                     object_move_rel => \&object_move_rel,
                     player_move_rel => \&player_move_rel,
@@ -107,19 +106,36 @@ sub connection_start {
 
 sub connection_input {
     my ($kernel, $session, $heap, $input) = @_[KERNEL, SESSION, HEAP, ARG0];
-
     my ($command, @args) = @$input;
     $kernel->post($session, $command, @args);
 }
 
 sub login {
+    my ($kernel, $session, $heap, $username) = @_[KERNEL, SESSION, HEAP, ARG0];
+    if (defined $players->{$username}) {
+        $heap->{wheel}->put(['new_map', $place]);
+        $heap->{wheel}->put(['assign_id', $session->ID]);
+    }
+    else {
+        $heap->{wheel}->put(['create_player','Create a new player']);
+    }
+}
+
+sub register {
     my ($kernel, $session, $heap, $username, $symbol) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1];
-    $heap->{wheel}->put(['new_map', $place]);
-    $heap->{wheel}->put(['assign_id', $session->ID]);
+    if (defined $players->{$username}) {
+        $heap->{wheel}->put(['create_player','username already taken']);
+    }
+    else {
+        $players->{$username} = $symbol;
+        $heap->{wheel}->put(['new_map', $place]);
+        $heap->{wheel}->put(['assign_id', $session->ID]);
+    }
 }
 
 sub add_player {
-    my ($kernel, $session, $heap, $id, $username, $symbol, $fg, $bg, $hp) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2, ARG3, ARG4, ARG5];
+    my ($kernel, $session, $heap, $id, $username, $fg, $bg, $hp) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2, ARG3, ARG4, ARG5];
+    my $symbol = $players->{$username};
     my ($origin) = grep {(ref $_) eq 'Entrance'} values %{$place->objects};
     my ($x, $y) = ($origin->tile->x, $origin->tile->y);
     print "Adding a new player: $id $symbol $fg $bg $y $x\n";
