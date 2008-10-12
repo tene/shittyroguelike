@@ -79,12 +79,6 @@ method BUILD ($params) {
     $.panels->{status} = $sp;
     $.panels->{help} = $hp;
 
-    my @fl = make_login_fields();
-    my $form = makeForm(@fl);
-    $form->set_form_win($fw);
-    $form->set_form_sub($fw);
-
-    $form->post_form();
     refresh();
     
     my $c = {
@@ -229,84 +223,9 @@ sub teardown {
     print "Thanks for playing!\n";
 }
 
-# Internal function
-sub make_login_fields() {
-
-    my $flist = [
-                 [ 'L', 0,  0,  0,  2, "Form"        ],
-                 [ 'L', 0,  0,  2,  0, "Name"  ],
-                 [ 'F', 1, 15,  2, 12, "Name"      ],
-                 [ 'L', 0,  0,  3,  0, "Symbol"   ],
-                 [ 'F', 1, 15,  3, 12, "Symbol"      ],
-                 ];
-
-    my @fl;
-
-    foreach my $F (@$flist) {
-        my $field;
-            # This is a Perl reference to a scalar number variable.  The
-            # number is the numerical equivalent (cast) of the C pointer to the
-            # executable-Curses FIELD object.  The reference is blessed into
-            # package "Curses::Field", but don't confuse it with a Perl
-            # object.
-
-        if ($F->[0] eq 'L') {
-            $field = new_field(1, length($F->[5]), $F->[3], $F->[4], 0, 0);
-            if ($field eq '') {
-                #fatal("new_field $F->[5] failed");
-            }
-            set_field_buffer($field, 0, $F->[5]);
-            field_opts_off($field, O_ACTIVE);
-            field_opts_off($field, O_EDIT);
-        } elsif ($F->[0] eq 'F') {
-            $field = new_field($F->[1], $F->[2], $F->[3], $F->[4], 0, 0);
-            if ($field eq '') {
-                #fatal("new_field $F->[5] failed");
-            }
-            set_field_back($field, A_UNDERLINE);
-        }
-
-        push(@fl, $field);
-    }
-    return @fl;
-}
-
-sub makeForm(@) {
-    
-    my @fl = @_;
-
-    my @pack;
-    foreach my $fieldR (@fl) {
-        push(@pack, $ {$fieldR});
-    }
-    push(@pack, 0);
-
-    # new_form()'s argument is a list of fields.  Its form is amazingly
-    # complex:
-
-    # The argument is a string whose ASCII encoding is an array of C
-    # pointers.  Each pointer is to a FIELD object of the
-    # executable-Curses library, except the last is NULL to mark the
-    # end of the list.  For example, assume there are two fields and
-    # the executable-Curses library represents them with FIELD objects
-    # whose addresses (pointers) are 0x11223344 and 0x0004080C.  The
-    # argument to Curses::new_form() is a 12 character string whose
-    # ASCII encoding is 0x112233440004080C00000000 .
-
-    # Maybe some day we can provide an alternative where there is an
-    # actual Perl field object class and the argument is a reference to
-    # a Perl list of them.
-
-    my $form = new_form(pack('L!*', @pack));
-    if ($form eq '') {
-        fatal("new_form failed");
-    }
-    return $form;
-}
-
 =item C<get_login_info()>
 
-Uses Displays a form to get a username.
+Displays a form to get a username.
 Returns the username.
 
 =cut
@@ -328,7 +247,7 @@ sub get_login_info {
     AUTOCENTER    => 1,
     DERIVED       => 1,
     COLUMNS       => 23,
-    LINES         => 9,
+    LINES         => 6,
     CAPTION       => 'Login Info',
     CAPTIONCOL    => $cfg,
     BORDER        => 1,
