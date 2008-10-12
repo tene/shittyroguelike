@@ -239,6 +239,7 @@ sub add_player {
                         id => $id,
                         max_hp => $hp,
                         cur_hp => $hp,
+                        place => $place,
                         );
     $place->objects->{$id} = $player;
     output("New player $username(");

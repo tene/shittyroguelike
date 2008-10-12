@@ -128,6 +128,7 @@ sub add_player {
             tile     => $place->chart->[$y][$x],
             max_hp   => $hp,
             cur_hp   => $hp,
+            place    => $place,
         );
     $place->objects->{$id}->{tile}->vasru(0);
     $kernel->post($server_session, 'broadcast', ['add_player', $id, $username, $symbol, $fg, $bg, $hp, $y, $x]);
