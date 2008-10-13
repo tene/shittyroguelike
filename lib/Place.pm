@@ -43,6 +43,9 @@ method load ($map) {
             if($char eq '#') {
                 $tile->fg('green');
             }
+            if (ord($char) > 128) {
+                $tile->fg('green');
+            }
 
             if ($prevtile) {
                 $prevtile->right($tile);
