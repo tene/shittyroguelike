@@ -297,7 +297,7 @@ Returns a list of [username, symbol].
 =cut
 
 sub get_new_player_info {
-    my ($self,$message,$gods) = @_;
+    my ($self,$message,$gods,$colors,$races) = @_;
     $.panels->{form}->show_panel();
     my ($fg,$bg,$cfg) = qw(white black yellow);
     my @buttons = qw(OK);
@@ -312,22 +312,36 @@ sub get_new_player_info {
     my   $form = Curses::Forms->new({
     AUTOCENTER    => 1,
     DERIVED       => 1,
-    COLUMNS       => 25,
+    COLUMNS       => 45,
     LINES         => 10,
     CAPTION       => $message,
     CAPTIONCOL    => $cfg,
     BORDER        => 1,
     FOREGROUND    => $fg,
     BACKGROUND    => $bg,
-    FOCUSED       => 'God',
-    TABORDER      => [qw(God Symbol Buttons)],
+    FOCUSED       => 'Color',
+    TABORDER      => [qw(Color God Race Buttons)],
     WIDGETS       => {
+      Color   => {
+        TYPE      => 'ComboBox',
+        CAPTION   => 'Color',
+        CAPTIONCOL=> $cfg,
+        Y         => 0,
+        X         => 0,
+        FOREGROUND=> $fg,
+        BACKGROUND=> $bg,
+        COLUMNS   => 11,
+        LISTITEMS => $colors,
+        VALUE     => $colors->[0],
+        READONLY  => 1,
+        FOCUSSWITCH => "\t\n\r",
+        },
       God   => {
         TYPE      => 'ComboBox',
         CAPTION   => 'God',
         CAPTIONCOL=> $cfg,
         Y         => 0,
-        X         => 0,
+        X         => 15,
         FOREGROUND=> $fg,
         BACKGROUND=> $bg,
         COLUMNS   => 21,
@@ -336,16 +350,18 @@ sub get_new_player_info {
         READONLY  => 1,
         FOCUSSWITCH => "\t\n\r",
         },
-      Symbol   => {
-        TYPE      => 'TextField',
-        CAPTION   => 'Symbol',
+      Race   => {
+        TYPE      => 'ComboBox',
+        CAPTION   => 'Race',
         CAPTIONCOL=> $cfg,
         Y         => 3,
         X         => 0,
         FOREGROUND=> $fg,
         BACKGROUND=> $bg,
         COLUMNS   => 21,
-        MAXLENGTH => 1,
+        LISTITEMS => $races,
+        VALUE     => $races->[0],
+        READONLY  => 1,
         FOCUSSWITCH => "\t\n\r",
         },
       Buttons     => {
@@ -365,8 +381,9 @@ sub get_new_player_info {
 
     $.panels->{form}->hide_panel();
     return (#$form->getWidget('Buttons')->getField('VALUE'),
-      $form->getWidget('Symbol')->getField('VALUE'),
+      $form->getWidget('Race')->getField('VALUE'),
       $form->getWidget('God')->getField('VALUE'),
+      $form->getWidget('Color')->getField('VALUE'),
     );
 }
 

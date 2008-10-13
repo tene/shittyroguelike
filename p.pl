@@ -110,7 +110,7 @@ sub connect_start {
 sub assign_id {
     my ($heap, $id) = @_[HEAP, ARG0];
     $my_id = $id;
-    random_player($heap);
+    create_me($heap);
     $ui->refresh();
 }
 
@@ -123,7 +123,7 @@ sub keystroke_handler {
         when [KEY_DOWN, 'j'] { move(0,1) }
         when [KEY_LEFT, 'h'] { move(-1,0) }
         when [KEY_RIGHT, 'l'] { move(1,0) }
-        when 'n' { send_to_server('remove_object',$my_id); random_player($heap); };
+        when 'n' { send_to_server('remove_object',$my_id); create_me($heap); };
         when ["\r", "\n"] {
             $heap->{console}->[2] = 'chat_keystroke';
             my $player = $place->objects->{$my_id};
@@ -203,12 +203,10 @@ sub chat_handler {
     }
 }
 
-sub random_player {
+sub create_me {
     my $heap = shift;
-    my $username = $heap->{username} || 'Player' . $my_id;
-    my $fg = $colors[1 + int(rand ($#colors - 1))];
-    #my $bg = $colors[int(rand ($#colors - 1))];
-    send_to_server('add_player',$my_id,$username,$fg,'black',50);
+    my $username = $heap->{username};
+    send_to_server('add_player',$my_id,$username);
 }
 
 sub send_to_server {
@@ -228,10 +226,10 @@ sub object_move_rel {
 }
 
 sub create_player {
-    my ($kernel, $heap, $message, $gods) = @_[KERNEL, HEAP, ARG0, ARG1];
-    my ($symbol,$god) = $ui->get_new_player_info($message,$gods);
+    my ($kernel, $heap, $message, $gods, $colors, $races) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2, ARG3];
+    my ($race,$god,$color) = $ui->get_new_player_info($message,$gods,$colors,$races);
     my $username = $heap->{username};
-    send_to_server('register',$username,$symbol,$god);
+    send_to_server('register',$username,$race,$god,$color);
 }
 
 sub add_player {

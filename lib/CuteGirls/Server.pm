@@ -19,6 +19,15 @@ my $server_session;
 my $map;
 my $place;
 my $players;
+my $races = {
+    giant => '^',
+    ent => 'Ψ',
+    human => '@',
+    elf => 'λ',
+    gnome => '¤',
+    pixie => '`',
+    gremlin => ',',
+};
 
 sub new ($self,$mapfile,?$port) {
     $default_port ||= $port;
@@ -117,26 +126,36 @@ sub login {
         $heap->{wheel}->put(['assign_id', $session->ID]);
     }
     else {
-        $heap->{wheel}->put(['create_player','Create a new player',['Eris','Burn Shit','Cthulhu']]);
+        send_create_form($heap->{wheel});
     }
 }
 
+sub send_create_form {
+    my $wheel = shift;
+    $wheel->put(['create_player','create new character',['Eris','Burn Shit','Cthulhu'],[qw(red green yellow blue magenta cyan white)],[keys %$races]]);
+}
+
 sub register {
-    my ($kernel, $session, $heap, $username, $symbol, $god) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2];
+    my ($kernel, $session, $heap, $username, $race, $god, $color) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2, ARG3];
+    my $symbol = $races->{$race};
     if (defined $players->{$username}) {
-        $heap->{wheel}->put(['create_player','username already taken',['Eris','Burn Shit','Cthulhu']]);
+        send_create_form($heap->{wheel});
     }
     else {
         $username ||= 'nobody';
         $symbol ||= substr $username,0,1;
-        $players->{$username} = {symbol=>$symbol,god=>$god};
+        $color ||= 'red';
+        $players->{$username} = {symbol=>$symbol,god=>$god,color=>$color};
         $heap->{wheel}->put(['new_map', $place]);
         $heap->{wheel}->put(['assign_id', $session->ID]);
     }
 }
 
 sub add_player {
-    my ($kernel, $session, $heap, $id, $username, $fg, $bg, $hp) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2, ARG3, ARG4, ARG5];
+    my ($kernel, $session, $heap, $id, $username) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1];
+    my $fg = $players->{$username}->{color};
+    my $bg = 'black';
+    my $hp = 50;
     my $symbol = $players->{$username}->{symbol};
     my $god = $players->{$username}->{god};
     $kernel->post($server_session, 'broadcast', ['announce', "$username, a loyal follower of $god, has arrived."]);
