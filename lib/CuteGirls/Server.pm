@@ -82,6 +82,7 @@ sub poe_accepted {
                     login => \&login,
                     register => \&register,
                     add_player => \&add_player,
+                    tick => \&tick,
                     object_move_rel => \&object_move_rel,
                     player_move_rel => \&player_move_rel,
                     attack => \&attack,
@@ -192,6 +193,7 @@ sub add_player {
         );
     $place->objects->{$id}->{tile}->vasru(0);
     $kernel->post($server_session, 'broadcast', ['add_player', $id, $username, $symbol, $fg, $bg, $hp, $y, $x]);
+    $kernel->delay_set('tick',rand() + 20/$race->{limbs});
 }
 sub object_move_rel {
     my ($kernel, $session, $heap, $id, $ox, $oy) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2];
@@ -208,6 +210,16 @@ sub object_move_rel {
 sub player_move_rel {
     my ($kernel, $session, $heap, $ox, $oy) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1];
     $kernel->call($session, 'object_move_rel', $session->ID, $ox, $oy);
+}
+sub tick {
+    my ($kernel, $session, $heap) = @_[KERNEL, SESSION, HEAP];
+    my $self = $place->objects->{$session->ID};
+    if ($self->cur_hp < $self->max_hp) {
+        my $next = int($self->cur_hp + $self->organs/4 + $self->physical/2 + rand(2));
+        $self->cur_hp(($next > $self->max_hp) ? $self->max_hp : $next );
+        $kernel->post($server_session, 'broadcast', ['change_object', $self->id, {'cur_hp'=>$self->cur_hp}]);
+    }
+    $kernel->delay_set('tick',rand() + 20/$self->limbs);
 }
 sub attack {
     my ($kernel, $session, $heap, $id, $ox, $oy) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2];
