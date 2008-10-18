@@ -20,14 +20,28 @@ my $map;
 my $place;
 my $players;
 my $races = {
-    giant => '^',
-    ent => 'Ψ',
-    human => '@',
-    elf => 'λ',
-    gnome => '¤',
-    pixie => '`',
-    gremlin => ',',
+    giant => defstats('^',m=>10,o=>10,l=>-5,e=>5,sc=>-10,pr=>-5,ph=>-5,so=>-10),
+    ent => defstats('Ψ',m=>10,o=>15,l=>-10,e=>-5,sc=>15,pr=>-5,ph=>-5,so=>-10),
+    human => defstats('@'),
+    elf => defstats('λ',m=>-2,o=>-5,l=>5,e=>15,sc=>5,pr=>5,ph=>5,so=>-5),
+    gnome => defstats('¤',m=>-5,o=>-10,l=>8,e=>8,sc=>10,pr=>-5,ph=>-5,so=>5),
+    pixie => defstats('`',m=>-10,o=>-10,l=>18,e=>10,sc=>15,pr=>-6,ph=>-6,so=>10),
+    gremlin => defstats(',',m=>-9,o=>-8,l=>10,sc=>10,pr=>5,ph=>3,so=>-10),
 };
+
+sub defstats ($sym,+$m,+$o,+$l,+$e,+$sc,+$pr,+$ph,+$so) {
+    return {
+        symbol => $sym,
+        muscle => $m||0,
+        organs=> $o||0,
+        limbs => $l||0,
+        eyes => $e||0,
+        scholarly => $sc||0,
+        practical => $ph||0,
+        physical => $ph||0,
+        social => $so||0,
+    };
+}
 
 sub new ($self,$mapfile,?$port) {
     $default_port ||= $port;
@@ -137,7 +151,7 @@ sub send_create_form {
 
 sub register {
     my ($kernel, $session, $heap, $username, $race, $god, $color) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2, ARG3];
-    my $symbol = $races->{$race};
+    my $symbol = $races->{$race}->{symbol};
     if (defined $players->{$username}) {
         send_create_form($heap->{wheel});
     }
@@ -145,7 +159,7 @@ sub register {
         $username ||= 'nobody';
         $symbol ||= substr $username,0,1;
         $color ||= 'red';
-        $players->{$username} = {symbol=>$symbol,god=>$god,color=>$color};
+        $players->{$username} = {race=>$race,god=>$god,color=>$color};
         $heap->{wheel}->put(['new_map', $place]);
         $heap->{wheel}->put(['assign_id', $session->ID]);
     }
@@ -155,8 +169,9 @@ sub add_player {
     my ($kernel, $session, $heap, $id, $username) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1];
     my $fg = $players->{$username}->{color};
     my $bg = 'black';
-    my $hp = 50;
-    my $symbol = $players->{$username}->{symbol};
+    my $race = $races->{$players->{$username}->{race}};
+    my $symbol = $race->{symbol};
+    my $hp = ($race->{organs} + 13) * 10;
     my $god = $players->{$username}->{god};
     $kernel->post($server_session, 'broadcast', ['announce', "$username, a loyal follower of $god, has arrived."]);
     my ($origin) = grep {(ref $_) eq 'Entrance'} values %{$place->objects};
@@ -173,6 +188,7 @@ sub add_player {
             max_hp   => $hp,
             cur_hp   => $hp,
             place    => $place,
+            map {$_ => 13 + $race->{$_} } qw/muscle organs limbs eyes scholarly practical physical social/,
         );
     $place->objects->{$id}->{tile}->vasru(0);
     $kernel->post($server_session, 'broadcast', ['add_player', $id, $username, $symbol, $fg, $bg, $hp, $y, $x]);
@@ -196,15 +212,29 @@ sub player_move_rel {
 sub attack {
     my ($kernel, $session, $heap, $id, $ox, $oy) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2];
     my $self = $place->objects->{$session->ID};
+    my $selfname = $self->username;
     my $other = $place->objects->{$id};
+    my $othername = $other->username;
     my $dest = $self->get_tile_rel($ox,$oy);
     return unless $dest == $other->tile;
     print $self->symbol, '→', $other->symbol, "\n";
-    $other->cur_hp($other->cur_hp - 11);
+    my $damage = 5 + $self->muscle + int(rand($self->limbs));
+    unless ($other->limbs <= 0) {
+        my $scale = 10;
+        my $diff = $self->limbs - $other->limbs;
+        my $evade = 1/(1+exp($diff/$scale));
+        if (rand() < $evade) {
+            $kernel->post($server_session, 'broadcast', ['announce', "$selfname missed."]);
+            return;
+        }
+    }
+    $other->cur_hp($other->cur_hp - $damage);
+    $kernel->post($server_session, 'broadcast', ['announce', "$selfname hit $othername for $damage damage."]);
     if ($other->alive) {
         $kernel->post($server_session, 'broadcast', ['change_object', $other->id, {'cur_hp'=>$other->cur_hp}]);
     }
     else {
+        $kernel->post($server_session, 'broadcast', ['announce', "$selfname killed $othername."]);
         $kernel->post($server_session, 'broadcast', ['change_object', $other->id, $other->death()]);
     }
 }
