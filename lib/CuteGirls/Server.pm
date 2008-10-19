@@ -214,6 +214,7 @@ sub player_move_rel {
 sub tick {
     my ($kernel, $session, $heap) = @_[KERNEL, SESSION, HEAP];
     my $self = $place->objects->{$session->ID};
+    return unless $self;
     if ($self->cur_hp < $self->max_hp) {
         my $next = int($self->cur_hp + $self->organs/4 + $self->physical/2 + rand(2));
         $self->cur_hp(($next > $self->max_hp) ? $self->max_hp : $next );
@@ -284,6 +285,7 @@ sub connection_error {
    my ($kernel, $session, $heap) = @_[KERNEL, SESSION, HEAP];
    return unless defined($place->objects->{$heap->{id}});
    $kernel->post($server_session, 'broadcast', ['remove_object', $heap->{id}]);
+   $kernel->alarm_remove_all();
    $place->objects->{$heap->{id}}->tile->leave($place->objects->{$heap->{id}});
    delete $place->objects->{$heap->{id}};
 }
