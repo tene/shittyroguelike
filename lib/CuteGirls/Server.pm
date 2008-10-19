@@ -43,6 +43,10 @@ sub defstats ($sym,+$m,+$o,+$l,+$e,+$sc,+$pr,+$ph,+$so) {
     };
 }
 
+sub scaled_logistic ($value, $divisor) {
+    return 1/(1+exp(- $value/$divisor));
+}
+
 sub new ($self,$mapfile,?$port) {
     $default_port ||= $port;
     $map = slurp '<:utf8', $mapfile;
@@ -83,6 +87,7 @@ sub poe_accepted {
                     register => \&register,
                     add_player => \&add_player,
                     tick => \&tick,
+                    act => \&act,
                     object_move_rel => \&object_move_rel,
                     player_move_rel => \&player_move_rel,
                     attack => \&attack,
@@ -209,7 +214,11 @@ sub object_move_rel {
 }
 sub player_move_rel {
     my ($kernel, $session, $heap, $ox, $oy) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1];
-    $kernel->call($session, 'object_move_rel', $session->ID, $ox, $oy);
+    my $self = $place->objects->{$session->ID};
+    push @{$self->{actions}}, ['move',$ox,$oy];
+    unless (@{$self->{actions}} > 1) {
+        $kernel->delay_set('act',scaled_logistic(13-$self->limbs,5)/4);
+    }
 }
 sub tick {
     my ($kernel, $session, $heap) = @_[KERNEL, SESSION, HEAP];
@@ -222,6 +231,18 @@ sub tick {
     }
     $kernel->delay_set('tick',rand() + 20/$self->limbs);
 }
+sub act {
+    my ($kernel, $session, $heap) = @_[KERNEL, SESSION, HEAP];
+    my $self = $place->objects->{$session->ID};
+    return unless $self;
+    my ($act, @args) = @{shift @{$self->{actions}}};
+    if ($act eq 'move') {
+        $kernel->call($session, 'object_move_rel', $session->ID, @args);
+    }
+    if (@{$self->{actions}} > 0) {
+        $kernel->delay_set('act',scaled_logistic(13-$self->limbs,5)/4);
+    }
+}
 sub attack {
     my ($kernel, $session, $heap, $id, $ox, $oy) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2];
     my $self = $place->objects->{$session->ID};
@@ -233,15 +254,15 @@ sub attack {
     print $self->symbol, '→', $other->symbol, "\n";
     my $damage = 5 + $self->muscle + int(rand($self->limbs));
     unless ($other->limbs <= 0) {
-        my $scale = 10;
-        my $diff = $self->limbs - $other->limbs;
-        my $evade = 1/(1+exp($diff/$scale));
+        my $diff = $other->limbs - $self->limbs;
+        my $evade = scaled_logistic($diff,10);
         if (rand() < $evade) {
             $kernel->post($server_session, 'broadcast', ['announce', "$selfname missed."]);
             return;
         }
     }
     $other->cur_hp($other->cur_hp - $damage);
+    delete $other->{actions};
     $kernel->post($server_session, 'broadcast', ['announce', "$selfname hit $othername for $damage damage."]);
     if ($other->alive) {
         $kernel->post($server_session, 'broadcast', ['change_object', $other->id, {'cur_hp'=>$other->cur_hp}]);
