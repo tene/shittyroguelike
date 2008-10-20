@@ -6,17 +6,19 @@ UI - Main class for user interface.
 
 package UI;
 
+use Term::ReadKey;
 use Curses qw(initscr keypad start_color noecho cbreak curs_set endwin new_panel update_panels doupdate init_pair
     COLOR_BLACK COLOR_BLUE COLOR_CYAN COLOR_GREEN COLOR_MAGENTA COLOR_RED COLOR_WHITE COLOR_YELLOW COLOR_PAIR
     O_ACTIVE O_EDIT A_UNDERLINE
     $LINES $COLS
-    newwin derwin subwin delwin
+    newwin derwin subwin delwin resizeterm
     erase
     box
-    top_panel bottom_panel hide_panel show_panel
+    top_panel bottom_panel hide_panel show_panel replace_panel
     new_field set_field_buffer field_opts_off set_field_back
     new_form set_form_win set_form_sub post_form unpost_form
     );
+use sigtrap 'handler', \&handle_resize, 'WINCH';
 
 use Moose;
 use Perl6::Attributes;
@@ -28,6 +30,8 @@ has panels => (is=>'rw',isa=>'HashRef[Curses::Panel]');
 has place => (is=>'rw',isa=>'Place');
 has win => (is=>'rw',isa=>'Curses::Window');
 has colors => (is=>'rw',isa=>'HashRef[HashRef[Int]]');
+
+my $ui;
 
 method BUILD ($params) {
 
@@ -104,10 +108,31 @@ method BUILD ($params) {
     }
 
     $.colors = $cols;
+    $ui = $self;
 }
 
 method DESTROY {
     $self->teardown();
+}
+
+sub handle_resize {
+    my ($cols,$lines) = GetTerminalSize();
+    resizeterm($lines,$cols);
+    print STDERR "$lines $cols\n";
+    sub helper ($p,$l,$c,$y,$x) {
+        my $oldwin = $ui->panels->{$p}->panel_window;
+        my $w = Curses->new($l,$c,$y,$x);
+        $ui->panels->{$p}->replace_panel($w);
+        delwin($oldwin);
+        #$p->move_panel($y,$x);
+    }
+    helper('place',$lines-6,$cols-30,0,0);
+    helper('output',5,$cols-30,$lines-5,0);
+    #$fp->replace_panel($pw->wresize(0,0))->move_panel(0,0);
+    helper('input',1,$cols-30,$lines-6,0);
+    helper('status',0,30,0,$cols-30);
+    #$hp->replace_panel($pw->wresize(5,50))->move_panel(10,15);
+    $ui->redraw();
 }
 
 method output ($message,?$panel) {
@@ -136,6 +161,7 @@ Just calls C<drawtile()> on each tile in place->chart.
 
 
 method redraw {
+    $self->update_status();
     for my $line (@{$.place->chart}) {
         for my $tile (@$line) {
             $self->drawtile($tile);
