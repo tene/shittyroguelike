@@ -198,7 +198,7 @@ sub add_player {
         );
     $place->objects->{$id}->{tile}->vasru(0);
     $kernel->post($server_session, 'broadcast', ['add_player', $id, $username, $symbol, $fg, $bg, $hp, $y, $x]);
-    $kernel->delay_set('tick',rand() + 20/$race->{limbs});
+    $kernel->delay_set('tick',rand() + scaled_logistic($race->{limbs},20));
 }
 sub object_move_rel {
     my ($kernel, $session, $heap, $id, $ox, $oy) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2];
