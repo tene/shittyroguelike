@@ -216,13 +216,20 @@ sub send_to_server {
 }
 
 sub object_move_rel {
-    my ($kernel, $heap, $player_id, $x, $y) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2];
-    my $player = $place->objects->{$player_id};
-    my $before = $player->tile;
-    $player->move_rel($x,$y);
-    $ui->drawtile($before);
-    $ui->drawtile($player->tile);
-    $ui->refresh();
+    my ($kernel, $heap, $object_id, $x, $y) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2];
+    my $object = $place->objects->{$object_id};
+    my $before = $object->tile;
+    $object->move_rel($x,$y);
+    if ($object_id == $my_id) {
+        $ui->focus_x($object->tile->x);
+        $ui->focus_y($object->tile->y);
+        $ui->redraw();
+    }
+    else {
+        $ui->drawtile($before);
+        $ui->drawtile($object->tile);
+        $ui->refresh();
+    }
 }
 
 sub create_player {
@@ -252,7 +259,14 @@ sub add_player {
     output("New player $username(");
     output_colored($symbol,$fg,$bg);
     output(") at $x,$y id $id\n");
-    $ui->drawtile($player->tile);
+    if ($id == $my_id) {
+        $ui->focus_x($x);
+        $ui->focus_y($y);
+        $ui->redraw();
+    }
+    else {
+        $ui->drawtile($player->tile);
+    }
     $ui->update_status;
     $ui->refresh();
 }

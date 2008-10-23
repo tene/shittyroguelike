@@ -30,6 +30,8 @@ has panels => (is=>'rw',isa=>'HashRef[Curses::Panel]');
 has place => (is=>'rw',isa=>'Place');
 has win => (is=>'rw',isa=>'Curses::Window');
 has colors => (is=>'rw',isa=>'HashRef[HashRef[Int]]');
+has focus_x => (is=>'rw',isa=>'Int',default=>0);
+has focus_y => (is=>'rw',isa=>'Int',default=>0);
 
 my $ui;
 
@@ -162,6 +164,7 @@ Just calls C<drawtile()> on each tile in place->chart.
 
 method redraw {
     $self->update_status();
+    erase($.panels->{place}->panel_window);
     for my $line (@{$.place->chart}) {
         for my $tile (@$line) {
             $self->drawtile($tile);
@@ -179,9 +182,17 @@ Draws the tile to the place panel.
 
 method drawtile ($tile) {
     my $obj = $tile->contents->[-1] || $tile;
+    my $y = $tile->y;
+    my $x = $tile->x;
+    $y -= $.focus_y;
+    $x -= $.focus_x;
+    $y += ($LINES-6)/2;
+    $x += ($COLS-30)/2;
+    return if $y < 0;
+    return if $x < 0;
     my $color = $.colors->{$obj->fg}->{$obj->bg};
     $self->panels->{place}->panel_window->attron($color);
-    $self->panels->{place}->panel_window->addstr($tile->y,$tile->x,$obj->symbol);
+    $self->panels->{place}->panel_window->addstr($y,$x,$obj->symbol);
     $self->panels->{place}->panel_window->attroff($color);
 }
 
