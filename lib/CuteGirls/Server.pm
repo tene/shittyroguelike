@@ -197,7 +197,7 @@ sub add_player {
             map {$_ => 13 + $race->{$_} } qw/muscle organs limbs eyes scholarly practical physical social/,
         );
     $place->objects->{$id}->{tile}->vasru(0);
-    $kernel->post($server_session, 'broadcast', ['add_player', $id, $username, $symbol, $fg, $bg, $hp, $y, $x]);
+    $kernel->post($server_session, 'broadcast', ['add_player', $id, $place->objects->{$id}->to_hash, $y, $x]);
     $kernel->delay_set('tick',rand() + scaled_logistic($race->{limbs},20));
 }
 sub object_move_rel {

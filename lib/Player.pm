@@ -4,8 +4,8 @@ use Moose;
 use Perl6::Attributes;
 use Perl6::Subs;
 
-with 'UI::Drawable';
-with 'Actor::Stats';
+with 'UI::Drawable';# => { alias => {to_hash => 'drawable_hash'}};
+with 'Actor::Stats';# => { alias => {to_hash => 'stats_hash'}};
 
 has 'username' => (is=>'rw',isa=>'Str');
 
@@ -20,4 +20,10 @@ method death {
 
     return {'cur_hp'=>$self->max_hp,'move_to_id'=>$origin->id};
 }
+
+method to_hash {
+    my %hash = map {$_ => $self->$_} qw/symbol fg bg id cur_hp max_hp muscle organs limbs eyes scholarly practical physical social username/;
+    return \%hash;
+};
+
 1;

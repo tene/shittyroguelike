@@ -243,21 +243,16 @@ sub create_player {
 }
 
 sub add_player {
-    my ($kernel, $heap, $id, $username, $symbol, $fg, $bg, $hp, $y, $x) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2, ARG3, ARG4, ARG5, ARG6, ARG7];
+    my ($kernel, $heap, $id, $p, $y, $x) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2, ARG3];
     my $player = Player->new(
-                        username => $username,
-                        symbol => $symbol,
-                        fg => $fg,
-                        bg => $bg,
-                        tile => $place->chart->[$y][$x],
-                        id => $id,
-                        max_hp => $hp,
-                        cur_hp => $hp,
-                        place => $place,
-                        );
+        %$p,
+        tile => $place->chart->[$y][$x],
+        id => $id,
+        place => $place,
+    );
     $place->objects->{$id} = $player;
-    output("New player $username(");
-    output_colored($symbol,$fg,$bg);
+    output('New player '.$player->username.'(');
+    output_colored($player->symbol,$player->fg,$player->bg);
     output(") at $x,$y id $id\n");
     if ($id == $my_id) {
         $ui->focus_x($x);
