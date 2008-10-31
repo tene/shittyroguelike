@@ -343,7 +343,7 @@ sub connect_success {
     $heap->{server_socket} = POE::Wheel::ReadWrite->new(
          'Handle'     => $socket,
          'Driver'     => POE::Driver::SysRW->new,
-         'Filter'     => POE::Filter::Reference->new,
+         'Filter'     => POE::Filter::Reference->new('YAML'),
          'InputEvent' => 'server_input',
          'ErrorEvent' => 'server_error',
          'AutoFlush'  => 1,

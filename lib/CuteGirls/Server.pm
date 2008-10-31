@@ -127,7 +127,7 @@ sub connection_start {
     $heap->{wheel} = POE::Wheel::ReadWrite->new(
          'Handle'     => $handle,
          'Driver'     => POE::Driver::SysRW->new,
-         'Filter'     => POE::Filter::Reference->new,
+         'Filter'     => POE::Filter::Reference->new('YAML'),
          'InputEvent' => 'input',
          'ErrorEvent' => 'error',
     );
