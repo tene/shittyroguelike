@@ -297,6 +297,7 @@ sub new_map {
 sub drop_item {
     my ($kernel, $heap, $id, $obj) = @_[KERNEL, HEAP, ARG0, ARG1];
     my $player = $place->objects->{$id};
+    $obj = Place::Thing->new(%$obj);
     $player->tile->enter($obj);
     $place->objects->{$obj->id} = $obj;
     $ui->drawtile($player->tile);

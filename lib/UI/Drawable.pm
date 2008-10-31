@@ -12,6 +12,11 @@ has 'fg' => (is=>'rw');
 has 'bg' => (is=>'rw');
 has 'id' => (is=>'rw',isa=>'Int',required=>1,default=>sub {1000 + $counter++});
 
+method to_hash {
+    my %hash = map { $_ => $self->$_ } qw/symbol fg bg id/;
+    return \%hash;
+}
+
 method clear {
     $.tile->leave($self);
 }

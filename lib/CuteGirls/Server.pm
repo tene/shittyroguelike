@@ -277,7 +277,7 @@ sub drop_item {
     my $player = $place->objects->{$heap->{id}};
     my $obj = Place::Thing->new(fg=>$fg,bg=>$bg,symbol=>$symbol);
     $place->objects->{$obj->id} = $obj;
-    $kernel->post($server_session,'broadcast',['drop_item',$heap->{id},$obj]);
+    $kernel->post($server_session,'broadcast',['drop_item',$heap->{id},$obj->to_hash]);
     $player->tile->enter($obj);
     my $rand = 5+rand(rand(rand(100)));
     $kernel->delay_set('change_object',$rand/2,$obj->id,{'symbol'=>'°','fg'=>'magenta'});
