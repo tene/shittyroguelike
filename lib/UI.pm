@@ -212,8 +212,11 @@ method update_status {
         $self->panels->{status}->panel_window->addstr($i++,1,' 'x(9-((length $player->username)/2)) . "$player->{username}(");
         $self->output_colored($player->symbol,$player->fg,$player->bg,'status');
         $self->output(") $player->{cur_hp}/$player->{max_hp}",'status');
+        $self->panels->{status}->panel_window->addstr($i++,1,' 'x(11-((length $player->username)/2)) . "Limbs: $player->{limbs}");
+        $self->panels->{status}->panel_window->addstr($i++,1,' 'x(10-((length $player->username)/2)) . "Muscle: $player->{muscle}");
+        $self->panels->{status}->panel_window->addstr($i++,1,' 'x(10-((length $player->username)/2)) . "Organs: $player->{organs}");
+        $i++;
     }
-    $i++;
     for my $obj (@objects) {
         $self->panels->{status}->panel_window->addstr($i++,1,' 'x9 . $obj->{id} .'(');
         $self->output_colored($obj->symbol,$obj->fg,$obj->bg,'status');
