@@ -29,6 +29,7 @@ my $races = {
     gremlin => defstats(',',m=>-9,o=>-8,l=>10,sc=>10,pr=>5,ph=>3,so=>-10),
 };
 
+# utility function to help build the racial stat modifier table
 sub defstats ($sym,+$m,+$o,+$l,+$e,+$sc,+$pr,+$ph,+$so) {
     return {
         symbol => $sym,
@@ -43,6 +44,7 @@ sub defstats ($sym,+$m,+$o,+$l,+$e,+$sc,+$pr,+$ph,+$so) {
     };
 }
 
+# help bound between two values
 sub scaled_logistic ($value, $divisor) {
     return 1/(1+exp(- $value/$divisor));
 }
@@ -65,6 +67,7 @@ sub new ($self,$mapfile,?$port) {
 
 sub poe_start {
     my ($heap) = @_[HEAP,];
+    # create the listening server socket
     $heap->{listener} = POE::Wheel::SocketFactory->new
         ( SuccessEvent => 'accepted',
           FailureEvent => 'error',
@@ -108,6 +111,11 @@ sub poe_error {
   delete $_[HEAP]->{listener};
 }
 
+=head1 C<server_broadcast>
+
+Broadcast a message to all connected clients
+
+=cut
 
 sub server_broadcast {
    my ($kernel, $session, $heap, $message) = @_[KERNEL, SESSION, HEAP, ARG0];
@@ -116,6 +124,12 @@ sub server_broadcast {
        $kernel->post($conn,'broadcast',$message);
    }
 }
+
+=head1 C<connection_start>
+
+Accept a connection and set up a reader wheel that handles chunking, YAML, etc.
+
+=cut
 
 sub connection_start {
     my ($kernel, $session, $heap, $handle, $peer_addr, $peer_port) =
@@ -133,11 +147,27 @@ sub connection_start {
     );
 }
 
+=head1 C<connection_input>
+
+Accept input of the form [command, ...] and redispatch to the 'command' event with arguments of ...
+
+=cut
+
 sub connection_input {
     my ($kernel, $session, $heap, $input) = @_[KERNEL, SESSION, HEAP, ARG0];
+
+    # DSB
     my ($command, @args) = @$input;
+
+    # redispatch
     $kernel->post($session, $command, @args);
 }
+
+=head1 C<login>
+
+Sent on a new connection.  If we don't already know this user, send them to 'create new user' form.
+
+=cut
 
 sub login {
     my ($kernel, $session, $heap, $username) = @_[KERNEL, SESSION, HEAP, ARG0];
@@ -150,15 +180,28 @@ sub login {
     }
 }
 
+=head1 C<send_create_form>
+
+Helper function to send a 'new character' form to the client.
+
+=cut
+
 sub send_create_form {
     my $wheel = shift;
+    # args are text to display on the form, list of gods, list of colors, list of races
     $wheel->put(['create_player','create new character',['Eris','Burn Shit','Cthulhu'],[qw(red green yellow blue magenta cyan white)],[keys %$races]]);
 }
+
+=head1 C<register>
+
+Registration request from a client.
+
+=cut
 
 sub register {
     my ($kernel, $session, $heap, $username, $race, $god, $color) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2, ARG3];
     my $symbol = $races->{$race}->{symbol};
-    if (defined $players->{$username}) {
+    if (defined $players->{$username}) { # this username is taken
         send_create_form($heap->{wheel});
     }
     else {
@@ -171,19 +214,32 @@ sub register {
     }
 }
 
+=head1 C<add_player>
+
+Create a new Player object, insert it into the map, set up a regen tick, etc.
+
+=cut
+
 sub add_player {
     my ($kernel, $session, $heap, $id, $username) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1];
+
+    # grab stuff from the players hash
     my $fg = $players->{$username}->{color};
+    my $god = $players->{$username}->{god};
     my $bg = 'black';
+
+    # grab stuff from the race info table
     my $race = $races->{$players->{$username}->{race}};
     my $symbol = $race->{symbol};
     my $hp = ($race->{organs} + 13) * 10;
-    my $god = $players->{$username}->{god};
+
     $kernel->post($server_session, 'broadcast', ['announce', "$username, a loyal follower of $god, has arrived."]);
     my ($origin) = grep {(ref $_) eq 'Entrance'} values %{$place->objects};
     my ($x, $y) = ($origin->tile->x, $origin->tile->y);
     print "Adding a new player: $id $symbol $fg $bg $y $x\n";
     $heap->{id} = $id;
+
+    # Create a new player object and save it in the objects table in the Place
     $place->objects->{$id} = Player->new(
             id       => $id,
             username => $username,
@@ -196,8 +252,14 @@ sub add_player {
             place    => $place,
             map {$_ => 13 + $race->{$_} } qw/muscle organs limbs eyes scholarly practical physical social/,
         );
+
+    # set the map tile as filled.  dirty hack.
     $place->objects->{$id}->{tile}->vasru(0);
+
+    # tell all the connected clients about the new player
     $kernel->post($server_session, 'broadcast', ['add_player', $id, $place->objects->{$id}->to_hash, $y, $x]);
+
+    # register a callback for the player's regen tick
     $kernel->delay_set('tick',rand() + scaled_logistic($race->{limbs},20));
 }
 sub object_move_rel {
