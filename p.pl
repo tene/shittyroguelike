@@ -15,11 +15,7 @@ use Place::Thing;
 use UI;
 use PadWalker qw(peek_my);
 
-my @sigils = ('a'..'z', 'A'..'Z', qw(
-    @ & ! ~ ` ' " ? ^ _ , + ¿ ¡
-));
-my @colors = qw(black blue cyan green magenta red yellow white);
-
+# disallow altering the class in exchange for improved instantiation speed
 $_->meta->make_immutable(
     inline_constructor => 0,
     inline_accessors   => 1,
@@ -31,6 +27,7 @@ my $ui;
 my $my_id;
 my $server;
 
+# set up the initial session
 POE::Session->create
   ( inline_states =>
       { _start => \&_start,
@@ -56,7 +53,14 @@ POE::Session->create
   );
 
 POE::Kernel->run();
+# exit when the session closes
 exit;
+
+=head1 C<_start>
+
+Initial setup.
+
+=cut
 
 sub _start {
     my ($kernel, $heap, $session) = @_[KERNEL, HEAP, SESSION];
@@ -65,26 +69,31 @@ sub _start {
     GetOptions("user:s" => \$username,
                "server:s" => \$server,);
 
+    # possibly a workaround, I think
     binmode(STDOUT,':utf8');
 
+    # start curses and set it to dispatch keystrokes to the appropriate event
     $heap->{console} = POE::Wheel::Curses->new(
         InputEvent => 'got_keystroke'
     );
 
+    # create a new UI object
     $ui = UI->new();
 
-    if ($username) {
-    }
-    else {
-        ($username) = $ui->get_login_info();
+    unless ($username) {
+        ($username) = $ui->get_login_info(); # ask for a username
     }
     $heap->{username} = $username;
 
+    # Show the status panel.  Shouldn't UI do this?
     $ui->panels->{status}->show_panel();
 
     $ui->debug("login info: $username");
     $ui->refresh();
 
+    # the rest of this function is probably outdated.
+    # We probably shouldn't even have a Place object until we get the map
+    # from the server.
     $place = Place->new();
     $ui->place($place);
 
@@ -92,12 +101,15 @@ sub _start {
 
 
     output("Welcome to CuteGirls!\nPress '?' for help.\n");
+
+    # Go connect to the server
     $kernel->yield('connect_start');
 }
 
 sub connect_start {
     my ($kernel, $heap, $session) = @_[KERNEL, HEAP, SESSION];
 
+    # set up a client socket that sends events to the right places
     $heap->{server} = POE::Wheel::SocketFactory->new(
            RemoteAddress  => $server || '127.0.0.1',
            RemotePort     => 3456,
@@ -107,47 +119,109 @@ sub connect_start {
 
 }
 
+=head1 C<assign_id>
+
+The server assigned us an ID.
+Save it for later use and then ask the server to create a character for us.
+
+=cut
+
 sub assign_id {
     my ($heap, $id) = @_[HEAP, ARG0];
     $my_id = $id;
     create_me($heap);
     $ui->refresh();
 }
+=head1 C<keystroke handler>
+
+Main input event handler.  Handles keystrokes for normal mode.
+Think vi modes.
+
+=cut
 
 sub keystroke_handler {
     my ($kernel, $heap, $keystroke, $wheel_id) = @_[KERNEL, HEAP, ARG0, ARG1];
 
     $ui->refresh();
     given ($keystroke) {
+        # use both arrow keys and vi keys for movement
         when [KEY_UP, 'k'] { move(0,-1) }
         when [KEY_DOWN, 'j'] { move(0,1) }
         when [KEY_LEFT, 'h'] { move(-1,0) }
         when [KEY_RIGHT, 'l'] { move(1,0) }
+
+        # reset character.  use in case of bugs.
         when 'n' { send_to_server('remove_object',$my_id); create_me($heap); };
+
+        # chat
         when ["\r", "\n"] {
+            # Change the curses input wheel to emit 'chat_keystroke' events
+            # instead of 'got_keystroke' events.
             $heap->{console}->[2] = 'chat_keystroke';
             my $player = $place->objects->{$my_id};
+
+            # we really need to make some functions for colored output
             output_colored($player->symbol,$player->fg,$player->bg,'input');
             $ui->output(': ', 'input');
             $ui->refresh();
+
+            # show the cursor
             curs_set(1);
         }
+
+        # create a silly little expiring item
+        # Eventually this should be for dropping inventory items
         when 'd' {
             my $player = $place->objects->{$my_id};
             send_to_server('drop_item','*','red','black'); 
         }
+
+        # redraw the screen.  use in case of UI bugs.
         when 'r' { $ui->redraw() }
+
+        # update the status window.  again, in case of bugs.
         when 's' { $ui->update_status() }
-        when '?' { $ui->panels->{help}->top_panel(); $ui->refresh(); $heap->{console}->[2] = 'help_keystroke'; }
-        when 'q' { send_to_server('remove_object',$my_id); delete $heap->{console}; delete $heap->{server_socket}  } # how to tell POE to kill the session?
+
+        # show the help screen.
+        when '?' {
+            $ui->panels->{help}->top_panel();
+            $ui->refresh();
+            # Change the curses input wheel to emit 'help_keystroke' events
+            # instead of 'got_keystroke' events.
+            $heap->{console}->[2] = 'help_keystroke';
+        }
+
+        # quit
+        when 'q' {
+            # politely tell the server to remove our character
+            send_to_server('remove_object',$my_id);
+
+            # clean up curses
+            delete $heap->{console};
+
+            # close the network socket
+            delete $heap->{server_socket}
+        }
     }
 }
 
+=head1 C<move>
+
+Helper function to move the player around.
+
+=cut
+
 sub move {
     my ($x,$y) = @_;
+
+    # find myself
     my $self = $place->objects->{$my_id};
     my $dest = $self->get_tile_rel($x,$y);
+
+    # look for living things in the tile we're moving into
     my ($player) = grep {$_->meta->does_role('Actor::Alive')} @{$dest->contents};
+
+    # If there's something alive there, kill it.  Otherwise, move.
     if ($player) {
         send_to_server('attack',$player->id,$x,$y);
     }
@@ -156,52 +230,100 @@ sub move {
     }
 }
 
+=head1 C<help_handler>
+
+Deal with keystrokes while we're in help mode.
+When there's any keystroke, hide the help panel
+and reset the curses input wheel.
+
+=cut
+
 sub help_handler {
     my ($kernel, $heap, $keystroke, $wheel_id) = @_[KERNEL, HEAP, ARG0, ARG1];
 
     $ui->refresh();
     given ($keystroke) {
-        default { $ui->panels->{help}->bottom_panel(); $ui->refresh(); $heap->{console}->[2] = 'got_keystroke'; }
+        default {
+            # hide the help window
+            $ui->panels->{help}->bottom_panel();
+            # redraw the screen
+            $ui->refresh();
+            # reset the keystroke handler
+            $heap->{console}->[2] = 'got_keystroke';
+        }
     }
 }
+
+=head1 C<chat_handler>
+
+Deal with keystrokes while in chat mode.
+Escape goes back to normal mode.
+Backspace mostly works.
+Enter sends.
+All other keystrokes add to the chat message.
+
+Can we maybe use readline here?
+I don't know, but this is pretty hackish.
+
+=cut
 
 sub chat_handler {
     my ($kernel, $heap, $keystroke, $wheel_id) = @_[KERNEL, HEAP, ARG0, ARG1];
 
     $ui->refresh();
     given ($keystroke) {
-        when '' { # escape
+        when '' { # bail out on escape
+            # reset the input even thandler
             $heap->{console}->[2] = 'got_keystroke';
+            # clear any saved message so far
             $heap->{chat_message} = '';
+            # clear the chat input line
             $ui->output("\n",'input');
             $ui->refresh();
+            # hide the cursor
             curs_set(0);
         }
         when [263, ''] { # handle backspace
-            my $msg = substr($heap->{chat_message},0,-1);
-            $heap->{chat_message} = $msg;
+            # chop off the last character
+            chop $heap->{chat_message};
+            # clear the line
             $ui->panels->{input}->panel_window->echochar("\n");
+            # print a prompt on the input line
             my $player = $place->objects->{$my_id};
             output_colored($player->symbol,$player->fg,$player->bg,'input');
             $ui->output(': ', 'input');
-            $ui->panels->{input}->panel_window->addstr($msg);
+            # print the message so far on the input line
+            $ui->panels->{input}->panel_window->addstr($heap->{chat_message});
             $ui->refresh() 
         }
-        when ["\r", "\n"] { 
+        when ["\r", "\n"] { # send the message on 'enter'
+            # tell the server
             send_to_server('chat',$my_id,$heap->{chat_message}) if ((length $heap->{chat_message}) > 0);
+            # reset the input handler
             $heap->{console}->[2] = 'got_keystroke';
+            # clear the saved message
             $heap->{chat_message} = '';
+            # clear the input line
             $ui->output("\n",'input');
+            # redraw the screen and hide the cursor
             $ui->refresh();
             curs_set(0);
         }
         default {
+            # save the character
             $heap->{chat_message} .= $keystroke;
+            # show the character
             $ui->panels->{input}->panel_window->echochar($keystroke);
             $ui->refresh();
         }
     }
 }
+
+=head1 C<create_me>
+
+Helper function to ask the server to create a character object for us.
+
+=cut
 
 sub create_me {
     my $heap = shift;
@@ -209,51 +331,99 @@ sub create_me {
     send_to_server('add_player',$my_id,$username);
 }
 
+=head1 C<send_to_server>
+
+Helper function to send shit to the server with prettier syntax.
+
+=cut
+
 sub send_to_server {
+    # Dig around in the caller lexpads for a variable named $heap
     my $heap = ${peek_my(1)->{'$heap'} || peek_my(2)->{'$heap'}};
+    # grab the socket out of it
     my $socket = $heap->{server_socket};
+    # redispatch with the same arguments we were called with
     $socket->put(\@_);
 }
 
+=head1 C<object_move_rel>
+
+The server told us to move something around.
+
+=cut
+
 sub object_move_rel {
     my ($kernel, $heap, $object_id, $x, $y) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2];
+    # find the object and the tile it's currently in
     my $object = $place->objects->{$object_id};
     my $before = $object->tile;
+    # move the object
     $object->move_rel($x,$y);
+
+    # if we just moved ourself, refocus the UI
     if ($object_id == $my_id) {
         $ui->focus_x($object->tile->x);
         $ui->focus_y($object->tile->y);
         $ui->redraw();
     }
     else {
+        # redraw the two affected tiles
         $ui->drawtile($before);
         $ui->drawtile($object->tile);
         $ui->refresh();
     }
 }
 
+=head1 C<create_player>
+
+The server is asking us to create a new character.
+The server gives us a lis tof acceptable gods, colors, and races.
+Give the user a little form and then send a registration request to the server.
+
+This should be rewritten into several generic "choose from this list"
+questions from the server.
+
+=cut
+
 sub create_player {
     my ($kernel, $heap, $message, $gods, $colors, $races) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2, ARG3];
+    # give the user a little form to fill out.  It returns indexes.
     my ($race,$god,$color) = $ui->get_new_player_info($message,$gods,$colors,$races);
+    # look up the answers using the indexes
     $race = $races->[$race];
     $god = $gods->[$god];
     $color = $colors->[$color];
     my $username = $heap->{username};
+    # send a registration request to the server
     send_to_server('register',$username,$race,$god,$color);
 }
 
+=head1 C<add_player>
+
+The server is telling us about a new character in the world.
+It sends us an id, a hash of properties, and a position.
+
+=cut
+
 sub add_player {
     my ($kernel, $heap, $id, $p, $y, $x) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2, ARG3];
+    # create a Player object
     my $player = Player->new(
         %$p,
         tile => $place->chart->[$y][$x],
         id => $id,
         place => $place,
     );
+    # store it in the global objects hash
     $place->objects->{$id} = $player;
+
+    # print some debug shit.
+    # We need a helper function for this.
     output('New player '.$player->username.'(');
     output_colored($player->symbol,$player->fg,$player->bg);
     output(") at $x,$y id $id\n");
+
+    # if it's us, refocus the UI
     if ($id == $my_id) {
         $ui->focus_x($x);
         $ui->focus_y($y);
@@ -266,20 +436,46 @@ sub add_player {
     $ui->refresh();
 }
 
+=head1 C<chat>
+
+The server is telling us about someone chatting.
+Display it to the log area.
+
+=cut
+
 sub chat {
     my ($kernel, $heap, $id, $message) = @_[KERNEL, HEAP, ARG0, ARG1];
     my $from = $place->objects->{$id};
+    # display shit
+    # We need a helper function
     output("$from->{username}(");
     output_colored($from->symbol,$from->fg,$from->bg);
     output("): $message\n");
     $ui->refresh();
 }
 
+=head1 C<announce>
+
+Generic announcement from the server.
+Display it in the log area.
+
+=cut
+
 sub announce {
     my ($kernel, $heap, $message) = @_[KERNEL, HEAP, ARG0, ARG1];
     output("announcement: $message\n");
     $ui->refresh();
 }
+
+=head1 C<new_map>
+
+The server sent us a map.  We really need to do more here before
+we can support moving between areas.
+
+Right now the server sends us a serialized Place object.
+We REALLY need to build an actual data structure here instead.
+
+=cut
 
 sub new_map {
     my ($kernel, $heap, $newplace) = @_[KERNEL, HEAP, ARG0];
@@ -291,19 +487,39 @@ sub new_map {
     $ui->update_status;
     $ui->refresh();
     $ui->redraw();
+
+    # queue a refresh event for the keystroke handler
+    # probably a bug workaround
     ungetch('r');
 }
 
+=head1 C<drop_item>
+
+Create an object at the location of another object.
+
+=cut
+
 sub drop_item {
     my ($kernel, $heap, $id, $obj) = @_[KERNEL, HEAP, ARG0, ARG1];
+    # Won't necessarily be a player, but that's all we use it for
     my $player = $place->objects->{$id};
+
+    # create a new Thing using the attributes given to us
     $obj = Place::Thing->new(%$obj);
+
+    # add it to the map at the right place
     $player->tile->enter($obj);
     $place->objects->{$obj->id} = $obj;
     $ui->drawtile($player->tile);
     $ui->update_status();
     $ui->refresh();
 }
+
+=head1 C<remove_object>
+
+Remove an object from the map
+
+=cut
 
 sub remove_object {
     my ($kernel, $heap, $id) = @_[KERNEL, HEAP, ARG0];
@@ -320,6 +536,13 @@ sub remove_object {
     $ui->refresh();
 }
 
+=head1 C<change_object>
+
+Modify an object in some way.
+The server gives us a hash of {attribute=>value} to set.
+
+=cut
+
 sub change_object {
     my ($kernel, $heap, $id, $changes) = @_[KERNEL, HEAP, ARG0, ARG1];
     unless ( defined($place->objects->{$id}) ) {
@@ -329,14 +552,27 @@ sub change_object {
     }
     my $tile = $place->objects->{$id}->tile;
     my $obj = $place->objects->{$id};
+
+    # kinda hackish.  Just call the method with the name of the attribute.
     for my $attr (keys %{$changes}) {
         $obj->$attr($changes->{$attr});
     }
+
+    # redraw shit
     $ui->drawtile($place->objects->{$id}->tile);
     $ui->drawtile($tile);
     $ui->update_status();
     $ui->refresh();
 }
+
+=head1 C<connect_success>
+
+Event for when we successfully connect to the server.
+Set up a filter wheel to handle chunking, yaml decoding, etc.
+
+Sends a login request to the server once we've set up the socket properly.
+
+=cut
 
 sub connect_success {
     my ($kernel, $heap, $socket) = @_[KERNEL, HEAP, ARG0];
@@ -352,9 +588,25 @@ sub connect_success {
     send_to_server('login',$heap->{username});
 }
 
+=head1 C<connect_failure>
+
+Couldn't connect, so we bail out.
+
+=cut
+
 sub connect_failure {
     die "couldn't connect to server\n";
 }
+
+=head1 C<server_input>
+
+The server said something.
+
+Right now we have a POE state for every command the server would send,
+so just redispatch to that state with the command arguments we were
+given as arguments to the state.
+
+=cut
 
 sub server_input {
     my ($kernel, $heap, $input) = @_[KERNEL, HEAP, ARG0];
@@ -364,9 +616,23 @@ sub server_input {
     $kernel->yield($cmd, @rest);
 }
 
+=head1 C<server_error>
+
+All errors with the connection go here.
+We don't even try to do something reasonable.
+Just die.
+
+=cut
+
 sub server_error {
     die "problem with network stuff I guess\n";
 }
+
+=head1 C<output>
+
+Helper method to redispatch output calls to the global $ui object.
+
+=cut
 
 sub output {
     my $message = shift;
@@ -374,6 +640,12 @@ sub output {
     $ui->output($message,$panel);
     $ui->refresh();
 }
+
+=head1 C<output_colored>
+
+Helper function to redispatch output_colored calls to the global $ui object.
+
+=cut
 
 sub output_colored {
     my $message = shift;
