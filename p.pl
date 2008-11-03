@@ -472,18 +472,18 @@ sub announce {
 The server sent us a map.  We really need to do more here before
 we can support moving between areas.
 
-Right now the server sends us a serialized Place object.
-We REALLY need to build an actual data structure here instead.
+Right now the server sends us a list of lists of tiles represented by hashes.
 
 =cut
 
 sub new_map {
-    my ($kernel, $heap, $newplace) = @_[KERNEL, HEAP, ARG0];
+    my ($kernel, $heap, $placeref) = @_[KERNEL, HEAP, ARG0];
 
     output("Building world, please wait...\n");
 
-    $place = $newplace;
-    $ui->{place} = $newplace;
+    $place = Place->new();
+    $place->load_from_ref($placeref);
+    $ui->{place} = $place;
     $ui->update_status;
     $ui->refresh();
     $ui->redraw();

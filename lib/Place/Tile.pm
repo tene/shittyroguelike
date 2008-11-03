@@ -26,6 +26,13 @@ method BUILD ($params) {
     $.contents = [];
 }
 
+method to_hash {
+    my %hash = map { $_ => $self->$_ } qw/symbol fg bg vasru/;
+    my @contents = map {$_->to_hash} @{$self->contents};
+    $hash{contents} = \@contents;
+    return \%hash;
+}
+
 method enter ($obj) {
     $obj->tile($self);
 

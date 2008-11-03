@@ -172,7 +172,7 @@ Sent on a new connection.  If we don't already know this user, send them to 'cre
 sub login {
     my ($kernel, $session, $heap, $username) = @_[KERNEL, SESSION, HEAP, ARG0];
     if (defined $players->{$username}) {
-        $heap->{wheel}->put(['new_map', $place]);
+        $heap->{wheel}->put(['new_map', $place->to_ref]);
         $heap->{wheel}->put(['assign_id', $session->ID]);
     }
     else {
@@ -209,7 +209,7 @@ sub register {
         $symbol ||= substr $username,0,1;
         $color ||= 'red';
         $players->{$username} = {race=>$race,god=>$god,color=>$color};
-        $heap->{wheel}->put(['new_map', $place]);
+        $heap->{wheel}->put(['new_map', $place->to_ref]);
         $heap->{wheel}->put(['assign_id', $session->ID]);
     }
 }

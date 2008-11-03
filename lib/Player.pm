@@ -23,6 +23,7 @@ method death {
 
 method to_hash {
     my %hash = map {$_ => $self->$_} qw/symbol fg bg id cur_hp max_hp muscle organs limbs eyes scholarly practical physical social username/;
+    $hash{class} = 'Player';
     return \%hash;
 };
 
