@@ -5,6 +5,7 @@ use FindBin::libs;
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite
                     Driver::SysRW Filter::Reference);
 use Data::Dumper;
+use YAML::Syck;
 
 use Player;
 use Place;
@@ -18,7 +19,7 @@ my $default_port = 3456;
 my $server_session;
 my $map;
 my $place;
-my $players;
+my $players = -f 'players.yaml' ? LoadFile('players.yaml') : {};
 my $races = {
     giant => defstats('^',m=>10,o=>10,l=>-5,e=>5,sc=>-10,pr=>-5,ph=>-5,so=>-10),
     ent => defstats('Ψ',m=>10,o=>15,l=>-10,e=>-5,sc=>15,pr=>-5,ph=>-5,so=>-10),
@@ -209,6 +210,7 @@ sub register {
         $symbol ||= substr $username,0,1;
         $color ||= 'red';
         $players->{$username} = {race=>$race,god=>$god,color=>$color};
+        DumpFile('players.yaml', $players);
         $heap->{wheel}->put(['new_map', $place->to_ref]);
         $heap->{wheel}->put(['assign_id', $session->ID]);
     }
