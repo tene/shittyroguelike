@@ -9,7 +9,7 @@ use YAML::Syck;
 
 use Player;
 use Place;
-use Place::Thing;
+use Object;
 
 use Perl6::Slurp;
 use Perl6::Subs;
@@ -420,7 +420,7 @@ sub drop_item {
 
     # Everything here should be straightforward.  Ask if you need explained.
     my $player = $place->objects->{$heap->{id}};
-    my $obj = Place::Thing->new(fg=>$fg,bg=>$bg,symbol=>$symbol);
+    my $obj = Object->new(fg=>$fg,bg=>$bg,symbol=>$symbol);
     $place->objects->{$obj->id} = $obj;
     $kernel->post($server_session,'broadcast',['drop_item',$heap->{id},$obj->to_hash]);
     $player->tile->enter($obj);

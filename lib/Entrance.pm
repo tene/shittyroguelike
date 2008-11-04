@@ -4,7 +4,7 @@ use Moose;
 use Perl6::Attributes;
 use Perl6::Subs;
 
-with 'UI::Drawable';
+with 'Object';
 
 sub to_hash {
     my $self = shift;

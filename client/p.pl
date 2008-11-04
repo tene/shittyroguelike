@@ -11,7 +11,7 @@ use Switch 'Perl6';
 
 use Player;
 use Place;
-use Place::Thing;
+use Object;
 use UI;
 use PadWalker qw(peek_my);
 
@@ -20,7 +20,7 @@ $_->meta->make_immutable(
     inline_constructor => 0,
     inline_accessors   => 1,
 )
-for qw(Player Place Place::Thing Place::Tile UI);
+for qw(Player Place Place::Tile UI);
 
 my $place;
 my $ui;
@@ -504,8 +504,8 @@ sub drop_item {
     # Won't necessarily be a player, but that's all we use it for
     my $player = $place->objects->{$id};
 
-    # create a new Thing using the attributes given to us
-    $obj = Place::Thing->new(%$obj);
+    # create a new Object using the attributes given to us
+    $obj = Object->new(%$obj);
 
     # add it to the map at the right place
     $player->tile->enter($obj);

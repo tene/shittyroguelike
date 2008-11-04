@@ -8,7 +8,7 @@ use Moose;
 use Perl6::Attributes;
 use Perl6::Subs;
 
-use Place::Thing;
+use Object;
 use Player;
 use Entrance;
 
@@ -18,7 +18,7 @@ has chart => (is=>'rw',isa=>'ArrayRef[ArrayRef[Place::Tile]]');
 has objects => (is=>'rw',isa=>'HashRef');
 
 my $constructors = {
-    Thing => sub {Place::Thing->new(@_)},
+    Object => sub {Object->new(@_)},
     Player => sub {Player->new(@_)},
     Entrance => sub {Entrance->new(@_)},
 };
