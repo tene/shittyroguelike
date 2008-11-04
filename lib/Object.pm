@@ -1,6 +1,6 @@
 package Object;
 
-use Moose::Role;
+use Moose;
 use Perl6::Attributes;
 use Perl6::Subs;
 

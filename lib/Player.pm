@@ -4,7 +4,7 @@ use Moose;
 use Perl6::Attributes;
 use Perl6::Subs;
 
-with 'Object';# => { alias => {to_hash => 'drawable_hash'}};
+extends 'Object';# => { alias => {to_hash => 'drawable_hash'}};
 with 'Actor::Stats';# => { alias => {to_hash => 'stats_hash'}};
 
 has 'username' => (is=>'rw',isa=>'Str');
