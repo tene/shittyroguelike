@@ -1,0 +1,4 @@
+
+- "create new character" dialog:
+    - shift-tab needs to DTRT
+    - enter should select and advance, not just advance

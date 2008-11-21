@@ -1,0 +1,28 @@
+
+Requirements
+------------
+
+(probably not a complete list)
+
+Perl modules; install with cpan:
+
+- FindBin::libs
+- POE (and all its reqs)
+- Moose (and all its reqs)
+- Perl6::Attributes
+- Perl6::Subs
+- Perl6::Slurp
+- YAML
+- Curses::Forms
+- PadWalker
+
+Running
+-------
+
+cd server
+./server.pl
+
+Different window:
+
+cd client
+./p.pl
