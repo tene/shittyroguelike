@@ -135,10 +135,15 @@ sub assign_id {
     create_me($heap);
     $ui->refresh();
 }
-=head1 C<keystroke handler>
 
-Main input event handler.  Handles keystrokes for normal mode.
-Think vi modes.
+=head1 Key Binding Functions
+
+These functions are used to set up key bindings in the keys.conf
+file.
+
+=head2 C<clear_keybindings>
+
+Empty the key binding list.
 
 =cut
 
@@ -147,12 +152,27 @@ sub clear_keybindings {
     %keybindings=();
 }
 
+=head2 C<keybind>
+
+Args: mode, key, binding.
+
+Bind the given key to the given action in the given mode.
+
+=cut
+
 # Bind a key; used in the keys.conf file
 sub keybind {
-    my ($key, $binding) = @_;
+    my ($mode, $key, $binding) = @_;
 
-    $keybindings{$key} = $binding;
+    ${$keybindings{$mode}}{$key} = $binding;
 }
+
+=head1 C<keystroke handler>
+
+Main input event handler.  Handles keystrokes for normal mode.
+Think vi modes.
+
+=cut
 
 sub keystroke_handler {
     my ($kernel, $heap, $keystroke, $wheel_id) = @_[KERNEL, HEAP, ARG0, ARG1];
@@ -161,9 +181,9 @@ sub keystroke_handler {
     #
     # %actions
     #
-# This is a hash of anonymous subs that users can point to to perform
-# various actions.  Basically, the keys in this hash are the target of
-# keybinding configurations that users can easily maintain.
+    # This is a hash of anonymous subs that users can point to to perform
+    # various actions.  Basically, the keys in this hash are the target of
+    # keybinding configurations that users can easily maintain.
     #
     #################
 
@@ -173,7 +193,7 @@ sub keystroke_handler {
     $actions{'move_left'} = sub { move(-1,0); };
     $actions{'move_right'} = sub { move(1,0); };
 
-# reset character.  use in case of bugs.
+    # reset character.  use in case of bugs.
     $actions{'reset'} = sub { send_to_server('remove_object',$my_id); create_me($heap); };
 
     # chat mode
@@ -232,11 +252,10 @@ sub keystroke_handler {
 
     $ui->refresh();
 
-    if (exists $keybindings{$keystroke} ) {
+    if (exists ${$keybindings{'normal'}}{$keystroke} ) {
 	# print "exists: ".$keybindings{$keystroke}.", ".$actions{$keybindings{$keystroke}}.".\n";
-	$actions{$keybindings{$keystroke}}();
+	$actions{${$keybindings{'normal'}}{$keystroke}}();
     }
-
 }
 
 =head1 C<move>
@@ -305,52 +324,74 @@ sub chat_handler {
     my ($kernel, $heap, $keystroke, $wheel_id) = @_[KERNEL, HEAP, ARG0, ARG1];
 
     $ui->refresh();
-    given ($keystroke) {
-        when '' { # bail out on escape
-            # reset the input even thandler
-            $heap->{console}->[2] = 'got_keystroke';
-            # clear any saved message so far
-            $heap->{chat_message} = '';
-            # clear the chat input line
-            $ui->output("\n",'input');
-            $ui->refresh();
-            # hide the cursor
-            curs_set(0);
-        }
-        when [263, ''] { # handle backspace
-            # chop off the last character
-            chop $heap->{chat_message};
-            # clear the line
-            $ui->panels->{input}->panel_window->echochar("\n");
-            # print a prompt on the input line
-            my $player = $place->objects->{$my_id};
-            output_colored($player->symbol,$player->fg,$player->bg,'input');
-            $ui->output(': ', 'input');
-            # print the message so far on the input line
-            $ui->panels->{input}->panel_window->addstr($heap->{chat_message});
-            $ui->refresh() 
-        }
-        when ["\r", "\n"] { # send the message on 'enter'
-            # tell the server
-            send_to_server('chat',$my_id,$heap->{chat_message}) if ((length $heap->{chat_message}) > 0);
-            # reset the input handler
-            $heap->{console}->[2] = 'got_keystroke';
-            # clear the saved message
-            $heap->{chat_message} = '';
-            # clear the input line
-            $ui->output("\n",'input');
-            # redraw the screen and hide the cursor
-            $ui->refresh();
-            curs_set(0);
-        }
-        default {
-            # save the character
-            $heap->{chat_message} .= $keystroke;
-            # show the character
-            $ui->panels->{input}->panel_window->echochar($keystroke);
-            $ui->refresh();
-        }
+
+    #################
+    #
+    # %actions
+    #
+    # This is a hash of anonymous subs that users can point to to perform
+    # various actions.  Basically, the keys in this hash are the target of
+    # keybinding configurations that users can easily maintain.
+    #
+    #################
+
+    my %actions;
+
+    # bail out of chat
+    $actions{'leave_chat'} = sub { 
+	# reset the input even thandler
+	$heap->{console}->[2] = 'got_keystroke';
+	# clear any saved message so far
+	$heap->{chat_message} = '';
+	# clear the chat input line
+	$ui->output("\n",'input');
+	$ui->refresh();
+	# hide the cursor
+	curs_set(0);
+    };
+
+    # handle backspace
+    $actions{'backspace'} = sub { 
+	# chop off the last character
+	chop $heap->{chat_message};
+	# clear the line
+	$ui->panels->{input}->panel_window->echochar("\n");
+	# print a prompt on the input line
+	my $player = $place->objects->{$my_id};
+	output_colored($player->symbol,$player->fg,$player->bg,'input');
+	$ui->output(': ', 'input');
+	# print the message so far on the input line
+	$ui->panels->{input}->panel_window->addstr($heap->{chat_message});
+	$ui->refresh() 
+    };
+
+    # send the message on 'enter'
+    $actions{'send'} = sub {
+	# tell the server
+	send_to_server('chat',$my_id,$heap->{chat_message}) if ((length $heap->{chat_message}) > 0);
+	# reset the input handler
+	$heap->{console}->[2] = 'got_keystroke';
+	# clear the saved message
+	$heap->{chat_message} = '';
+	# clear the input line
+	$ui->output("\n",'input');
+	# redraw the screen and hide the cursor
+	$ui->refresh();
+	curs_set(0);
+    };
+
+    if (exists ${$keybindings{'chat'}}{$keystroke} ) {
+	# print "exists: ".$keybindings{$keystroke}.", ".$actions{$keybindings{$keystroke}}.".\n";
+	$actions{${$keybindings{'chat'}}{$keystroke}}();
+    } else {
+	# Default action for all other characters
+	# save the character
+	$heap->{chat_message} .= $keystroke;
+	# show the character
+	$ui->panels->{input}->panel_window->echochar($keystroke);
+	$ui->refresh();
     }
+
 }
 
 =head1 C<create_me>
