@@ -26,6 +26,7 @@ my $place;
 my $ui;
 my $my_id;
 my $server;
+my %keybindings;
 
 # set up the initial session
 POE::Session->create
@@ -99,6 +100,8 @@ sub _start {
 
     $ui->setup();
 
+    # Load the key bindings
+    do 'keys.conf';
 
     output("Welcome to CuteGirls!\nPress '?' for help.\n");
 
@@ -139,70 +142,101 @@ Think vi modes.
 
 =cut
 
+# Clear out all keybindings; used in the keys.conf file
+sub clear_keybindings {
+    %keybindings=();
+}
+
+# Bind a key; used in the keys.conf file
+sub keybind {
+    my ($key, $binding) = @_;
+
+    $keybindings{$key} = $binding;
+}
+
 sub keystroke_handler {
     my ($kernel, $heap, $keystroke, $wheel_id) = @_[KERNEL, HEAP, ARG0, ARG1];
 
+    #################
+    #
+    # %actions
+    #
+# This is a hash of anonymous subs that users can point to to perform
+# various actions.  Basically, the keys in this hash are the target of
+# keybinding configurations that users can easily maintain.
+    #
+    #################
+
+    my %actions;
+    $actions{'move_up'} = sub { move(0,-1); };
+    $actions{'move_down'} = sub { move(0,1); };
+    $actions{'move_left'} = sub { move(-1,0); };
+    $actions{'move_right'} = sub { move(1,0); };
+
+# reset character.  use in case of bugs.
+    $actions{'reset'} = sub { send_to_server('remove_object',$my_id); create_me($heap); };
+
+    # chat mode
+    $actions{'enter_chat'} = sub {
+	# Change the curses input wheel to emit 'chat_keystroke' events
+	# instead of 'got_keystroke' events.
+	$heap->{console}->[2] = 'chat_keystroke';
+	my $player = $place->objects->{$my_id};
+
+	# we really need to make some functions for colored output
+	output_colored($player->symbol,$player->fg,$player->bg,'input');
+	$ui->output(': ', 'input');
+	$ui->refresh();
+
+	# show the cursor
+	curs_set(1);
+    };
+
+    # create a silly little expiring item
+    # Eventually this should be for dropping inventory items
+    $actions{'drop'} = sub {
+	my $player = $place->objects->{$my_id};
+	send_to_server('drop_item','*','red','black'); 
+    };
+
+    # redraw the screen.  use in case of UI bugs.
+    $actions{'redraw'} = sub { $ui->redraw() };
+
+    # update the status window.  again, in case of bugs.
+    $actions{'update_status'} = sub { $ui->update_status() };
+
+    # show the help screen.
+    $actions{'help'} = sub {
+	$ui->panels->{help}->top_panel();
+	$ui->refresh();
+	# Change the curses input wheel to emit 'help_keystroke' events
+	# instead of 'got_keystroke' events.
+	$heap->{console}->[2] = 'help_keystroke';
+    };
+
+    # quit
+    $actions{'quit'} = sub {
+	# politely tell the server to remove our character
+	send_to_server('remove_object',$my_id);
+
+	# clean up curses
+	delete $heap->{console};
+
+	# close the network socket
+	delete $heap->{server_socket}
+    };
+
+    ##########
+    # END %actions
+    ##########
+
     $ui->refresh();
-    given ($keystroke) {
-        # use both arrow keys and vi keys for movement
-        when [KEY_UP, 'k'] { move(0,-1) }
-        when [KEY_DOWN, 'j'] { move(0,1) }
-        when [KEY_LEFT, 'h'] { move(-1,0) }
-        when [KEY_RIGHT, 'l'] { move(1,0) }
 
-        # reset character.  use in case of bugs.
-        when 'n' { send_to_server('remove_object',$my_id); create_me($heap); };
-
-        # chat
-        when ["\r", "\n"] {
-            # Change the curses input wheel to emit 'chat_keystroke' events
-            # instead of 'got_keystroke' events.
-            $heap->{console}->[2] = 'chat_keystroke';
-            my $player = $place->objects->{$my_id};
-
-            # we really need to make some functions for colored output
-            output_colored($player->symbol,$player->fg,$player->bg,'input');
-            $ui->output(': ', 'input');
-            $ui->refresh();
-
-            # show the cursor
-            curs_set(1);
-        }
-
-        # create a silly little expiring item
-        # Eventually this should be for dropping inventory items
-        when 'd' {
-            my $player = $place->objects->{$my_id};
-            send_to_server('drop_item','*','red','black'); 
-        }
-
-        # redraw the screen.  use in case of UI bugs.
-        when 'r' { $ui->redraw() }
-
-        # update the status window.  again, in case of bugs.
-        when 's' { $ui->update_status() }
-
-        # show the help screen.
-        when '?' {
-            $ui->panels->{help}->top_panel();
-            $ui->refresh();
-            # Change the curses input wheel to emit 'help_keystroke' events
-            # instead of 'got_keystroke' events.
-            $heap->{console}->[2] = 'help_keystroke';
-        }
-
-        # quit
-        when 'q' {
-            # politely tell the server to remove our character
-            send_to_server('remove_object',$my_id);
-
-            # clean up curses
-            delete $heap->{console};
-
-            # close the network socket
-            delete $heap->{server_socket}
-        }
+    if (exists $keybindings{$keystroke} ) {
+	# print "exists: ".$keybindings{$keystroke}.", ".$actions{$keybindings{$keystroke}}.".\n";
+	$actions{$keybindings{$keystroke}}();
     }
+
 }
 
 =head1 C<move>
