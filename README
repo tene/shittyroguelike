@@ -25,4 +25,4 @@ cd server
 Different window:
 
 cd client
-./p.pl
+./client.pl
