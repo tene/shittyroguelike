@@ -1,0 +1,78 @@
+Tene: My most recent entertaining idea for my roguelike is that if you have sufficient favor with Odin, (and maybe if you're killed by something sufficiently higher level than you), you get to go hang out in Valhalla, where you can drink ale, eat pigs, and receive advanced combat training.
+StoryTime: Nice.
+Tene: Something similar to retro's Hand guild would be nice too.
+StoryTime: Hashasheen-themed assassins?
+Tene: When you die with enough favor, you get to go be blissed out in paradise with Cyllyl
+StoryTime: Ah
+Tene: And train advanced assassination techniques from other retired assassins?
+StoryTime: It works.
+Tene: I suspect there are at least a few other similarly interesting mythologies.
+StoryTime: Probably.
+StoryTime: Hmm. . . Väinömöinen crossed the river into the deadlands to try and steal magic words once.
+Tene: I'm playing with the idea of giving atheists significant resistance to magic, resistance to divine intervention, something like that.  Not sure how well it would work, or balance issues, or advancement...
+StoryTime: I don't think he got any though, and it might be too minor of an incident to justify a bard/mage equivalent of that.
+StoryTime: Interesting.
+Tene: That sounds like a very interesting idea to pursue, actually.
+Tene: A certain very dangerous afterlife that you can potentially gain powerful spells at.
+StoryTime: He didn't find any words though.  He looked inside various animals and flowers before that and didn't find them there either.  Eventually, he chopped some trees that where growing on the face of a sleeping giant, then climbed into his mouth and down into his belly to coerce the giant into using spells to try to eject him, so he could learn new words that way.
+StoryTime: The giant was Antero, the word hoarder, or something like that.
+StoryTime: The afterlife people put a sleeping spell on him, then wove a huge net of iron across the river to try to keep him from getting away.
+Tene: Speaking of bard/mage, I'm also debating the use of classes.  I'm rather more interested in a more open style just with skills.  Maybe a few retro-style guilds.
+Tene: Classes are occasionally fun, though.
+Tene: They give you a straightforward advancement path.  Much less decision making.
+StoryTime: Yeah.  The only thing to watch in a classless system is making sure it's not practical to try to make a character who's good at everything, otherwise all characters will be essentially the same.
+StoryTime: Generally you can do this with stat requirements or having various types of skills carry certain penalties (like no casting in armor or while wielding weapons, or this deity doesn't like singing or such)
+Tene: Also requiring that you learn advanced skills from others.  There are social constraints you can add.
+StoryTime: Yeah.
+Tene: The Great Master won't teach those not dedicated to his cause.
+StoryTime: Also, you could make some skills only taught by a guild or something, and it's forbidden to teach people who aren't a member, while lots of other skills can be learned freely, and nobody can be a member of multiple guilds.
+Tene: If you gain enough favor with suchandsuch well-known guild, you become well known as a member, and so others refuse to deal with you.
+StoryTime: Yeah, like that
+Tene: Yeah.
+Tene: I'd rather have social constraints in individual guilds than a global prohibition against membership in multiple guilds.
+Tene: The Hand guild, for example, likely would encourage you to have a separate public life.
+Tene: Well, depending...
+StoryTime: Yeah.  The real life hashasheen leader rarely left his library in their mountain fort.  Members would have varying degrees of solitude, though there are plenty of cases of them posing as civilians or infiltrating staff.
+Tene: I'm rather interested in the idea of such a guild that is actually secret both in-game and out-of-game.
+Tene: Long-term goals like "Kill the leader of the pyromancy guild without being detected"
+Tene: Skills to allow you to disguise yourself as an NPC or as a mob.
+Tene: "Infiltrate the whatever guild to its highest levels to learn their secret teachings and share them with the other guild members."
+StoryTime: New Worlds rpg has two such guilds, though that's kind of annoying
+StoryTime: The thieves guild and assassin guilds are secret, which is 'cuz if you get caught being a member, you get killed or arrested.  Unfortunately, that means that they're both essentially "You can't be one." guilds, 'cuz they restrict the size, hide the guild, and do not recruit, except very occasionally.
+Tene: Interesting.
+StoryTime: They also get certain rp priveleges and restrictions (such as killing and stealing)
+StoryTime: (and rules about who you can kill and steal from)
+Tene: Any ideas about solving that problem? (socially or design-wise?)
+StoryTime: Well, probably by allowing multi-classing.
+Tene: There's also the option of not actually discussing it anywhere, so people who aren't members don't know what they're missing.
+StoryTime: New Worlds doesn't, so if you pass level 10, you have to join a guild, and odds are, you can't ever join one.  If such guilds are going to be so elitist, they should probably recruit the experienced.
+Tene: ... ew
+StoryTime: Well, it can be obvious on an ooc basis that they're there, but ic, you can't tell.
+StoryTime: So they have to have helpfiles explaining that no, you can't be one, stop asking.
+Tene: How annoying would it be to only list in the website and public help files what's publicly known in-world?
+Tene: "There's a general suspicion of some sort of group of assassins.  We don't know much.  We're pretty sure they killed this one dude."
+StoryTime: Well, you'd have issues with people noticing "Hey, that skill isn't trained in any guilds I know of!" or "What guild are you?" "Oh, I'm a . .. rogue."  "No, I'm a rogue.  Seriously, what guild?"  "Uh. . . mage?"  "Do a spell."  "Newbie mage."  "Even newbie mages can do spells. . . seriously, what are you?"
+Tene: I'd imagine you'd only join that guild after you're rather experienced in other ways.  They don't recruit newbies.
+Tene: It would be additional training, not your primary guild.
+StoryTime: You'll need to provide lots of stuff for non-guild characters to do, of course.
+StoryTime: Many games don't have that option, hence the difficulties that arise.
+Tene: People who provide training in exchange for cash, members of your religion, public quest postings...
+Tene: Explain "stuff to do"?
+StoryTime: Well, mostly stuff like things to train or obtain or whatever.  The things guilds will give you more of later on.
+Tene: I'm imagining a guild as mainly a place to study/work.  As long as you pay your dues, they don't care what you do outside.
+Tene: It would only be the more paranoid or unusual guilds that would care.
+Tene: Not really a binary relationship.
+Tene: Maybe there are some things that some guilds only offer to members who are exclusive.
+Tene: Maybe some individual members of the guild won't offer you advanced training or goods, or any training or goods, if you also have sufficient favor with some other guilds.
+Tene: Especially lower-level stuff.  It should be easy for anyone to get basic weapons training from the fighters guild.
+Tene: They hold classes every evening?
+StoryTime: *nods*  Sounds quite reasonable.
+Tene: IRL, your local karate dojo doesn't really care if you're a computer programmer at your day job.
+StoryTime: Well, then it's not a guild.
+Tene: Jobs with strict security clearances do care what you do in your personal life, though.
+Tene: I was more imagining not everything controlled by a guild.
+StoryTime: Yeah.
+Tene: Or, alternately, it might be controlled only in some cities.
+StoryTime: *nods*
+Tene: anyway, yeah, lots of interesting balance issues.
+Tene: time to go drop my car off and head to the airport.  have a nice evening.</font>

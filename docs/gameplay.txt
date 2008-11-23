@@ -1,0 +1,13 @@
+<rlpowell> In the RPG-combo version, though, I want teh gameplay to be like "Fuck, *finally* the city is producing decent plate armour.  OK, let's stabalize things... [~20 minutes later]  Great, looks good; time to go kill shit!  [n hours later]  Wow, I could really use some fire magic on my sword.  That means levelling up the wizard's guild...  Back to town I go..."
+
+<Tene> Possibly more like "Find out what I need to gather from adventuring to help the Pyromancer's guild expand their operation here, to gain favor with them."
+<rlpowell> That's an interesting addition, sure.
+<Tene> Or maybe instead "Look at the notes posted somewhere of what the local DM/overlord/whatever needs for his planned expansions, and go work on those tasks"
+<Tene> "Player B requested more fire magic, and the Mayor says he can increase the Pyromancer's guild if he gets 20 salamander tongues, so I go kill salamanders to sell to Player B"
+<Tene> OR
+<Tene> Instead of a local DM, find a player with sufficient "building-creation" skill and rights to build locally, and pay him gold.
+<Tene> I remember from retromud, there's a merchant guild that trains those skills, converting gold into buildings.
+<Tene> I'd imagine from a DM/mayor point of view, you could do it yourself if any cits have such skills.
+<Tene> If not, you'd have to train it, or find a player with sufficient skills to do it for you, or some such.
+<Tene> How do those fit with your thoughts?
+<rlpowell> Those all make sense, although I'd like the option of NPCs doing the building as well, for the single-player dungeon crawler.

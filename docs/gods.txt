@@ -1,0 +1,117 @@
+<Tene> I was thinking that in the roguelike I'm working on, one way to avoid or reduce penalties for death would be favor with a God.
+<rlpowell> *nod*
+<Tene> Might be annoying for people who aren't interested in obtaining favor with a god, though, so I should consider alternatives.
+<rlpowell> Have a magical artifact that provides approximately the same benefits for approximately the same effort.
+<Tene> Hmm.  Could be.
+<rlpowell> FWIW, I think that "If you're stupid enough to walk around without having buffed your god favour to the point of having a couple of free guaranteed resurrects saved up, you deserve to die" would be a perfectly acceptable solution to permadeath for me.
+<Tene> Ah, yes.  "Just be more careful"
+<rlpowell> Also, please don't have hunger as a major game element; it sucks.
+<Tene> Ew, yes.
+<rlpowell> But it's a specific *kind* of careful.
+<rlpowell> It's careful that can be built up in advance.
+<rlpowell> You can be as retarded as you want as long as you pay for it by investing some time up front.
+<rlpowell> I'm very bad at remembering to be careful whilst exploring, you see.
+<Tene> Right.  Either find favor with a God or be careful while exploring.  Two alternative options.
+<Tene> That's good enough for me.
+<rlpowell> I'm a bit surprised that it's good enough for me, but it seems that it is.
+<kpreid> The question is whether "be careful" is *possible*
+<rlpowell> Where atheists get a protective amulet of yendalthog or whatever to serve the same function.  :)
+<Tene> Well, the unprotected option isn't "permadeath", it's "stat loss, equipment loss, etc."
+<rlpowell> kpreid: You mean the way it isn't in most roguelikes?
+<Tene> I'm also quite interested in finding very different ways to gain favor and very different benefits for the different gods.
+<kpreid> rlpowell: I don't know enough to generalize, but yes.
+<rlpowell> *nod*
+<rlpowell> (to both)
+<kpreid> "Can you implement a God of Not Grinding?"
+<Tene> From the basic "burn shit" god who likes people who burn shit and give them powers to burn more shit, to Eris.
+<Tene> kpreid: I expect so.  The first idea is that once you have enough favor with some specific God, you no longer worry about various stats.
+  rlpowell *so* wants to worship Burn Shit.
+<Tene> Your "hit stuff" stat changes from a number to "yes"
+<kpreid> Tene: heh
+<Tene> rlpowell: you need to come up with a less obvious name for her, though.
+<kpreid> Tene: have you got an "Intelligence" stat?
+<rlpowell> Awwww....  But *why*?
+<kpreid> la jelmaj
+<kpreid> (not to be confused with la jelkalci)
+<Tene> kpreid: I haven't decided on stats yet.  I'm considering copying from a friend's RPG system, which has {Physical,Practical,Social,Scholarly} Knowledge stats
+<rlpowell> Tishnurb
+<Tene> .u'i
+<Tene> Heh.
+<Broca> What on Earth are you discussing?
+<rlpowell> Your doom!
+<kpreid> Tene: Because if you do, then having it at "Yes" should let you see the whole floor layout as soon as you walk down, per Doc Smith.
+<Tene> Doc Smith?
+<kpreid> Lensman.
+<Tene> rlpowell: I'm also entertained with coming up with behaviors for Eris.
+<Tene> kpreid: also, was "God of Not Grinding?" a serious question?  Why was it in quotes?
+<kpreid> Tene: I quote remarks by a hypothetical person. You can take it as a serious question if you like.
+<Tene> Ah.
+<kpreid> It's not entirely serious, and the hypothetical person might or might not know this, because it would be very difficult to design a system that does in fact resist grinding (in some form), though one might easily eliminate simpler forms
+<Tene> The effort would be helped by the fact that the person who wants to worship such a god would also want to resist grinding.
+<kpreid> I think you're mixing up player and character motivations.
+<Tene> Oh, true.
+<Tene> Player is likely more interested in less-grindy styles of gameplay, though, right?
+<rlpowell> You would think.
+<Tene> I'd want to design a God that offers a type of gameplay that is more interesting to players who are interested in less-grindy styles of gameplay.
+  rlpowell likes a certain amount of grind, fwiw.
+<Tene> I'd also imagine that with enough players it would be interesting for many Gods to offer such stats to a single person.
+<Tene> Flammability: No.   Burning shit: yes.
+<Tene> i also like a certain amount of Grind.
+<Tene> Also, a certain type of race without stat or skill advancement might be interesting.
+<kpreid> Tene: You are what you inventory?
+<Tene> Could be.  You could forbid inventory for that race, too.
+<kpreid> What's left? Your god's opinion of you?
+<rlpowell> Luck?
+<Tene> kpreid: player skill
+<Tene> possibly
+<Tene> I don't know.  I'll think about it.
+<Tene> Also in this context, I'm entertained by the idea of having the judeo-christian God as an option.
+<Tene> He would be pretty useless, it seems.
+<rlpowell> A modern one would be.
+<rlpowell> THe one that threw down the walls of Jericho is welcome to get my back any day of the week.
+<Tene> Did the historic one actually claim to offer anybenefits to his followers?
+<rlpowell> Erm.  *Yes*.
+<rlpowell> That's the whole point of Job.
+<Tene> That's only to high-level priests, though, right?
+<rlpowell> No.
+<rlpowell> If you were a good little Jew, you were guaranteed a nice life with lots of money and kids and so on.
+<Tene> I thought that Job was pretty fucked overall, but the point was that he was still happy and had a good afterlife.
+<rlpowell> Erm.
+<rlpowell> Traditional Judaism doesn't *have* an afterlife.
+<rlpowell> Only rewards in this one.
+<rlpowell> That's why Job is so fucked up.
+<rlpowell> (and why Jesus was such a big deal)
+<Tene> So you'd get... money, luck, morale boosts...
+<rlpowell> IANAJ, but I've talked to a few people about this over the years.
+<rlpowell> And occasionally God destroying entire races of your enemies, if they were being naughty.
+<Tene> Your duty would be to pray often and follow a strict set of rules?
+<rlpowell> Sounds about right.
+<rlpowell> No shrimp for you!
+<Tene> Occasional intervention, I guess.
+<Tene> Would be entertaining to have intervention be completely random. ;)
+<Tene> Also interesting is how which Gods care about favor with which other Gods.
+<rlpowell> Enh.  That's a different god.
+<rlpowell> Almost, but not quite, Eris.
+<Tene> I'd imagine Burn Shit wouldn't care at all who else you prayed to as long as you kept burning, but others might not approve of your relationship with Her.
+<Tene> Eris is more about chaos and discord than randomness.
+<rlpowell> Exactly.
+<Tene> Eris would be another non-jealous god.
+<rlpowell> I disagree wrt jealousy and Eris, fwiw.
+<Tene> Oh?
+<Tene> Please explain.
+<rlpowell> Well, the whole golden apple thing was all *about* jealousy.
+<rlpowell> Her being jealous at not being invited, and preying on others' jealousy in return.
+<rlpowell> That's all.
+<Tene> Oh.
+<Tene> Right.
+<Tene> iirc, the PD claims that she said that was all a misunderstanding.  I'll check.
+<rlpowell> PD?
+<Tene> Principia Discordia
+<rlpowell> *OH*, you're talking about *that* Eris.
+<rlpowell> I was talking about the historical one.
+<rlpowell> They, umm, have some differences.  :)
+<Tene> Rather.
+<rlpowell> No, PD Eris would probably not be jealous.
+<rlpowell> But it's been a *very* long while since I've read any Erisian philosophy.
+<Tene> Yes, that's the Eris I find interesting here.
+<rlpowell> *nod*
