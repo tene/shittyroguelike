@@ -1,4 +1,47 @@
+################################################################################
+New Features
+################################################################################
+- Cancel queued actions
+    - monsters, injury, items, damage, collision
+    - keypress (^G)
+- Inventory
+    - Player
+    - Monster
+- configuration
+    - first look for keys.conf in ~/.cg, then installation dir w/ FindBin
+    - Maybe a client.conf?
+        - Unicode or ASCII
+        - Default username
+    - server.conf
+        - What configuration?
+- Multiple areas
+- Make death less stupid
+- Character set mapping on client
+- World persistance
 
+- Admin console
+- Generic admin API
+
+- Multilingualization
+    - MakeText
+- Testing?
+- AI
+- City building
+
+- Set up an issue tracker
+    - Choose what goes in TODO and what goes in RT?
+
+################################################################################
+Cleanups/Refactoring
+################################################################################
+- "create new character" dialog:
+    - Refactor into a series of generic questions
+- Class hierarchy needs designed
+
+################################################################################
+BUGS
+################################################################################
 - "create new character" dialog:
     - shift-tab needs to DTRT
     - enter should select and advance, not just advance
+- FAIL when run under screen without TERM=xterm
