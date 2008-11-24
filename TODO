@@ -19,6 +19,8 @@ New Features
 - Character set mapping on client
 - World persistance
 
+- Generic library for fancy effects: Curses::Fx maybe?
+
 - Admin console
 - Generic admin API
 
