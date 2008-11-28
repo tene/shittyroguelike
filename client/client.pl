@@ -462,12 +462,20 @@ questions from the server.
 
 sub create_player {
     my ($kernel, $heap, $message, $gods, $colors, $races) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2, ARG3];
+
     # give the user a little form to fill out.  It returns indexes.
-    my ($race,$god,$color) = $ui->get_new_player_info($message,$gods,$colors,$races);
+    my $race = $ui->choose_with_descs($races, "white", "black",
+	    "Races", "yellow", "Race Description", "yellow" );
+    my $god = $ui->choose_with_descs($gods, "white", "black",
+	    "Gods", "yellow", "Gods Description", "yellow" );
+    my $color = $ui->choose($colors, "white", "black",
+	    "Colors", "yellow", "Colors Description", "yellow" );
+
     # look up the answers using the indexes
-    $race = $races->[$race];
-    $god = $gods->[$god];
+    $race = (keys %$races)[$race];
+    $god = (keys %$gods)[$god];
     $color = $colors->[$color];
+
     my $username = $heap->{username};
     # send a registration request to the server
     send_to_server('register',$username,$race,$god,$color);

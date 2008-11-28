@@ -11,6 +11,7 @@ use Curses qw(initscr keypad start_color noecho cbreak curs_set endwin new_panel
     COLOR_BLACK COLOR_BLUE COLOR_CYAN COLOR_GREEN COLOR_MAGENTA COLOR_RED COLOR_WHITE COLOR_YELLOW COLOR_PAIR
     O_ACTIVE O_EDIT A_UNDERLINE
     $LINES $COLS
+    A_BOLD ACS_VLINE ACS_HLINE
     newwin derwin subwin delwin resizeterm
     erase
     box
@@ -329,6 +330,150 @@ sub get_login_info {
       );
 }
 
+=item C<choose_with_descs( $items )>
+
+Given a list of items, shows them and their descriptions to the
+player, who picks one.
+
+=cut
+
+sub choose_with_descs {
+    my ($self, $stuff, $fg, $bg, $cap, $capcol, $datacap,
+	    $datacapcol ) = @_;
+
+    my $btnexit = sub {
+	my ($f,$key) = @_;
+
+# If the user used enter, select what that were on.  If the used
+# tab, stick with what they picked, otherwise it's BS so just
+# return.
+	if( $key eq "\r" || $key eq "\n" )
+	{
+	    my $stuff = $f->getWidget('Stuff');
+	    $stuff->setField(VALUE => $stuff->getField('CURSORPOS'));
+	} elsif( $key ne "\t" ) {
+	    return;
+	}
+	$f->setField(EXIT => 1);
+    };
+
+    use Curses::Widgets::ChooseWithText;
+
+    my   $form = Curses::Forms->new({
+	    AUTOCENTER    => 1,
+	    DERIVED       => 1,
+	    COLUMNS       => 40,
+	    LINES         => 17,
+	    BORDER        => 0,
+	    FOREGROUND    => $fg,
+	    BACKGROUND    => $bg,
+	    TABORDER      => [qw(Stuff)],
+	    WIDGETS       => {
+	    Stuff   => {
+	    TYPE      => 'ChooseWithText',
+	    CAPTION   => $cap,
+	    CAPTIONCOL   => $capcol,
+	    Y         => 0,
+	    X         => 0,
+	    FOREGROUND=> $fg,
+	    BACKGROUND=> $bg,
+	    COLUMNS   => 15,
+	    LINES     => 15,
+	    LISTITEMS => [keys( %$stuff )],
+	    DATAITEMS => [map { $$stuff{$_}{"desc"}; } keys( %$stuff)],
+	    TOPELEMENT=> 0,
+	    VALUE     => 0,
+	    READONLY  => 1,
+	    FOCUSSWITCH => "\t\n\r",
+	    OnExit => $btnexit,
+	    DATACOLUMNS   => 21,
+	    DATALINES     => 15,
+	    DATACAPTION => $datacap,
+	    DATACAPTIONCOL => $datacapcol,
+	    DATAFOREGROUND => $fg,
+	    DATABACKGROUND => $bg,
+	    DATABORDER => 1,
+	    DATABORDERCOL => $fg,
+	    },
+	    },
+    });
+
+    $form->execute($.panels->{form}->panel_window->subwin(0,0,2,10));
+
+    $.panels->{form}->hide_panel();
+    return (
+	    $form->getWidget('Stuff')->getField('VALUE'),
+	   );
+}
+
+=item C<choose( $items )>
+
+Given a list of items, shows them and their descriptions to the
+player, who picks one.
+
+=cut
+
+sub choose {
+    my ($self, $stuff, $fg, $bg, $cap, $capcol, $datacap,
+	    $datacapcol ) = @_;
+
+    my $btnexit = sub {
+	use Data::Dumper;
+	my ($f,$key) = @_;
+
+# If the user used enter, select what that were on.  If the used
+# tab, stick with what they picked, otherwise it's BS so just
+# return.
+	if( $key eq "\r" || $key eq "\n" )
+	{
+	    my $stuff = $f->getWidget('Stuff');
+	    $stuff->setField(VALUE => $stuff->getField('CURSORPOS'));
+	} elsif( $key ne "\t" ) {
+	    return;
+	}
+	$f->setField(EXIT => 1);
+    };
+
+    use Curses::Widgets::ListBox;
+
+    my   $form = Curses::Forms->new({
+	    AUTOCENTER    => 1,
+	    DERIVED       => 1,
+	    COLUMNS       => 40,
+	    LINES         => 17,
+	    BORDER        => 0,
+	    FOREGROUND    => $fg,
+	    BACKGROUND    => $bg,
+	    TABORDER      => [qw(Stuff)],
+	    WIDGETS       => {
+		Stuff   => {
+		    TYPE      => 'ListBox',
+		    CAPTION   => $cap,
+		    CAPTIONCOL   => $capcol,
+		    Y         => 0,
+		    X         => 0,
+		    COLUMNS       => 38,
+		    LINES         => 15,
+		    FOREGROUND=> $fg,
+		    BACKGROUND=> $bg,
+		    LISTITEMS => [@$stuff],
+		    TOPELEMENT=> 0,
+		    VALUE     => 0,
+		    READONLY  => 1,
+		    FOCUSSWITCH => "\t\n\r",
+		    OnExit => $btnexit,
+		},
+	    },
+	});
+
+    $form->execute($.panels->{form}->panel_window->subwin(0,0,2,10));
+
+    $.panels->{form}->hide_panel();
+    return (
+	    $form->getWidget('Stuff')->getField('VALUE'),
+	   );
+}
+
 =item C<get_new_player_info()>
 
 Uses Displays a form to get information to create a new player.
@@ -343,9 +488,9 @@ sub get_new_player_info {
     my @buttons = qw(OK);
 
     my $btnexit = sub {
-        my ($f,$key) = @_;
+	my ($f,$key) = @_;
 
-        return unless ($key eq "\r" || $key eq "\n");
+	return unless ($key eq "\r" || $key eq "\n");
         $f->setField(EXIT => 1);
     };
 

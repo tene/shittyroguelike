@@ -21,17 +21,23 @@ my $map;
 my $place;
 my $players = -f 'players.yaml' ? LoadFile('players.yaml') : {};
 my $races = {
-    giant => defstats('^',m=>10,o=>10,l=>-5,e=>5,sc=>-10,pr=>-5,ph=>-5,so=>-10),
-    ent => defstats('Ψ',m=>10,o=>15,l=>-10,e=>-5,sc=>15,pr=>-5,ph=>-5,so=>-10),
-    human => defstats('@'),
-    elf => defstats('λ',m=>-2,o=>-5,l=>5,e=>15,sc=>5,pr=>5,ph=>5,so=>-5),
-    gnome => defstats('¤',m=>-5,o=>-10,l=>8,e=>8,sc=>10,pr=>-5,ph=>-5,so=>5),
-    pixie => defstats('`',m=>-10,o=>-10,l=>18,e=>10,sc=>15,pr=>-6,ph=>-6,so=>10),
-    gremlin => defstats(',',m=>-9,o=>-8,l=>10,sc=>10,pr=>5,ph=>3,so=>-10),
+    giant => defstats('^',m=>10,o=>10,l=>-5,e=>5,sc=>-10,pr=>-5,ph=>-5,so=>-10, desc=>"They're Big"),
+    ent => defstats('Ψ',m=>10,o=>15,l=>-10,e=>-5,sc=>15,pr=>-5,ph=>-5,so=>-10, desc=>"They're Trees"),
+    human => defstats('@', desc=>"Duh"),
+    elf => defstats('λ',m=>-2,o=>-5,l=>5,e=>15,sc=>5,pr=>5,ph=>5,so=>-5, desc=>"Pointy Ears!"),
+    gnome => defstats('¤',m=>-5,o=>-10,l=>8,e=>8,sc=>10,pr=>-5,ph=>-5,so=>5, desc=>"Pointy Ears And Short!"),
+    pixie => defstats('`',m=>-10,o=>-10,l=>18,e=>10,sc=>15,pr=>-6,ph=>-6,so=>10, desc=>"Teeny tiny."),
+    gremlin => defstats(',',m=>-9,o=>-8,l=>10,sc=>10,pr=>5,ph=>3,so=>-10, desc=>"Mogwai!"),
+};
+
+my $gods = {
+    'Eris' => { desc => "all lucky and shit" },
+    'Burn Shit' => { desc => "likes to burn things and stuff" },
+    'Cthulhu' => { desc => "destroying the world and stuff" },
 };
 
 # utility function to help build the racial stat modifier table
-sub defstats ($sym,+$m,+$o,+$l,+$e,+$sc,+$pr,+$ph,+$so) {
+sub defstats ($sym,+$m,+$o,+$l,+$e,+$sc,+$pr,+$ph,+$so, +$desc) {
     return {
         symbol => $sym,
         muscle => $m||0,
@@ -42,6 +48,7 @@ sub defstats ($sym,+$m,+$o,+$l,+$e,+$sc,+$pr,+$ph,+$so) {
         practical => $ph||0,
         physical => $ph||0,
         social => $so||0,
+        desc => $desc||"",
     };
 }
 
@@ -190,7 +197,11 @@ Helper function to send a 'new character' form to the client.
 sub send_create_form {
     my $wheel = shift;
     # args are text to display on the form, list of gods, list of colors, list of races
-    $wheel->put(['create_player','create new character',['Eris','Burn Shit','Cthulhu'],[qw(red green yellow blue magenta cyan white)],[keys %$races]]);
+    $wheel->put(['create_player',
+	    'create new character',
+	    $gods,
+	    [qw(red green yellow blue magenta cyan white)],
+	    $races]);
 }
 
 =head1 C<register>
@@ -203,16 +214,16 @@ sub register {
     my ($kernel, $session, $heap, $username, $race, $god, $color) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2, ARG3];
     my $symbol = $races->{$race}->{symbol};
     if (defined $players->{$username}) { # this username is taken
-        send_create_form($heap->{wheel});
+	send_create_form($heap->{wheel});
     }
     else {
-        $username ||= 'nobody';
-        $symbol ||= substr $username,0,1;
-        $color ||= 'red';
-        $players->{$username} = {race=>$race,god=>$god,color=>$color};
-        DumpFile('players.yaml', $players);
-        $heap->{wheel}->put(['new_map', $place->to_ref]);
-        $heap->{wheel}->put(['assign_id', $session->ID]);
+	$username ||= 'nobody';
+	$symbol ||= substr $username,0,1;
+	$color ||= 'red';
+	$players->{$username} = {race=>$race,god=>$god,color=>$color};
+	DumpFile('players.yaml', $players);
+	$heap->{wheel}->put(['new_map', $place->to_ref]);
+	$heap->{wheel}->put(['assign_id', $session->ID]);
     }
 }
 
