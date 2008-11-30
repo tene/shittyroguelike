@@ -23,11 +23,8 @@ my $players = -f 'players.yaml' ? LoadFile('players.yaml') : {};
 -f 'races.yaml' or die 'Race definition file (races.yaml) missing!';
 my $races = LoadFile('races.yaml') or die 'Could not load race definition file (races.yaml)!';
 
-my $gods = {
-    'Eris' => { desc => "all lucky and shit" },
-    'Burn Shit' => { desc => "likes to burn things and stuff" },
-    'Cthulhu' => { desc => "destroying the world and stuff" },
-};
+-f 'gods.yaml' or die 'God definition file (gods.yaml) missing!';
+my $gods = LoadFile('gods.yaml') or die 'Could not load god definition file (gods.yaml)!';
 
 # help bound between two values
 sub scaled_logistic ($value, $divisor) {
