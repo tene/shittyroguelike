@@ -1,0 +1,78 @@
+--- 
+elf: 
+  desc: Pointy Ears!
+  eyes: 15
+  limbs: 5
+  muscle: -2
+  organs: -5
+  physical: 5
+  practical: 5
+  scholarly: 5
+  social: -5
+  symbol: "\xCE\xBB"
+ent: 
+  desc: They're Trees
+  eyes: -5
+  limbs: -10
+  muscle: 10
+  organs: 15
+  physical: -5
+  practical: -5
+  scholarly: 15
+  social: -10
+  symbol: "\xCE\xA8"
+giant: 
+  desc: They're Big
+  eyes: 5
+  limbs: -5
+  muscle: 10
+  organs: 10
+  physical: -5
+  practical: -5
+  scholarly: -10
+  social: -10
+  symbol: "^"
+gnome: 
+  desc: Pointy Ears And Short!
+  eyes: 8
+  limbs: 8
+  muscle: -5
+  organs: -10
+  physical: -5
+  practical: -5
+  scholarly: 10
+  social: 5
+  symbol: "\xC2\xA4"
+gremlin: 
+  desc: Mogwai!
+  eyes: 0
+  limbs: 10
+  muscle: -9
+  organs: -8
+  physical: 3
+  practical: 3
+  scholarly: 10
+  social: -10
+  symbol: ","
+human: 
+  desc: Duh
+  eyes: 0
+  limbs: 0
+  muscle: 0
+  organs: 0
+  physical: 0
+  practical: 0
+  scholarly: 0
+  social: 0
+  symbol: "@"
+pixie: 
+  desc: Teeny tiny.
+  eyes: 10
+  limbs: 18
+  muscle: -10
+  organs: -10
+  physical: -6
+  practical: -6
+  scholarly: 15
+  social: 10
+  symbol: `

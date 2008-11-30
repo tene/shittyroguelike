@@ -20,37 +20,14 @@ my $server_session;
 my $map;
 my $place;
 my $players = -f 'players.yaml' ? LoadFile('players.yaml') : {};
-my $races = {
-    giant => defstats('^',m=>10,o=>10,l=>-5,e=>5,sc=>-10,pr=>-5,ph=>-5,so=>-10, desc=>"They're Big"),
-    ent => defstats('Ψ',m=>10,o=>15,l=>-10,e=>-5,sc=>15,pr=>-5,ph=>-5,so=>-10, desc=>"They're Trees"),
-    human => defstats('@', desc=>"Duh"),
-    elf => defstats('λ',m=>-2,o=>-5,l=>5,e=>15,sc=>5,pr=>5,ph=>5,so=>-5, desc=>"Pointy Ears!"),
-    gnome => defstats('¤',m=>-5,o=>-10,l=>8,e=>8,sc=>10,pr=>-5,ph=>-5,so=>5, desc=>"Pointy Ears And Short!"),
-    pixie => defstats('`',m=>-10,o=>-10,l=>18,e=>10,sc=>15,pr=>-6,ph=>-6,so=>10, desc=>"Teeny tiny."),
-    gremlin => defstats(',',m=>-9,o=>-8,l=>10,sc=>10,pr=>5,ph=>3,so=>-10, desc=>"Mogwai!"),
-};
+-f 'races.yaml' or die 'Race definition file (races.yaml) missing!';
+my $races = LoadFile('races.yaml') or die 'Could not load race definition file (races.yaml)!';
 
 my $gods = {
     'Eris' => { desc => "all lucky and shit" },
     'Burn Shit' => { desc => "likes to burn things and stuff" },
     'Cthulhu' => { desc => "destroying the world and stuff" },
 };
-
-# utility function to help build the racial stat modifier table
-sub defstats ($sym,+$m,+$o,+$l,+$e,+$sc,+$pr,+$ph,+$so, +$desc) {
-    return {
-        symbol => $sym,
-        muscle => $m||0,
-        organs=> $o||0,
-        limbs => $l||0,
-        eyes => $e||0,
-        scholarly => $sc||0,
-        practical => $ph||0,
-        physical => $ph||0,
-        social => $so||0,
-        desc => $desc||"",
-    };
-}
 
 # help bound between two values
 sub scaled_logistic ($value, $divisor) {
