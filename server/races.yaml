@@ -65,6 +65,17 @@ human:
   scholarly: 0
   social: 0
   symbol: "@"
+moogle: 
+  desc: "Cute and good at Magic, Kupo!"
+  eyes: 18
+  limbs: 18
+  muscle: -10
+  organs: -10
+  physical: -10
+  practical: -10
+  scholarly: 20
+  social: 15
+  symbol: "å"
 pixie: 
   desc: Teeny tiny.
   eyes: 10
@@ -76,3 +87,14 @@ pixie:
   scholarly: 15
   social: 10
   symbol: `
+wolf: 
+  desc: Cuddly with pointy bits.
+  eyes: -5
+  limbs: 10
+  muscle: 8
+  organs: 8
+  physical: 5
+  practical: -6
+  scholarly: 10
+  social: 15
+  symbol: w
