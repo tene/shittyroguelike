@@ -1,0 +1,41 @@
+Bayesian Conspiracy
+
+The secrets of bayesian reasoning.  Based on Eliezer's fictional world.  Need a link.
+
+The Bayesian Conspiracy is not exclusive.
+The Bayesian Conspiracy is not open.
+The Bayesian Conspiracy requires an introduction.
+The Bayesian Conspiracy requires an initiation.
+
+Skills:
+    Bayesian Reasoning:
+        Int boost
+        Raises XP rate
+        Confusion resist?
+        Raises or decreases resistance to sanity attacks?
+    Aumann's Agreement Theorem:
+        Social boost
+        Increases the effectiveness of being trained
+    Change of Mind:
+        Un-train a skill to recover invested XP
+    Craft Bayesian Ring:
+        Create the traditional ring used to demonstrate membership in the
+            conspiracy.
+        Requires training in some other skills first, I guess?
+    Knowledge of the Past:
+        Raises your effective level in one skill at a time.
+        Limits on time?
+        Limits on number of times changing the chosen skill per day?
+        Better name?
+
+Equipment:
+    Bayesian Ring:
+        Int boost
+        Appearance boost
+        Raises XP rate
+        Increases effect of all Bayesian Conspiracy skills
+        Allows entrance into Conspiracy-related buildings
+
+Requirements:
+    Introduction
+    Sufficient Scholarly Knowledge?
