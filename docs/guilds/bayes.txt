@@ -3,7 +3,7 @@ Bayesian Conspiracy
 The secrets of bayesian reasoning.  Based on Eliezer's fictional world.  Need a link.
 
 The Bayesian Conspiracy is not exclusive.
-The Bayesian Conspiracy is not open.
+The Bayesian Conspiracy is closed to non-members.
 The Bayesian Conspiracy requires an introduction.
 The Bayesian Conspiracy requires an initiation.
 
@@ -18,6 +18,9 @@ Skills:
         Increases the effectiveness of being trained
     Change of Mind:
         Un-train a skill to recover invested XP
+    Secrets of Eld Science
+        Use any technical item with your rank in Bayesianism instead of using
+        the relevant technical skill.
     Craft Bayesian Ring:
         Create the traditional ring used to demonstrate membership in the
             conspiracy.
