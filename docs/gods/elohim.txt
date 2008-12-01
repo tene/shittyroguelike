@@ -1,0 +1,66 @@
+Elohim
+
+Approximation of Christianity.
+
+Christianity is open to everyone.
+Christianity requires an initiation.
+Elohim does not allow simultaneous worship of most other Gods.
+
+
+Elohim likes:
+    Pray regularly
+    Heal people
+
+Elohim dislikes:
+    Stealing
+    Killing dudes, unless they're evil
+
+Miracles:
+    Heal Self
+        Heal your wounds.
+    Resurrect Self
+        Rise from the dead fully healed
+    Chariot of Fire
+        Travel to Heaven in body, without death
+        Requires absurd piety
+    Reincarnate as Angel
+        Rise from the dead as an Angel
+        The Angelic form of a race is different in the following ways:
+            Large white feathered wings
+            Flight
+            Produces light
+            Can see in all degrees of brightness
+            Heals from Holy, Light, Fire, Lightning
+            Damages evil-aligned in the area
+            Heals good-aligned in the area
+            Cast Christian spells at twice your current level
+        Requires absurd piety
+        Negative effects?
+
+
+Skills:
+    Heal Other
+        Heal another's wounds.
+    Remove Poison
+        Remove toxins from the bodies of nearby allies.
+        Requires a bronze staff shaped like a serpent as a material component
+    Detect Alignment
+        Know the alignment of things
+    Walk on Water
+        Walk on the surface of water without sinking
+    Bless Weapon
+        Increases weapon's accuracy, speed, and damage
+        Adds Holy damage to weapon
+        Effect proportional to caster's piety
+    Consecrate Weapon to Elohim
+        Greatly increases weapon's accuracy, speed, and damage
+        Adds significant Holy damage to weapon
+        Weapon produces light in darkness
+        Weapon increases resistance to Unholy damage
+        Weapon can only be wielded by those with sufficient piety
+    Resurrect
+        Raise another from death
+        Requires the corpse of the person to be raised
+    Turn Undead
+        Unanimate animated undead.
+
