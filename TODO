@@ -37,6 +37,7 @@ New Features
 ################################################################################
 Cleanups/Refactoring
 ################################################################################
+- The status panel in UI.pm needs to be set up with a closure to render with
 - Move stat modifiers in the races structure into a separate attribute
 - Class hierarchy needs designed
 
