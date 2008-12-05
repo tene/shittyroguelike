@@ -13,6 +13,7 @@ use Player;
 use Entrance;
 
 use YAML;
+use Storable qw/nstore retrieve/;
 
 has chart => (is=>'rw',isa=>'ArrayRef[ArrayRef[Place::Tile]]');
 has objects => (is=>'rw',isa=>'HashRef');
@@ -32,7 +33,7 @@ method insert ($obj,$x,$y) {
     $.chart->[$y]->[$x]->enter($obj);
 }
 
-method load ($map) {
+method load_from_ascii ($map) {
     my $a = [];
     my $y = 0;
     my $prevline;

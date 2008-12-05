@@ -35,7 +35,7 @@ sub new ($self,$mapfile,?$port) {
     $default_port ||= $port;
     $map = slurp '<:utf8', $mapfile;
     $place = Place->new();
-    $place->load($map);
+    $place->load_from_ascii($map);
     $server_session = POE::Session->create(
         inline_states=> {
             _start => \&poe_start,
