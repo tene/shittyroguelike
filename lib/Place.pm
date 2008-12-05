@@ -28,6 +28,10 @@ method BUILD ($params) {
     $.objects = {};
 }
 
+method tile ($x,$y) {
+    $.chart->[$y]->[$x];
+}
+
 method insert ($obj,$x,$y) {
     $.objects->{$obj->id} = $obj;
     $.chart->[$y]->[$x]->enter($obj);
@@ -36,13 +40,11 @@ method insert ($obj,$x,$y) {
 method load_from_ascii ($map) {
     my $a = [];
     my $y = 0;
-    my $prevline;
     for (split /\n/, $map) {
         chomp;
         my @chars = split //,$_;
         my @tiles = ();
         my $x = 0;
-        my $prevtile;
         for my $char (@chars) {
             my $tile = Place::Tile->new(symbol=>$char,x=>$x,y=>$y,fg=>'white',bg=>'black',place=>$self);
             if($char eq '.') {
@@ -58,20 +60,9 @@ method load_from_ascii ($map) {
                 $tile->fg('green');
             }
 
-            if ($prevtile) {
-                $prevtile->right($tile);
-                $tile->left($prevtile);
-            }
-            $prevtile = $tile;
-
-            if (defined $prevline && defined $prevline->[$x]) {
-                $prevline->[$x]->down($tile);
-                $tile->up($prevline->[$x]);
-            }
             push @tiles, $tile;
             $x++;
         }
-        $prevline = \@tiles;
         push @$a, [@tiles];
         $y++;
     }
@@ -96,12 +87,10 @@ method to_ref {
 method load_from_ref ($map) {
     my $a = [];
     my $y = 0;
-    my $prevline;
     for (@$map) {
         my @items = @$_;
         my @tiles = ();
         my $x = 0;
-        my $prevtile;
         for my $item (@items) {
             my $char = $item->{symbol};
             my $fg = $item->{fg};
@@ -116,20 +105,9 @@ method load_from_ref ($map) {
                 $self->objects->{$new->id} = $new;
             }
 
-            if ($prevtile) {
-                $prevtile->right($tile);
-                $tile->left($prevtile);
-            }
-            $prevtile = $tile;
-
-            if (defined $prevline && defined $prevline->[$x]) {
-                $prevline->[$x]->down($tile);
-                $tile->up($prevline->[$x]);
-            }
             push @tiles, $tile;
             $x++;
         }
-        $prevline = \@tiles;
         push @$a, [@tiles];
         $y++;
     }

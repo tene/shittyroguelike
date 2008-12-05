@@ -259,7 +259,8 @@ Move an object relative to its current position
 sub object_move_rel {
     my ($kernel, $session, $heap, $id, $ox, $oy) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2];
     my $player = $place->objects->{$id};
-    my $dest = $player->get_tile_rel($ox,$oy);
+    my $source = $player->tile;
+    my $dest = $place->tile($source->x + $ox,$source->y + $oy);
 
     # don't move it if the hackish "can't hold anything more" flag is set on the destination tile
     return unless $dest->vasru;
@@ -352,7 +353,8 @@ sub attack {
     my $othername = $other->username;
 
     # find the tile in the direction specified
-    my $dest = $self->get_tile_rel($ox,$oy);
+    my $source = $self->tile;
+    my $dest = $place->tile($source->x + $ox,$source->x + $oy);
 
     # check to make sure the dude specified is in the tile.  bail out otherwise
     return unless $dest == $other->tile;

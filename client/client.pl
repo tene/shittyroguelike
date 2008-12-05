@@ -269,7 +269,8 @@ sub move {
 
     # find myself
     my $self = $place->objects->{$my_id};
-    my $dest = $self->get_tile_rel($x,$y);
+    my $source = $self->tile;
+    my $dest = $place->tile($source->x + $x, $source->y + $y);
 
     # look for living things in the tile we're moving into
     my ($player) = grep {$_->meta->does_role('Actor::Alive')} @{$dest->contents};
@@ -431,9 +432,11 @@ sub object_move_rel {
     my ($kernel, $heap, $object_id, $x, $y) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2];
     # find the object and the tile it's currently in
     my $object = $place->objects->{$object_id};
-    my $before = $object->tile;
+    my $before = $object->tile || return;
     # move the object
-    $object->move_rel($x,$y);
+    my $dest = $place->tile($before->x + $x, $before->y + $y);
+    $before->leave($object);
+    $dest->enter($object);
 
     # if we just moved ourself, refocus the UI
     if ($object_id == $my_id) {
