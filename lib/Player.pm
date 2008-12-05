@@ -14,11 +14,11 @@ method BUILD ($params) {
 }
 
 method death {
-    my ($origin) = grep {(ref $_) eq 'Entrance'} values %{$self->tile->place->objects};
+    #my ($origin) = grep {(ref $_) eq 'Entrance'} values %{$self->tile->place->objects};
     $self->cur_hp($self->max_hp);
-    $self->move_to_id($origin->id);
+    #$self->move_to_id($origin->id);
 
-    return {'cur_hp'=>$self->max_hp,'move_to_id'=>$origin->id};
+    return {'cur_hp'=>$self->max_hp};
 }
 
 method to_hash {

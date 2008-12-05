@@ -17,7 +17,6 @@ use Switch 'Perl6';
 
 my $default_port = 3456;
 my $server_session;
-my $map;
 my $place;
 my $players = -f 'players.yaml' ? LoadFile('players.yaml') : {};
 -f 'races.yaml' or die 'Race definition file (races.yaml) missing!';
@@ -31,11 +30,10 @@ sub scaled_logistic ($value, $divisor) {
     return 1/(1+exp(- $value/$divisor));
 }
 
-sub new ($self,$mapfile,?$port) {
+sub new ($self,$map,?$port) {
     $default_port ||= $port;
-    $map = slurp '<:utf8', $mapfile;
     $place = Place->new();
-    $place->load_from_ascii($map);
+    $place->get($map);
     $server_session = POE::Session->create(
         inline_states=> {
             _start => \&poe_start,
@@ -222,7 +220,7 @@ sub add_player {
 
     $kernel->post($server_session, 'broadcast', ['announce', "$username, a loyal follower of $god, has arrived."]);
     my ($origin) = grep {(ref $_) eq 'Entrance'} values %{$place->objects};
-    my ($x, $y) = ($origin->tile->x, $origin->tile->y);
+    my ($x, $y) = ($origin->x, $origin->y);
     print "Adding a new player: $id $symbol $fg $bg $y $x\n";
     $heap->{id} = $id;
 
@@ -241,7 +239,7 @@ sub add_player {
         );
 
     # set the map tile as filled.  dirty hack.
-    $place->objects->{$id}->{tile}->vasru(0);
+    tile_of($place->objects->{$id})->vasru(0);
 
     # tell all the connected clients about the new player
     $kernel->post($server_session, 'broadcast', ['add_player', $id, $place->objects->{$id}->to_hash, $y, $x]);
@@ -259,16 +257,15 @@ Move an object relative to its current position
 sub object_move_rel {
     my ($kernel, $session, $heap, $id, $ox, $oy) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2];
     my $player = $place->objects->{$id};
-    my $source = $player->tile;
-    my $dest = $place->tile($source->x + $ox,$source->y + $oy);
+    my $source = tile_of($player);
+    my $dest = tile_at($source->x + $ox,$source->y + $oy);
 
     # don't move it if the hackish "can't hold anything more" flag is set on the destination tile
     return unless $dest->vasru;
 
     # update the state of the map
-    $player->tile->leave($player);
+    tile_of($player)->leave($player);
     $dest->enter($player);
-    $player->tile($dest);
 
     # broadcast the event to all clients
     $kernel->post($server_session, 'broadcast', ['object_move_rel', $id, $ox, $oy]);
@@ -353,11 +350,11 @@ sub attack {
     my $othername = $other->username;
 
     # find the tile in the direction specified
-    my $source = $self->tile;
-    my $dest = $place->tile($source->x + $ox,$source->x + $oy);
+    my $source = tile_of($self);
+    my $dest = tile_at($source->x + $ox,$source->x + $oy);
 
     # check to make sure the dude specified is in the tile.  bail out otherwise
-    return unless $dest == $other->tile;
+    return unless $dest == tile_of($other);
 
     # debugging on the server console
     print $self->symbol, '→', $other->symbol, "\n";
@@ -410,7 +407,7 @@ sub drop_item {
     my $obj = Object->new(fg=>$fg,bg=>$bg,symbol=>$symbol);
     $place->objects->{$obj->id} = $obj;
     $kernel->post($server_session,'broadcast',['drop_item',$heap->{id},$obj->to_hash]);
-    $player->tile->enter($obj);
+    tile_of($player)->enter($obj);
     my $rand = 5+rand(rand(rand(100))); # shitty skewing towards the bottom
     $kernel->delay_set('change_object',$rand/2,$obj->id,{'symbol'=>'°','fg'=>'magenta'});
     $kernel->delay_set('remove_object',$rand,$obj->id);
@@ -424,7 +421,7 @@ Delete an object from the map.
 
 sub remove_object {
     my ($kernel, $session, $heap, $id) = @_[KERNEL, SESSION, HEAP, ARG0];
-    $place->objects->{$id}->tile->leave($place->objects->{$id});
+    tile_of($place->objects->{$id})->leave($place->objects->{$id});
     delete $place->objects->{$id};
 
     # tell everyone about it
@@ -478,7 +475,7 @@ sub connection_error {
    $kernel->alarm_remove_all();
 
    # remove the character from the map
-   $place->objects->{$heap->{id}}->tile->leave($place->objects->{$heap->{id}});
+   tile_of($place->objects->{$heap->{id}})->leave($place->objects->{$heap->{id}});
    delete $place->objects->{$heap->{id}};
 }
 
@@ -492,6 +489,16 @@ sub connection_broadcast {
    my ($kernel, $session, $heap, $message) = @_[KERNEL, SESSION, HEAP, ARG0];
 
    $heap->{wheel}->put($message);
+}
+
+sub tile_of {
+    my $i = shift;
+    $place->tile($i->x,$i->y);
+}
+
+sub tile_at {
+    my ($x,$y) = @_;
+    $place->tile($x,$y);
 }
 
 1;

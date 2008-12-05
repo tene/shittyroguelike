@@ -1,8 +1,11 @@
 package Place::Tile;
 
 use Moose;
+use MooseX::Storage;
 use Perl6::Attributes;
 use Perl6::Subs;
+
+with Storage('io' => 'StorableFile');
 
 has x            => (is=>'rw',isa=>'Int',required=>1);
 has y            => (is=>'rw',isa=>'Int',required=>1);
@@ -11,7 +14,6 @@ has contents     => (is=>'rw',isa=>'ArrayRef[Object]',auto_deref=>1);
 has 'symbol' => (is=>'rw',isa=>'Str',required=>1);
 has 'fg'         => (is=>'rw',isa=>'Str');
 has 'bg'         => (is=>'rw',isa=>'Str');
-has place        => (is=>'rw',isa=>'Place');
 
 __PACKAGE__->meta->make_immutable;
    
@@ -30,7 +32,8 @@ method to_hash {
 }
 
 method enter ($obj) {
-    $obj->tile($self);
+    $obj->x($.x);
+    $obj->y($.y);
 
     ./add($obj);
     $.vasru = 0 if (ref $obj eq 'Player');

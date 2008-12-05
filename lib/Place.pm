@@ -4,6 +4,7 @@ use Place::Tile;
 use Entrance;
 
 use Moose;
+use MooseX::Storage;
 
 use Perl6::Attributes;
 use Perl6::Subs;
@@ -13,7 +14,9 @@ use Player;
 use Entrance;
 
 use YAML;
-use Storable qw/nstore retrieve/;
+use Data::Dumper;
+
+with Storage('io' => 'StorableFile');
 
 has chart => (is=>'rw',isa=>'ArrayRef[ArrayRef[Place::Tile]]');
 has objects => (is=>'rw',isa=>'HashRef');
@@ -35,6 +38,36 @@ method tile ($x,$y) {
 method insert ($obj,$x,$y) {
     $.objects->{$obj->id} = $obj;
     $.chart->[$y]->[$x]->enter($obj);
+}
+
+method save ($map) {
+    $self->store("store/$map.storable");
+}
+
+method get ($map) {
+    if (-f "store/$map.storable") {
+        my $new = Place->load("store/$map.storable");
+        $self->chart($new->chart);
+        for my $row (@{$new->chart}) {
+            for my $tile (@$row) {
+                for my $item (@{$tile->contents}) {
+                    $self->{objects}->{$item->id} = $item;
+                }
+            }
+        }
+        print Dumper($self->objects);
+    }
+    elsif (-f "maps/$map.txt") {
+        local $/;
+        open FILE, '<:utf8', "maps/$map.txt";
+        my $text = <FILE>;
+        close FILE;
+        $self->load_from_ascii($text);
+        $self->save($map);
+    }
+    else {
+        die "Could not load map $map";
+    }
 }
 
 method load_from_ascii ($map) {

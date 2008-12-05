@@ -269,8 +269,8 @@ sub move {
 
     # find myself
     my $self = $place->objects->{$my_id};
-    my $source = $self->tile;
-    my $dest = $place->tile($source->x + $x, $source->y + $y);
+    my $source = tile_of($self);
+    my $dest = tile_at($source->x + $x, $source->y + $y);
 
     # look for living things in the tile we're moving into
     my ($player) = grep {$_->meta->does_role('Actor::Alive')} @{$dest->contents};
@@ -432,22 +432,22 @@ sub object_move_rel {
     my ($kernel, $heap, $object_id, $x, $y) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2];
     # find the object and the tile it's currently in
     my $object = $place->objects->{$object_id};
-    my $before = $object->tile || return;
+    my $before = tile_of($object) || return;
     # move the object
-    my $dest = $place->tile($before->x + $x, $before->y + $y);
+    my $dest = tile_at($before->x + $x, $before->y + $y);
     $before->leave($object);
     $dest->enter($object);
 
     # if we just moved ourself, refocus the UI
     if ($object_id == $my_id) {
-        $ui->focus_x($object->tile->x);
-        $ui->focus_y($object->tile->y);
+        $ui->focus_x($object->x);
+        $ui->focus_y($object->y);
         $ui->redraw();
     }
     else {
         # redraw the two affected tiles
         $ui->drawtile($before);
-        $ui->drawtile($object->tile);
+        $ui->drawtile(tile_of($object));
         $ui->refresh();
     }
 }
@@ -516,7 +516,7 @@ sub add_player {
         $ui->redraw();
     }
     else {
-        $ui->drawtile($player->tile);
+        $ui->drawtile(tile_of($player));
     }
     $ui->update_status;
     $ui->refresh();
@@ -594,9 +594,9 @@ sub drop_item {
     $obj = Object->new(%$obj);
 
     # add it to the map at the right place
-    $player->tile->enter($obj);
+    tile_of($player)->enter($obj);
     $place->objects->{$obj->id} = $obj;
-    $ui->drawtile($player->tile);
+    $ui->drawtile(tile_of($player));
     $ui->update_status();
     $ui->refresh();
 }
@@ -616,7 +616,7 @@ sub remove_object {
     }
     my $symbol = $place->objects->{$id}->symbol();
     $place->objects->{$id}->clear();
-    $ui->drawtile($place->objects->{$id}->tile);
+    $ui->drawtile(tile_of($place->objects->{$id}));
     delete $place->objects->{$id};
     $ui->update_status();
     $ui->refresh();
@@ -636,7 +636,7 @@ sub change_object {
         $ui->refresh();
         return;
     }
-    my $tile = $place->objects->{$id}->tile;
+    my $tile = tile_of($place->objects->{$id});
     my $obj = $place->objects->{$id};
 
     # kinda hackish.  Just call the method with the name of the attribute.
@@ -645,7 +645,7 @@ sub change_object {
     }
 
     # redraw shit
-    $ui->drawtile($place->objects->{$id}->tile);
+    $ui->drawtile(tile_of($place->objects->{$id}));
     $ui->drawtile($tile);
     $ui->update_status();
     $ui->refresh();
@@ -740,4 +740,14 @@ sub output_colored {
     my $panel = shift;
     $ui->output_colored($message,$fg,$bg,$panel);
     $ui->refresh();
+}
+
+sub tile_of {
+    my $i = shift;
+    $place->tile($i->x,$i->y);
+}
+
+sub tile_at {
+    my ($x,$y) = @_;
+    $place->tile($x,$y);
 }

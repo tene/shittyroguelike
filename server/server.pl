@@ -7,7 +7,7 @@ use CuteGirls::Server;
 
 print STDERR "Starting server...\n";
 
-my $server = CuteGirls::Server->new($ARGV[0] || 'maps/map2.txt');
+my $server = CuteGirls::Server->new($ARGV[0] || 'map3');
 POE::Kernel->run();
 
 exit;
