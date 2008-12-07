@@ -29,22 +29,22 @@ client_tcp_send(
 	);
 
 client_expect( "human", "expect 'human'" );
-client_key_send("h");
+client_key_send("w");
 client_key_send("\n");
 
 client_expect( "Eris", "expect 'Eris'" );
-client_key_send("b");
+client_key_send("e");
 client_key_send("\n");
 
 client_expect( "yellow", "expect 'yellow'" );
-client_key_send("y");
+client_key_send("g");
 client_key_send("\n");
 
 # print "Done character creation.\n";
 
 # input: register, aoeusnth Race1 God2 green
 test_client_tcp( "Client tcp: Expecting register command",
-	'register', 'test user', 'human', 'bob', 'yellow' );
+	'register', 'test user', 'weeble', 'Eris', 'green' );
 
 my $fake_map =
 [
@@ -350,14 +350,14 @@ client_tcp_send( "add_player", 3,
 
 client_expect( "announce", "expect 'announce'" );
 
-client_key_send("k");
+client_key_send("\nchat test\n");
 
-# input: player_move_rel, 0 -1
+# input: chat, 3, chat test
 
-test_client_tcp( "Client tcp: expecting player_rel command",
-	'player_move_rel', 0, -1 );
+test_client_tcp( "Client tcp: expecting chat command",
+	'chat', 3, "chat test" );
 
-client_tcp_send( "object_move_rel", 3, 0, -1 );
+client_tcp_send( "chat", 3, "chat test" );
 
 client_key_send("q");
 
@@ -368,4 +368,4 @@ test_client_tcp( "Client tcp: expecting remove_object command",
 
 client_tcp_send( "remove_object", 3 );
 
-client_not_expect( "aeouaoeueaou", "aeouaoeueaou 'announce'" );
+client_not_expect( "aeouaoeueaou", "Expect just to wait for connection end." );

@@ -40,6 +40,11 @@ sub client_tcp_send {
     cede;
 };
 
+sub client_not_expect {
+    not_ok( $exp->expect($timeout, $_[0] ), $_[1] );
+    #or die "\n\nExpect of ".$_[0]." failed.\n\n";
+};
+
 sub client_expect {
     ok( $exp->expect($timeout, $_[0] ), $_[1] );
     #or die "\n\nExpect of ".$_[0]." failed.\n\n";
@@ -74,8 +79,6 @@ sub test_client_tcp {
     is_deeply( [ @last_input ], [ @_[1..$#_] ] , $_[0], );
 };
 
-chdir "/home/rlpowell/programming/cutegirls/client/";
-
 use Expect;
 
 $Expect::Log_Stdout = 0;
@@ -92,7 +95,7 @@ if( ! $manual )
     $exp->raw_pty(1);
 
     $exp =
-	Expect->spawn("/home/rlpowell/programming/cutegirls/client/client.pl") or die "Cannot spawn cliest $!\n";
+	Expect->spawn("/usr/bin/perl", "-MDevel::Cover", "/home/rlpowell/programming/cutegirls/client/client.pl") or die "Cannot spawn cliest $!\n";
 
     $exp->log_file( "/tmp/cg-client.out", "w" );
 } else {

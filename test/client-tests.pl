@@ -10,4 +10,4 @@ my $harness = TAP::Harness->new( {
 	"exec" => [ "$pwd/client-harness.pl" ],
 	} );
 
-$harness->runtests( "$pwd/client-test-1.pl" );
+$harness->runtests( "$pwd/client-test-1.pl", "$pwd/client-test-2.pl" );

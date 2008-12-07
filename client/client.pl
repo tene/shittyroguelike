@@ -3,6 +3,9 @@
 use strict;
 
 use FindBin::libs;
+use FindBin;
+
+chdir "$FindBin::Bin";
 
 use Getopt::Long;
 use Curses;
@@ -14,6 +17,8 @@ use Place;
 use Object;
 use UI;
 use PadWalker qw(peek_my);
+
+print "chdir $FindBin::Bin\n";
 
 # disallow altering the class in exchange for improved instantiation speed
 $_->meta->make_immutable(
