@@ -619,9 +619,10 @@ sub remove_object {
         $ui->refresh();
         return;
     }
-    my $symbol = $place->objects->{$id}->symbol();
-    $place->objects->{$id}->clear();
-    $ui->drawtile(tile_of($place->objects->{$id}));
+    my $obj = $place->objects->{$id};
+    my $symbol = $obj->symbol();
+    tile_of($obj)->leave($obj);
+    $ui->drawtile(tile_of($obj));
     delete $place->objects->{$id};
     $ui->update_status();
     $ui->refresh();
