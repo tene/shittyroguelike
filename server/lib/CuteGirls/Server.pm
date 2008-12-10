@@ -416,7 +416,7 @@ sub drop_item {
 
     # Everything here should be straightforward.  Ask if you need explained.
     my $player = $place->objects->{$heap->{id}};
-    my $obj = Object->new(fg=>$fg,bg=>$bg,symbol=>$symbol);
+    my $obj = Object->new(fg=>$fg,bg=>$bg,symbol=>$symbol,x=>$player->x,y=>$player->y);
     $place->objects->{$obj->id} = $obj;
     $kernel->post($server_session,'broadcast',['drop_item',$heap->{id},$obj->to_hash]);
     tile_of($player)->enter($obj);
