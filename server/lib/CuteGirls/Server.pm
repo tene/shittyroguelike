@@ -1,6 +1,7 @@
 package CuteGirls::Server;
 
 use FindBin::libs;
+use FindBin;
 
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite
                     Driver::SysRW Filter::Reference);
@@ -15,10 +16,12 @@ use Perl6::Slurp;
 use Perl6::Subs;
 use Switch 'Perl6';
 
+chdir "$FindBin::Bin";
+
 my $default_port = 3456;
 my $server_session;
 my $place;
-my $players = -f 'players.yaml' ? LoadFile('players.yaml') : {};
+my $players;
 -f 'races.yaml' or die 'Race definition file (races.yaml) missing!';
 my $races = LoadFile('races.yaml') or die 'Could not load race definition file (races.yaml)!';
 
@@ -30,8 +33,17 @@ sub scaled_logistic ($value, $divisor) {
     return 1/(1+exp(- $value/$divisor));
 }
 
-sub new ($self,$map,?$port) {
+sub new ($self, $map, $port, $reset) {
     $default_port ||= $port;
+
+    if( $reset )
+    {
+	print "Clearing out player file.\n";
+	unlink 'players.yaml';
+    }
+
+    $players = -f 'players.yaml' ? LoadFile('players.yaml') : {};
+
     $place = Place->new();
     $place->get($map);
     $server_session = POE::Session->create(
