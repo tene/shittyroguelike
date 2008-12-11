@@ -2,6 +2,8 @@
 
 use TAP::Harness;
 
+`rm -rf cover_db/`;
+
 my $pwd = `pwd`;
 chomp $pwd;
 
@@ -28,3 +30,4 @@ $harness->runtests( "$pwd/client-test-1.pl",
 	"$pwd/client-test-4.pl",
 	);
 
+print `cover`;
