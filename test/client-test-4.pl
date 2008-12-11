@@ -1,20 +1,14 @@
+
+# This is a special test: it gets run with the --user command line
+# arg for the client.
+
 use Test::More tests => 12;
-
-client_expect("Username", "expect 'username'");
-
-client_expect( "OK", "expect 'OK'" );
-
-# Send the user name
-client_key_send("test user\n");
-sleep 1;
-client_key_send("\n");
-sleep 1;
 
 client_expect( "login", "expect 'login'" );
 
 # print "Done waiting.\n";
 
-test_client_tcp( "Client tcp: expecting login command", 'login', 'test user' );
+test_client_tcp( "Client tcp: expecting login command", 'login', 'rlpowell' );
 
 client_tcp_send(
 	"create_player",
@@ -46,7 +40,7 @@ client_key_send("\n");
 
 # input: register, aoeusnth Race1 God2 green
 test_client_tcp( "Client tcp: Expecting register command",
-	'register', 'test user', 'weeble', 'Eris', 'green' );
+	'register', 'rlpowell', 'weeble', 'Eris', 'green' );
 
 my $fake_map =
 [
@@ -325,7 +319,7 @@ client_tcp_send( "assign_id", 3 );
 # input: add_player, 3 aoesuntahoeu
 
 test_client_tcp( "Client tcp: expecting add_player command",
-	'add_player', 3, 'test user' );
+	'add_player', 3, 'rlpowell' );
 
 client_tcp_send( "announce", q{'Arrival message.'} );
 
@@ -346,20 +340,49 @@ client_tcp_send( "add_player", 3,
 	"scholarly" => "13",
 	"social" => "13",
 	"symbol" => '@',
-	"username" => "test user",
+	"username" => "rlpowell",
 	},
 	5, 5, );
 
 client_expect( "announce", "expect 'announce'" );
 
-client_key_send("\nchat test\n");
+# Add another (fake) player
+client_tcp_send( "add_player", 4,
+	{
+	"bg" => "red",
+	"class" => "Player",
+	"cur_hp" => "130",
+	"eyes" => "13",
+	"fg" => "black",
+	"id" => "3",
+	"limbs" => "13",
+	"max_hp" => "130",
+	"muscle" => "13",
+	"organs" => "13",
+	"physical" => "13",
+	"practical" => "13",
+	"scholarly" => "13",
+	"social" => "13",
+	"symbol" => '@',
+	"username" => "weeeble",
+	},
+	4, 5, );
 
-# input: chat, 3, chat test
+client_expect_re( "weeeble.@.* 130/130", "expect fake player" );
 
-test_client_tcp( "Client tcp: expecting chat command",
-	'chat', 3, "chat test" );
+# Not bound to anything; nothing should happen.
+client_key_send("x");
 
-client_tcp_send( "chat", 3, "chat test" );
+client_key_send("k");
+
+test_client_tcp( "Client tcp: expecting real player attack command",
+	"attack", 4, 0, -1 );
+
+client_tcp_send( "change_object", "3", { "cur_hp", 98 } );
+
+client_expect( "98/130", "expect changed hp" );
+
+client_tcp_send( "remove_object", 4 );
 
 client_key_send("q");
 
@@ -369,5 +392,3 @@ test_client_tcp( "Client tcp: expecting remove_object command",
 	'remove_object', 3 );
 
 client_tcp_send( "remove_object", 3 );
-
-client_not_expect( "aeouaoeueaou", "Expect just to wait for connection end." );

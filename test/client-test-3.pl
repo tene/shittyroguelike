@@ -1,3 +1,4 @@
+
 use Test::More tests => 12;
 
 client_expect("Username", "expect 'username'");
@@ -352,14 +353,43 @@ client_tcp_send( "add_player", 3,
 
 client_expect( "announce", "expect 'announce'" );
 
-client_key_send("\nchat test\n");
+client_key_send("d");
 
-# input: chat, 3, chat test
+# - drop_item
+# - '*'
+# - red
+# - black
+# 
+# 00:25:20.351065 IP localhost.3456 > localhost.33142: P 75621:75721(100) ack 151 win 256 <nop,nop,timestamp 539735577 539735573>
+# ..v&..c&.. ...........
+#  +.. +..97.---
+# - drop_item
+# - 3
+# - bg: black
+#   class: Object
+#   fg: red
+#   id: 1000
+#   symbol: '*'
+#   x: 5
+#   y: 5
 
-test_client_tcp( "Client tcp: expecting chat command",
-	'chat', 3, "chat test" );
 
-client_tcp_send( "chat", 3, "chat test" );
+# input: drop_item, '*', red, black
+
+test_client_tcp( "Client tcp: expecting drop item command",
+	'drop_item', '*', 'red', 'black' );
+
+client_tcp_send( "drop_item", 3,
+	{
+	    "bg" => "black",
+	    "class" => "Object",
+	    "fg" => "red",
+	    "id" => 1000,
+	    "symbol" => "*",
+	    "x" => 5,
+	    "y" => 5,
+	}
+    );
 
 client_key_send("q");
 

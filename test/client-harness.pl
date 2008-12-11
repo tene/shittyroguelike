@@ -11,14 +11,19 @@ use Coro;
 
 use ManualExpect;
 
-use Test::More tests => 12;
-
 # POE variables
 my $kernel;
 my $heap;
 
 # The general expect timeout.
 my $timeout = 20;
+
+use Expect;
+
+$Expect::Log_Stdout = 0;
+#$Expect::Debug = 3;
+# You probably want this last one
+#$Expect::Exp_Internal = 1;
 
 # Set this if you are manually testing this script by connecting a
 # live client to it.
@@ -42,17 +47,33 @@ sub client_tcp_send {
 
 sub client_not_expect {
     not_ok( $exp->expect($timeout, $_[0] ), $_[1] );
+    print " ^--- $_[1]\n";
     #or die "\n\nExpect of ".$_[0]." failed.\n\n";
 };
 
 sub client_expect {
     ok( $exp->expect($timeout, $_[0] ), $_[1] );
+    print " ^--- $_[1]\n";
+    #or die "\n\nExpect of ".$_[0]." failed.\n\n";
+};
+
+sub client_expect_re {
+    ok( $exp->expect($timeout, "-re", $_[0] ), $_[1] );
+    print " ^--- $_[1]\n";
     #or die "\n\nExpect of ".$_[0]." failed.\n\n";
 };
 
 sub client_key_send {
     $exp->send( $_[0] );
     #or die "\n\nSend of ".$_[0]." failed.\n\n";
+};
+
+sub client_exit {
+    $exp->soft_close();
+
+    $exp->hard_close();
+
+    exit 0;
 };
 
 # First argument is test name.  Remaining arguments is stuff to
@@ -79,13 +100,6 @@ sub test_client_tcp {
     is_deeply( [ @last_input ], [ @_[1..$#_] ] , $_[0], );
 };
 
-use Expect;
-
-$Expect::Log_Stdout = 0;
-#$Expect::Debug = 3;
-# You probably want this last one
-#$Expect::Exp_Internal = 1;
-
 if( ! $manual )
 {
     $ENV{TERM} = "vt100";
@@ -95,7 +109,12 @@ if( ! $manual )
     $exp->raw_pty(1);
 
     $exp =
-	Expect->spawn("/usr/bin/perl", "-MDevel::Cover", "/home/rlpowell/programming/cutegirls/client/client.pl") or die "Cannot spawn cliest $!\n";
+	Expect->spawn("/usr/bin/perl",
+		"-MDevel::Cover",
+		"/home/rlpowell/programming/cutegirls/client/client.pl",
+		@ARGV[1..$#ARGV],
+		)
+	or die "Cannot spawn cliest $!\n";
 
     $exp->log_file( "/tmp/cg-client.out", "w" );
 } else {
@@ -106,7 +125,7 @@ if( ! $manual )
 async {
     do $ARGV[0];
 
-    exit;
+    client_exit();
 };
 
 POE::Component::Server::TCP->new
@@ -123,6 +142,10 @@ POE::Component::Server::TCP->new
  Started => sub {
     # print "starting cede.\n";
     cede;
+ },
+ ClientDisconnected => sub {
+    print "Client disconnected; exiting.\n";
+    exit;
  },
 );
 

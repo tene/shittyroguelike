@@ -1,3 +1,5 @@
+use Test::More tests => 12;
+
 client_expect("Username", "expect 'username'");
 
 client_expect( "OK", "expect 'OK'" );
