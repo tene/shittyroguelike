@@ -62,11 +62,11 @@ POE::Kernel->run();
 # exit when the session closes
 exit;
 
-=head1 C<_start>
-
-Initial setup.
-
-=cut
+# =head1 C<_start>
+# 
+# Initial setup.
+# 
+# =cut
 
 sub _start {
     my ($kernel, $heap, $session) = @_[KERNEL, HEAP, SESSION];
@@ -127,12 +127,12 @@ sub connect_start {
 
 }
 
-=head1 C<assign_id>
-
-The server assigned us an ID.
-Save it for later use and then ask the server to create a character for us.
-
-=cut
+# =head1 C<assign_id>
+# 
+# The server assigned us an ID.
+# Save it for later use and then ask the server to create a character for us.
+# 
+# =cut
 
 sub assign_id {
     my ($heap, $id) = @_[HEAP, ARG0];
@@ -141,29 +141,29 @@ sub assign_id {
     $ui->refresh();
 }
 
-=head1 Key Binding Functions
-
-These functions are used to set up key bindings in the keys.conf
-file.
-
-=head2 C<clear_keybindings>
-
-Empty the key binding list.
-
-=cut
+# =head1 Key Binding Functions
+# 
+# These functions are used to set up key bindings in the keys.conf
+# file.
+# 
+# =head2 C<clear_keybindings>
+# 
+# Empty the key binding list.
+# 
+# =cut
 
 # Clear out all keybindings; used in the keys.conf file
 sub clear_keybindings {
     %keybindings=();
 }
 
-=head2 C<keybind>
-
-Args: mode, key, binding.
-
-Bind the given key to the given action in the given mode.
-
-=cut
+# =head2 C<keybind>
+# 
+# Args: mode, key, binding.
+# 
+# Bind the given key to the given action in the given mode.
+# 
+# =cut
 
 # Bind a key; used in the keys.conf file
 sub keybind {
@@ -172,12 +172,12 @@ sub keybind {
     ${$keybindings{$mode}}{$key} = $binding;
 }
 
-=head1 C<keystroke handler>
-
-Main input event handler.  Handles keystrokes for normal mode.
-Think vi modes.
-
-=cut
+# =head1 C<keystroke handler>
+# 
+# Main input event handler.  Handles keystrokes for normal mode.
+# Think vi modes.
+# 
+# =cut
 
 sub keystroke_handler {
     my ($kernel, $heap, $keystroke, $wheel_id) = @_[KERNEL, HEAP, ARG0, ARG1];
@@ -263,11 +263,11 @@ sub keystroke_handler {
     }
 }
 
-=head1 C<move>
-
-Helper function to move the player around.
-
-=cut
+# =head1 C<move>
+# 
+# Helper function to move the player around.
+# 
+# =cut
 
 sub move {
     my ($x,$y) = @_;
@@ -289,13 +289,13 @@ sub move {
     }
 }
 
-=head1 C<help_handler>
-
-Deal with keystrokes while we're in help mode.
-When there's any keystroke, hide the help panel
-and reset the curses input wheel.
-
-=cut
+# =head1 C<help_handler>
+# 
+# Deal with keystrokes while we're in help mode.
+# When there's any keystroke, hide the help panel
+# and reset the curses input wheel.
+# 
+# =cut
 
 sub help_handler {
     my ($kernel, $heap, $keystroke, $wheel_id) = @_[KERNEL, HEAP, ARG0, ARG1];
@@ -313,18 +313,18 @@ sub help_handler {
     }
 }
 
-=head1 C<chat_handler>
-
-Deal with keystrokes while in chat mode.
-Escape goes back to normal mode.
-Backspace mostly works.
-Enter sends.
-All other keystrokes add to the chat message.
-
-Can we maybe use readline here?
-I don't know, but this is pretty hackish.
-
-=cut
+# =head1 C<chat_handler>
+# 
+# Deal with keystrokes while in chat mode.
+# Escape goes back to normal mode.
+# Backspace mostly works.
+# Enter sends.
+# All other keystrokes add to the chat message.
+# 
+# Can we maybe use readline here?
+# I don't know, but this is pretty hackish.
+# 
+# =cut
 
 sub chat_handler {
     my ($kernel, $heap, $keystroke, $wheel_id) = @_[KERNEL, HEAP, ARG0, ARG1];
@@ -400,11 +400,11 @@ sub chat_handler {
 
 }
 
-=head1 C<create_me>
-
-Helper function to ask the server to create a character object for us.
-
-=cut
+# =head1 C<create_me>
+# 
+# Helper function to ask the server to create a character object for us.
+# 
+# =cut
 
 sub create_me {
     my $heap = shift;
@@ -412,11 +412,11 @@ sub create_me {
     send_to_server('add_player',$my_id,$username);
 }
 
-=head1 C<send_to_server>
-
-Helper function to send shit to the server with prettier syntax.
-
-=cut
+# =head1 C<send_to_server>
+# 
+# Helper function to send shit to the server with prettier syntax.
+# 
+# =cut
 
 sub send_to_server {
     # Dig around in the caller lexpads for a variable named $heap
@@ -427,11 +427,11 @@ sub send_to_server {
     $socket->put(\@_);
 }
 
-=head1 C<object_move_rel>
-
-The server told us to move something around.
-
-=cut
+# =head1 C<object_move_rel>
+# 
+# The server told us to move something around.
+# 
+# =cut
 
 sub object_move_rel {
     my ($kernel, $heap, $object_id, $x, $y) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2];
@@ -457,16 +457,16 @@ sub object_move_rel {
     }
 }
 
-=head1 C<create_player>
-
-The server is asking us to create a new character.
-The server gives us a lis tof acceptable gods, colors, and races.
-Give the user a little form and then send a registration request to the server.
-
-This should be rewritten into several generic "choose from this list"
-questions from the server.
-
-=cut
+# =head1 C<create_player>
+# 
+# The server is asking us to create a new character.
+# The server gives us a lis tof acceptable gods, colors, and races.
+# Give the user a little form and then send a registration request to the server.
+# 
+# This should be rewritten into several generic "choose from this list"
+# questions from the server.
+# 
+# =cut
 
 sub create_player {
     my ($kernel, $heap, $message, $gods, $colors, $races) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2, ARG3];
@@ -489,12 +489,12 @@ sub create_player {
     send_to_server('register',$username,$race,$god,$color);
 }
 
-=head1 C<add_player>
-
-The server is telling us about a new character in the world.
-It sends us an id, a hash of properties, and a position.
-
-=cut
+# =head1 C<add_player>
+# 
+# The server is telling us about a new character in the world.
+# It sends us an id, a hash of properties, and a position.
+# 
+# =cut
 
 sub add_player {
     my ($kernel, $heap, $id, $p, $y, $x) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2, ARG3];
@@ -527,12 +527,12 @@ sub add_player {
     $ui->refresh();
 }
 
-=head1 C<chat>
-
-The server is telling us about someone chatting.
-Display it to the log area.
-
-=cut
+# =head1 C<chat>
+# 
+# The server is telling us about someone chatting.
+# Display it to the log area.
+# 
+# =cut
 
 sub chat {
     my ($kernel, $heap, $id, $message) = @_[KERNEL, HEAP, ARG0, ARG1];
@@ -545,12 +545,12 @@ sub chat {
     $ui->refresh();
 }
 
-=head1 C<announce>
-
-Generic announcement from the server.
-Display it in the log area.
-
-=cut
+# =head1 C<announce>
+# 
+# Generic announcement from the server.
+# Display it in the log area.
+# 
+# =cut
 
 sub announce {
     my ($kernel, $heap, $message) = @_[KERNEL, HEAP, ARG0, ARG1];
@@ -558,14 +558,14 @@ sub announce {
     $ui->refresh();
 }
 
-=head1 C<new_map>
-
-The server sent us a map.  We really need to do more here before
-we can support moving between areas.
-
-Right now the server sends us a list of lists of tiles represented by hashes.
-
-=cut
+# =head1 C<new_map>
+# 
+# The server sent us a map.  We really need to do more here before
+# we can support moving between areas.
+# 
+# Right now the server sends us a list of lists of tiles represented by hashes.
+# 
+# =cut
 
 sub new_map {
     my ($kernel, $heap, $placeref) = @_[KERNEL, HEAP, ARG0];
@@ -584,11 +584,11 @@ sub new_map {
     ungetch('r');
 }
 
-=head1 C<drop_item>
-
-Create an object at the location of another object.
-
-=cut
+# =head1 C<drop_item>
+# 
+# Create an object at the location of another object.
+# 
+# =cut
 
 sub drop_item {
     my ($kernel, $heap, $id, $obj) = @_[KERNEL, HEAP, ARG0, ARG1];
@@ -606,11 +606,11 @@ sub drop_item {
     $ui->refresh();
 }
 
-=head1 C<remove_object>
-
-Remove an object from the map
-
-=cut
+# =head1 C<remove_object>
+# 
+# Remove an object from the map
+# 
+# =cut
 
 sub remove_object {
     my ($kernel, $heap, $id) = @_[KERNEL, HEAP, ARG0];
@@ -628,12 +628,12 @@ sub remove_object {
     $ui->refresh();
 }
 
-=head1 C<change_object>
-
-Modify an object in some way.
-The server gives us a hash of {attribute=>value} to set.
-
-=cut
+# =head1 C<change_object>
+# 
+# Modify an object in some way.
+# The server gives us a hash of {attribute=>value} to set.
+# 
+# =cut
 
 sub change_object {
     my ($kernel, $heap, $id, $changes) = @_[KERNEL, HEAP, ARG0, ARG1];
@@ -657,14 +657,14 @@ sub change_object {
     $ui->refresh();
 }
 
-=head1 C<connect_success>
-
-Event for when we successfully connect to the server.
-Set up a filter wheel to handle chunking, yaml decoding, etc.
-
-Sends a login request to the server once we've set up the socket properly.
-
-=cut
+# =head1 C<connect_success>
+# 
+# Event for when we successfully connect to the server.
+# Set up a filter wheel to handle chunking, yaml decoding, etc.
+# 
+# Sends a login request to the server once we've set up the socket properly.
+# 
+# =cut
 
 sub connect_success {
     my ($kernel, $heap, $socket) = @_[KERNEL, HEAP, ARG0];
@@ -680,25 +680,25 @@ sub connect_success {
     send_to_server('login',$heap->{username});
 }
 
-=head1 C<connect_failure>
-
-Couldn't connect, so we bail out.
-
-=cut
+# =head1 C<connect_failure>
+# 
+# Couldn't connect, so we bail out.
+# 
+# =cut
 
 sub connect_failure {
     die "couldn't connect to server\n";
 }
 
-=head1 C<server_input>
-
-The server said something.
-
-Right now we have a POE state for every command the server would send,
-so just redispatch to that state with the command arguments we were
-given as arguments to the state.
-
-=cut
+# =head1 C<server_input>
+# 
+# The server said something.
+# 
+# Right now we have a POE state for every command the server would send,
+# so just redispatch to that state with the command arguments we were
+# given as arguments to the state.
+# 
+# =cut
 
 sub server_input {
     my ($kernel, $heap, $input) = @_[KERNEL, HEAP, ARG0];
@@ -708,23 +708,23 @@ sub server_input {
     $kernel->yield($cmd, @rest);
 }
 
-=head1 C<server_error>
-
-All errors with the connection go here.
-We don't even try to do something reasonable.
-Just die.
-
-=cut
+# =head1 C<server_error>
+# 
+# All errors with the connection go here.
+# We don't even try to do something reasonable.
+# Just die.
+# 
+# =cut
 
 sub server_error {
     die "problem with network stuff I guess\n";
 }
 
-=head1 C<output>
-
-Helper method to redispatch output calls to the global $ui object.
-
-=cut
+# =head1 C<output>
+# 
+# Helper method to redispatch output calls to the global $ui object.
+# 
+# =cut
 
 sub output {
     my $message = shift;
@@ -733,11 +733,11 @@ sub output {
     $ui->refresh();
 }
 
-=head1 C<output_colored>
-
-Helper function to redispatch output_colored calls to the global $ui object.
-
-=cut
+# =head1 C<output_colored>
+# 
+# Helper function to redispatch output_colored calls to the global $ui object.
+# 
+# =cut
 
 sub output_colored {
     my $message = shift;
