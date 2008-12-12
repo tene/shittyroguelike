@@ -25,28 +25,29 @@ sub tests {
 	    },
 	    [ "red", "green", "yellow", ],
 	    {
-	    "human" => { "desc" => "race desc1", },
 	    "weeble" => { "desc" => "race desc2", },
+	    "human" => { "desc" => "race desc1", },
 	    },
 	    );
 
     client_expect( "human", "expect 'human'" );
-    client_key_send("w");
+    client_key_send("\e[B");
     client_key_send("\n");
 
     client_expect( "Eris", "expect 'Eris'" );
     client_key_send("e");
     client_key_send("\n");
 
-    client_expect( "yellow", "expect 'yellow'" );
-    client_key_send("g");
+    client_expect( "red", "expect 'red'" );
+    client_key_send("\e[B");
+    client_key_send("\e[B");
     client_key_send("\n");
 
 # print "Done character creation.\n";
 
 # input: register, aoeusnth Race1 God2 green
     yaml_cmp_deeply( $tcp_client, "Client tcp: Expecting register command",
-	    'register', 'rlpowell', 'weeble', 'Eris', 'green' );
+	    'register', 'rlpowell', 'human', 'Eris', 'yellow' );
 
     my $fake_map =
 	[

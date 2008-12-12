@@ -10,9 +10,11 @@ my $timeout = 20;
 
 use Expect;
 
+# Set to 1 to see what's happening as it happens, but mixed with all
+# the other output so it looks awful
 $Expect::Log_Stdout = 0;
+# Uncomment the two below for debugging
 #$Expect::Debug = 3;
-# You probably want this last one
 #$Expect::Exp_Internal = 1;
 
 # Set this if you are manually testing this script by connecting a
@@ -72,7 +74,7 @@ my $listener = make_server();
 
 if( ! $manual )
 {
-    $ENV{TERM} = "vt100";
+    $ENV{TERM} = "vt220";
 
     $exp = new Expect ();
 
