@@ -3,17 +3,7 @@
 use warnings;
 use strict;
 
-use POE qw(Component::Server::TCP);
-use POE qw(Filter::Reference);
-
-use Data::Dumper;
-use Coro;
-
-use ManualExpect;
-
-# POE variables
-my $kernel;
-my $heap;
+use Networking;
 
 # The general expect timeout.
 my $timeout = 20;
@@ -35,19 +25,13 @@ my @last_input='';
 # The expect object.
 my $exp;
 
-sub client_tcp_send {
-    # print "Sending to client ".$heap->{client}.": @_.\n";
-
-    $heap->{client}->put( \@_ );
-
-    $kernel->alarm( cede => time() + 3 );
-
-    cede;
-};
+##########
+# Expect hepler functions
+##########
 
 sub client_not_expect {
-    not_ok( $exp->expect($timeout, $_[0] ), $_[1] );
-    print " ^--- $_[1]\n";
+    ok( ! $exp->expect($timeout, $_[0] ), $_[1] );
+    # print " ^--- $_[1]\n";
     #or die "\n\nExpect of ".$_[0]." failed.\n\n";
 };
 
@@ -76,29 +60,15 @@ sub client_exit {
     exit 0;
 };
 
-# First argument is test name.  Remaining arguments is stuff to
-# compare @last_input against.
-sub test_client_tcp {
-    cede;
+#####################
+# Launch the server
+#####################
 
-    # print "last input: ".Dumper(\@last_input)."\n";
-    # print "expected input: ".Dumper([ @_[1..$#_] ])."\n";
+my $listener = make_server();
 
-    # NOTE:
-    #
-    # To make this not error due to Coro issues, we modified lin 476
-    # of /usr/share/perl/5.10.0/Test/Builder.pm
-    #
-    # It used to look like this:
-    #
-    #     return $self->_try( sub { ref $thing && $thing->isa('UNIVERSAL') } ) ? 1 : 0;
-    #
-    # We changed it to:
-    #
-    #     return $self->_try( sub { ref $thing } ) ? 1 : 0;
-
-    is_deeply( [ @last_input ], [ @_[1..$#_] ] , $_[0], );
-};
+#####################
+# Launch the client
+#####################
 
 if( ! $manual )
 {
@@ -121,54 +91,9 @@ if( ! $manual )
     $exp = ManualExpect::fake();
 }
 
+# Here's where we launch the actual tests
+require $ARGV[0];
 
-async {
-    do $ARGV[0];
+tests( $listener );
 
-    client_exit();
-};
-
-POE::Component::Server::TCP->new
-(
- Port => 3456,
- ClientInput => \&client_input,
- ClientFilter => POE::Filter::Reference->new('YAML'),
- InlineStates => {
-    cede => sub {
-	# print "inline cede.\n";
-	cede;
-    },
- },
- Started => sub {
-    # print "starting cede.\n";
-    cede;
- },
- ClientDisconnected => sub {
-    print "Client disconnected; exiting.\n";
-    exit;
- },
-);
-
-POE::Kernel->run();
-exit;
-
-sub client_input {
-    # print "in CI 1 .\n";
-
-    my ($session, $input ) = @_[ SESSION, ARG0 ];
-    if( ! defined $kernel )
-    {
-	$kernel = $_[KERNEL];
-	$heap = $_[HEAP];
-    }
-
-    # DSB
-    my ($command, @args) = @$input;
-
-    # print "input: $command, @args\n";
-
-    @last_input = ($command, @args);
-
-    cede;
-}
-
+client_exit();

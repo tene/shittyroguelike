@@ -1,4 +1,8 @@
-use Test::More tests => 12;
+use Test::More tests => 13;
+
+sub tests {
+        my $listener = shift;
+
 
 client_expect("Username", "expect 'username'");
 
@@ -10,13 +14,18 @@ sleep 1;
 client_key_send("\n");
 sleep 1;
 
+# Get the client connection
+my $tcp_client = get_client( $listener );
+
 client_expect( "login", "expect 'login'" );
 
 # print "Done waiting.\n";
 
-test_client_tcp( "Client tcp: expecting login command", 'login', 'test user' );
+yaml_cmp_deeply( $tcp_client, "Client tcp: expecting login command", 'login', 'test user' );
 
-client_tcp_send(
+tcp_send(
+	$tcp_client,
+
 	"create_player",
 	"create new character",
 	{
@@ -45,7 +54,7 @@ client_key_send("\n");
 # print "Done character creation.\n";
 
 # input: register, aoeusnth Race1 God2 green
-test_client_tcp( "Client tcp: Expecting register command",
+yaml_cmp_deeply( $tcp_client, "Client tcp: Expecting register command",
 	'register', 'test user', 'weeble', 'Eris', 'green' );
 
 my $fake_map =
@@ -316,20 +325,28 @@ my $fake_map =
     ],
     ];
 
-client_tcp_send( "new_map", $fake_map );
+tcp_send(
+	$tcp_client,
+	"new_map", $fake_map );
 
-client_tcp_send( "assign_id", 3 );
+tcp_send(
+	$tcp_client,
+	"assign_id", 3 );
 
 # print "about to announce.\n";
 
 # input: add_player, 3 aoesuntahoeu
 
-test_client_tcp( "Client tcp: expecting add_player command",
+yaml_cmp_deeply( $tcp_client, "Client tcp: expecting add_player command",
 	'add_player', 3, 'test user' );
 
-client_tcp_send( "announce", q{'Arrival message.'} );
+tcp_send(
+	$tcp_client,
+	"announce", q{'Arrival message.'} );
 
-client_tcp_send( "add_player", 3,
+tcp_send(
+	$tcp_client,
+	"add_player", 3,
 	{
 	"bg" => "black",
 	"class" => "Player",
@@ -356,18 +373,26 @@ client_key_send("\nchat test\n");
 
 # input: chat, 3, chat test
 
-test_client_tcp( "Client tcp: expecting chat command",
+yaml_cmp_deeply( $tcp_client, "Client tcp: expecting chat command",
 	'chat', 3, "chat test" );
 
-client_tcp_send( "chat", 3, "chat test" );
+tcp_send(
+	$tcp_client,
+	"chat", 3, "chat test" );
 
 client_key_send("q");
 
 # input: remove_object, 3
 
-test_client_tcp( "Client tcp: expecting remove_object command",
+yaml_cmp_deeply( $tcp_client, "Client tcp: expecting remove_object command",
 	'remove_object', 3 );
 
-client_tcp_send( "remove_object", 3 );
+tcp_send(
+	$tcp_client,
+	"remove_object", 3 );
 
-client_not_expect( "aeouaoeueaou", "Expect just to wait for connection end." );
+client_not_expect( "aeouaoeueaou", "Expect dead connection." );
+
+};
+
+1;
