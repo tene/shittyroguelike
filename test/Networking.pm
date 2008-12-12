@@ -55,6 +55,30 @@ sub get_client
     return $client;
 };
 
+=head2 C<make_client>
+
+Makes a TCP connection to the server on port 3456.
+
+=cut
+sub make_client
+{
+    my $client;
+    while( ! defined $client )
+    {
+	$client = IO::Socket::INET->new(
+		PeerHost => 'localhost',
+		PeerPort => 3456,
+		Proto =>'tcp',
+		Blocking => 1,
+		ReuseAddr => 1,
+		Timeout => 999,
+		);
+    }
+
+    return $client;
+
+};
+
 =head2 C<get_yaml>
 
 Given an IO::Socket handle, blocks until a valid YAML request comes
