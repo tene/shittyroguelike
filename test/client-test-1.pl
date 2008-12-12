@@ -16,20 +16,20 @@ sub tests {
 
     print "getting tpc client.\n";
 # Get the client connection
-    my $tcp_client = get_client( $listener );
+    my $tcp_to_client = get_client( $listener );
     print "done getting tpc client.\n";
 
     client_expect( "login", "expect 'login'" );
 
 # print "Done waiting.\n";
 
-    yaml_cmp_deeply( $tcp_client,
+    yaml_cmp_deeply( $tcp_to_client,
 	    "Client tcp: expecting login command",
 	    'login', 'test user',
 	    );
 
     tcp_send(
-	    $tcp_client,
+	    $tcp_to_client,
 	    "create_player",
 	    "create new character",
 	    {
@@ -58,7 +58,7 @@ sub tests {
 # print "Done character creation.\n";
 
 # input: register, aoeusnth Race1 God2 green
-    yaml_cmp_deeply( $tcp_client,
+    yaml_cmp_deeply( $tcp_to_client,
 	    "Client tcp: Expecting register command",
 	    'register', 'test user', 'human', 'bob', 'yellow',
 	    );
@@ -332,26 +332,26 @@ sub tests {
 	];
 
     tcp_send(
-	    $tcp_client,
+	    $tcp_to_client,
 	    "new_map", $fake_map );
 
     tcp_send(
-	    $tcp_client,
+	    $tcp_to_client,
 	    "assign_id", 3 );
 
 # print "about to announce.\n";
 
 # input: add_player, 3 aoesuntahoeu
 
-    yaml_cmp_deeply( $tcp_client,  "Client tcp: expecting add_player command",
+    yaml_cmp_deeply( $tcp_to_client,  "Client tcp: expecting add_player command",
 	    'add_player', 3, 'test user' );
 
     tcp_send(
-	    $tcp_client,
+	    $tcp_to_client,
 	    "announce", q{'Arrival message.'} );
 
     tcp_send(
-	    $tcp_client,
+	    $tcp_to_client,
 	    "add_player", 3,
 	    {
 	    "bg" => "black",
@@ -379,22 +379,22 @@ sub tests {
 
 # input: player_move_rel, 0 -1
 
-    yaml_cmp_deeply( $tcp_client,  "Client tcp: expecting player_rel command",
+    yaml_cmp_deeply( $tcp_to_client,  "Client tcp: expecting player_rel command",
 	    'player_move_rel', 0, -1 );
 
     tcp_send(
-	    $tcp_client,
+	    $tcp_to_client,
 	    "object_move_rel", 3, 0, -1 );
 
     client_key_send("q");
 
 # input: remove_object, 3
 
-    yaml_cmp_deeply( $tcp_client,  "Client tcp: expecting remove_object command",
+    yaml_cmp_deeply( $tcp_to_client,  "Client tcp: expecting remove_object command",
 	    'remove_object', 3 );
 
     tcp_send(
-	    $tcp_client,
+	    $tcp_to_client,
 	    "remove_object", 3 );
 
     client_not_expect( "aeouaoeueaou", "Expect dead connection." );

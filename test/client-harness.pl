@@ -58,8 +58,6 @@ sub client_exit {
     $exp->soft_close();
 
     $exp->hard_close();
-
-    exit 0;
 };
 
 #####################

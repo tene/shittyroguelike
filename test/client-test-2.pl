@@ -15,16 +15,16 @@ client_key_send("\n");
 sleep 1;
 
 # Get the client connection
-my $tcp_client = get_client( $listener );
+my $tcp_to_client = get_client( $listener );
 
 client_expect( "login", "expect 'login'" );
 
 # print "Done waiting.\n";
 
-yaml_cmp_deeply( $tcp_client, "Client tcp: expecting login command", 'login', 'test user' );
+yaml_cmp_deeply( $tcp_to_client, "Client tcp: expecting login command", 'login', 'test user' );
 
 tcp_send(
-	$tcp_client,
+	$tcp_to_client,
 
 	"create_player",
 	"create new character",
@@ -54,7 +54,7 @@ client_key_send("\n");
 # print "Done character creation.\n";
 
 # input: register, aoeusnth Race1 God2 green
-yaml_cmp_deeply( $tcp_client, "Client tcp: Expecting register command",
+yaml_cmp_deeply( $tcp_to_client, "Client tcp: Expecting register command",
 	'register', 'test user', 'weeble', 'Eris', 'green' );
 
 my $fake_map =
@@ -326,26 +326,26 @@ my $fake_map =
     ];
 
 tcp_send(
-	$tcp_client,
+	$tcp_to_client,
 	"new_map", $fake_map );
 
 tcp_send(
-	$tcp_client,
+	$tcp_to_client,
 	"assign_id", 3 );
 
 # print "about to announce.\n";
 
 # input: add_player, 3 aoesuntahoeu
 
-yaml_cmp_deeply( $tcp_client, "Client tcp: expecting add_player command",
+yaml_cmp_deeply( $tcp_to_client, "Client tcp: expecting add_player command",
 	'add_player', 3, 'test user' );
 
 tcp_send(
-	$tcp_client,
+	$tcp_to_client,
 	"announce", q{'Arrival message.'} );
 
 tcp_send(
-	$tcp_client,
+	$tcp_to_client,
 	"add_player", 3,
 	{
 	"bg" => "black",
@@ -373,22 +373,22 @@ client_key_send("\nchat test\n");
 
 # input: chat, 3, chat test
 
-yaml_cmp_deeply( $tcp_client, "Client tcp: expecting chat command",
+yaml_cmp_deeply( $tcp_to_client, "Client tcp: expecting chat command",
 	'chat', 3, "chat test" );
 
 tcp_send(
-	$tcp_client,
+	$tcp_to_client,
 	"chat", 3, "chat test" );
 
 client_key_send("q");
 
 # input: remove_object, 3
 
-yaml_cmp_deeply( $tcp_client, "Client tcp: expecting remove_object command",
+yaml_cmp_deeply( $tcp_to_client, "Client tcp: expecting remove_object command",
 	'remove_object', 3 );
 
 tcp_send(
-	$tcp_client,
+	$tcp_to_client,
 	"remove_object", 3 );
 
 client_not_expect( "aeouaoeueaou", "Expect dead connection." );
