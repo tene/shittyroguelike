@@ -65,6 +65,8 @@ sub make_client
     my $client;
     while( ! defined $client )
     {
+	sleep 1;
+
 	$client = IO::Socket::INET->new(
 		PeerHost => 'localhost',
 		PeerPort => 3456,
@@ -127,7 +129,7 @@ sub tcp_send{
     $socket->print( "$size\0$yaml" );
 };
 
-=head2 C<get_yaml>
+=head2 C<yaml_cmp_deeply>
 
 Given an IO::Socket handle, runs get_yaml on it, and compares the
 results to the expected with Test::Deep
@@ -141,12 +143,31 @@ Args; note the order is different from the normal test functions:
     expected (rest of array)
 
 =cut
-sub yaml_cmp_deeply{
+sub yaml_cmp_deeply {
     my $socket = shift;
     my $desc = shift;
     my $actual = get_yaml( $socket );
 
     # print "in yaml_cmp_deeply, actual: ".Dumper(\$actual)."\n";
+
+    cmp_deeply(
+	    $actual,
+	    [ @_ ],
+	    $desc
+    );
+};
+
+=head2 C<yaml_cmp_deeply_debug>
+
+See above; debug version.
+
+=cut
+sub yaml_cmp_deeply_debug {
+    my $socket = shift;
+    my $desc = shift;
+    my $actual = get_yaml( $socket );
+
+    print "in yaml_cmp_deeply debug, actual: ".Dumper(\$actual)."\n";
 
     cmp_deeply(
 	    $actual,

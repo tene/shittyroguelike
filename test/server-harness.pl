@@ -38,6 +38,8 @@ $cgserver = start [ "/usr/bin/perl", "-MDevel::Cover",
 $SIG{INT} = sub {
     print "Caught INT.\n";
     server_exit( 1 );
+
+    exit 1;
 };
 
 require $ARGV[0];
