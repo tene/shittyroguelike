@@ -35,9 +35,9 @@ method tile ($x,$y) {
     $.chart->[$y]->[$x];
 }
 
-method insert ($obj,$x,$y) {
+method insert ($obj) {
     $.objects->{$obj->id} = $obj;
-    $.chart->[$y]->[$x]->enter($obj);
+    $.chart->[$obj->y]->[$obj->x]->enter($obj);
 }
 
 method save ($map) {
@@ -105,7 +105,9 @@ method load_from_ascii ($map) {
                 symbol => '<',
                 fg     => 'blue',
                 bg     => 'black',
-            ),5,5);
+                x      => 5,
+                y      => 5,
+            ));
 }
 
 method to_ref {
@@ -150,7 +152,9 @@ method load_from_ref ($map) {
                 symbol => '<',
                 fg     => 'blue',
                 bg     => 'black',
-            ),5,5);
+                x      => 5,
+                y      => 5,
+            ));
 }
 
 1;

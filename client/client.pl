@@ -501,12 +501,11 @@ sub add_player {
     # create a Player object
     my $player = Player->new(
         %$p,
-        tile => $place->chart->[$y][$x],
         id => $id,
         place => $place,
     );
     # store it in the global objects hash
-    $place->objects->{$id} = $player;
+    $place->insert($player);
 
     # print some debug shit.
     # We need a helper function for this.

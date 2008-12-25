@@ -237,18 +237,19 @@ sub add_player {
     $heap->{id} = $id;
 
     # Create a new player object and save it in the objects table in the Place
-    $place->objects->{$id} = Player->new(
+    $place->insert(Player->new(
             id       => $id,
             username => $username,
             symbol   => $symbol,
             fg       => $fg,
             bg       => $bg,
-            tile     => $place->chart->[$y][$x],
+            x        => $x,
+            y        => $y,
             max_hp   => $hp,
             cur_hp   => $hp,
             place    => $place,
             map {$_ => 13 + $race->{$_} } qw/muscle organs limbs eyes scholarly practical physical social/,
-        );
+        ));
 
     # set the map tile as filled.  dirty hack.
     tile_of($place->objects->{$id})->vasru(0);
@@ -366,7 +367,7 @@ sub attack {
     my $dest = tile_at($source->x + $ox,$source->x + $oy);
 
     # check to make sure the dude specified is in the tile.  bail out otherwise
-    return unless $dest == tile_of($other);
+    return unless grep {$_->id eq $id} @{$dest->contents};
 
     # debugging on the server console
     print $self->symbol, '→', $other->symbol, "\n";
