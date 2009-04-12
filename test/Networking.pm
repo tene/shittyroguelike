@@ -73,7 +73,6 @@ sub make_client
 		Proto =>'tcp',
 		Blocking => 1,
 		ReuseAddr => 1,
-		Timeout => 999,
 		);
     }
 
@@ -92,6 +91,7 @@ sub get_yaml {
     my $byte = 1;
     my $data = '';
     my $size = '';
+
 
     do {
 	$socket->read( $byte, 1 );
@@ -115,7 +115,7 @@ sub get_yaml {
 };
 
 
-=head2 C<get_yaml>
+=head2 C<tcp_send>
 
 Given an IO::Socket handle, sends data out it using YAML formatting.
 
@@ -150,6 +150,13 @@ sub yaml_cmp_deeply {
 
     # print "in yaml_cmp_deeply, actual: ".Dumper(\$actual)."\n";
 
+    # Ignore irrelevant stuff, but mention it.
+    while( $actual ne \[] && $$actual[0] ne $_[0] )
+    {
+	print "in yaml_cmp_deeply, ignoring irrelevant message: ".Dumper(\$actual)."\n";
+	$actual = get_yaml( $socket );
+    }
+
     cmp_deeply(
 	    $actual,
 	    [ @_ ],
@@ -168,6 +175,13 @@ sub yaml_cmp_deeply_debug {
     my $actual = get_yaml( $socket );
 
     print "in yaml_cmp_deeply debug, actual: ".Dumper(\$actual)."\n";
+
+    # Ignore irrelevant stuff, but mention it.
+    while( $actual ne \[] && $$actual[0] ne $_[0] )
+    {
+	print "in yaml_cmp_deeply_debug, ignoring irrelevant message: ".Dumper(\$actual)."\n";
+	$actual = get_yaml( $socket );
+    }
 
     cmp_deeply(
 	    $actual,
