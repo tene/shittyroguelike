@@ -6,7 +6,7 @@ use FindBin;
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite
                     Driver::SysRW Filter::Reference);
 use Data::Dumper;
-use YAML::Syck;
+use YAML::XS qw(LoadFile DumpFile);
 
 use Player;
 use Place;
@@ -15,6 +15,8 @@ use Object;
 use Perl6::Slurp;
 use Perl6::Subs;
 use Switch 'Perl6';
+
+binmode STDOUT, ":utf8";
 
 chdir "$FindBin::Bin";
 
@@ -164,6 +166,7 @@ Sent on a new connection.  If we don't already know this user, send them to 'cre
 sub login {
     my ($kernel, $session, $heap, $username) = @_[KERNEL, SESSION, HEAP, ARG0];
     if (defined $players->{$username}) {
+# print "login map: ".Dumper(\$place)."\n";
         $heap->{wheel}->put(['new_map', $place->to_ref]);
         $heap->{wheel}->put(['assign_id', $session->ID]);
     }
@@ -196,6 +199,7 @@ Registration request from a client.
 
 sub register {
     my ($kernel, $session, $heap, $username, $race, $god, $color) = @_[KERNEL, SESSION, HEAP, ARG0, ARG1, ARG2, ARG3];
+# print "register: $username, $race, $god, $color.\n";
     my $symbol = $races->{$race}->{symbol};
     if (defined $players->{$username}) { # this username is taken
 	send_create_form($heap->{wheel});
@@ -206,6 +210,7 @@ sub register {
 	$color ||= 'red';
 	$players->{$username} = {race=>$race,god=>$god,color=>$color};
 	DumpFile('players.yaml', $players);
+##  print "register map: ".Dumper(\$place)."\n";
 	$heap->{wheel}->put(['new_map', $place->to_ref]);
 	$heap->{wheel}->put(['assign_id', $session->ID]);
     }
@@ -230,7 +235,8 @@ sub add_player {
     my $symbol = $race->{symbol};
     my $hp = ($race->{organs} + 13) * 10;
 
-    $kernel->post($server_session, 'broadcast', ['announce', "$username, a loyal follower of $god, has arrived."]);
+# print "player: ".Dumper(\$players->{$username})."\n";
+    $kernel->post($server_session, 'broadcast', ['announce', "$username, a loyal ".$players->{$username}->{race}." follower of $god, has arrived."]);
     my ($origin) = grep {(ref $_) eq 'Entrance'} values %{$place->objects};
     my ($x, $y) = ($origin->x, $origin->y);
     print "Adding a new player: $id $symbol $fg $bg $y $x\n";
@@ -364,13 +370,17 @@ sub attack {
 
     # find the tile in the direction specified
     my $source = tile_of($self);
-    my $dest = tile_at($source->x + $ox,$source->x + $oy);
+    my $dest = tile_at($source->x + $ox,$source->y + $oy);
 
+    print $self->symbol, ' thinks they are attacking ', $other->symbol, "\n";
+
+#    print "attack attempt: ".Dumper(\$source).", ".Dumper(\$dest).", ".Dumper(\$self).", $id, $ox, $oy.\n";
+#    print "attack attempt: $ox + ".$source->x." = ".$dest->x." or ".$source->x + $ox.", $oy + ".$source->y." = ".$dest->y."\n";
     # check to make sure the dude specified is in the tile.  bail out otherwise
     return unless grep {$_->id eq $id} @{$dest->contents};
 
     # debugging on the server console
-    print $self->symbol, '→', $other->symbol, "\n";
+    print $self->symbol, ' is attacking ', $other->symbol, "\n";
 
     # We'll deal exactly bullshit damage.
     my $damage = 5 + $self->muscle + int(rand($self->limbs));
