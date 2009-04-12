@@ -13,7 +13,6 @@ use Object;
 use Player;
 use Entrance;
 
-use YAML;
 use Data::Dumper;
 
 with Storage('io' => 'StorableFile');
