@@ -359,6 +359,8 @@ sub choose_with_descs {
 
     use Curses::Widgets::ChooseWithText;
 
+    my @sorted_keys=sort keys( %$stuff );
+
     my   $form = Curses::Forms->new({
 	    AUTOCENTER    => 1,
 	    DERIVED       => 1,
@@ -379,8 +381,8 @@ sub choose_with_descs {
 	    BACKGROUND=> $bg,
 	    COLUMNS   => 15,
 	    LINES     => 15,
-	    LISTITEMS => [sort keys( %$stuff )],
-	    DATAITEMS => [map { $$stuff{$_}{"desc"}; } sort keys( %$stuff)],
+	    LISTITEMS => \@sorted_keys,
+	    DATAITEMS => [map { $$stuff{$_}{"desc"}; } @sorted_keys],
 	    TOPELEMENT=> 0,
 	    VALUE     => 0,
 	    READONLY  => 1,
@@ -402,7 +404,7 @@ sub choose_with_descs {
 
     $.panels->{form}->hide_panel();
     return (
-	    $form->getWidget('Stuff')->getField('VALUE'),
+	    $sorted_keys[$form->getWidget('Stuff')->getField('VALUE')],
 	   );
 }
 
@@ -436,6 +438,8 @@ sub choose {
 
     use Curses::Widgets::ListBox;
 
+    my @sorted=sort @$stuff;
+
     my   $form = Curses::Forms->new({
 	    AUTOCENTER    => 1,
 	    DERIVED       => 1,
@@ -456,7 +460,7 @@ sub choose {
 		    LINES         => 15,
 		    FOREGROUND=> $fg,
 		    BACKGROUND=> $bg,
-		    LISTITEMS => [@$stuff],
+		    LISTITEMS => \@sorted,
 		    TOPELEMENT=> 0,
 		    VALUE     => 0,
 		    READONLY  => 1,
@@ -470,7 +474,7 @@ sub choose {
 
     $.panels->{form}->hide_panel();
     return (
-	    $form->getWidget('Stuff')->getField('VALUE'),
+	    $sorted[$form->getWidget('Stuff')->getField('VALUE')],
 	   );
 }
 

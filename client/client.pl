@@ -471,18 +471,14 @@ sub object_move_rel {
 sub create_player {
     my ($kernel, $heap, $message, $gods, $colors, $races) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2, ARG3];
 
-    # give the user a little form to fill out.  It returns indexes.
+    # give the user a little form to fill out.  It returns values
+    # now, not indexes.
     my $race = $ui->choose_with_descs($races, "white", "black",
 	    "Races", "yellow", "Race Description", "yellow" );
     my $god = $ui->choose_with_descs($gods, "white", "black",
 	    "Gods", "yellow", "Gods Description", "yellow" );
     my $color = $ui->choose($colors, "white", "black",
 	    "Colors", "yellow", "Colors Description", "yellow" );
-
-    # look up the answers using the indexes
-    $race = (keys %$races)[$race];
-    $god = (keys %$gods)[$god];
-    $color = $colors->[$color];
 
     my $username = $heap->{username};
     # send a registration request to the server
@@ -503,6 +499,8 @@ sub add_player {
         %$p,
         id => $id,
         place => $place,
+	y => $y,
+	x => $x,
     );
     # store it in the global objects hash
     $place->insert($player);
