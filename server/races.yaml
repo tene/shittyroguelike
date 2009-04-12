@@ -9,7 +9,7 @@ elf:
   practical: 5
   scholarly: 5
   social: -5
-  symbol: "\xCE\xBB"
+  symbol: "\u03BB"
 ent: 
   desc: They're Trees
   eyes: -5
@@ -20,7 +20,7 @@ ent:
   practical: -5
   scholarly: 15
   social: -10
-  symbol: "\xCE\xA8"
+  symbol: "\u03C8"
 giant: 
   desc: They're Big
   eyes: 5
@@ -42,7 +42,7 @@ gnome:
   practical: -5
   scholarly: 10
   social: 5
-  symbol: "\xC2\xA4"
+  symbol: "\u00A4"
 gremlin: 
   desc: Mogwai!
   eyes: 0
@@ -86,7 +86,7 @@ pixie:
   practical: -6
   scholarly: 15
   social: 10
-  symbol: `
+  symbol: '`'
 wolf: 
   desc: Cuddly with pointy bits.
   eyes: -5
