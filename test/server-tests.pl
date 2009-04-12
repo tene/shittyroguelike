@@ -18,7 +18,7 @@ my $harness = TAP::Harness->new( {
 	} );
 
 $harness->runtests(
-	"$pwd/server-test-1.pl",
+	glob("$pwd/server-test-*.pl")
 	);
 
 `cover`;
