@@ -6,7 +6,7 @@ use strict;
 use Networking;
 
 # The general expect timeout.
-my $timeout = 20;
+my $timeout = 30;
 
 use Expect;
 
