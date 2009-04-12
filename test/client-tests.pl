@@ -13,6 +13,7 @@ my $harness = TAP::Harness->new( {
 	    # Deal with special CLI arg tests.
 	    my ( $harness, $test_file ) = @_;
 
+	    # SPECIAL CASE.  Test 4 tests command-line based login
 	    if( $test_file =~ m/-4.pl/ )
 	    {
 		return [ "$pwd/client-harness.pl", "$test_file",
@@ -24,10 +25,8 @@ my $harness = TAP::Harness->new( {
 	}
 	} );
 
-$harness->runtests( "$pwd/client-test-1.pl",
-	"$pwd/client-test-2.pl",
-	"$pwd/client-test-3.pl",
-	"$pwd/client-test-4.pl",
+$harness->runtests( 
+	glob("$pwd/client-test-*.pl")
 	);
 
 print `cover`;
