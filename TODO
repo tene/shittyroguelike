@@ -45,3 +45,17 @@ Cleanups/Refactoring
 BUGS
 ################################################################################
 - FAIL when run under screen without TERM=xterm
+- If the user doesn't wait when "Building world, please wait...",
+  client crashes.  Should block input.
+- Delete doesn't work in player name input.
+
+################################################################################
+Dev Stuff
+################################################################################
+- decent way to debug in the client
+- selection of various levels of debugging in both
+
+################################################################################
+Testing
+################################################################################
+- test use of players saved from a previous session
