@@ -1,4 +1,4 @@
-use Test::More tests => 23;
+use Test::More tests => 26;
 
 sub tests {
 
@@ -60,7 +60,7 @@ sub tests {
 
     yaml_cmp_deeply( $tcp_to_server, "Expecting announcement.",
 	    "announce",
-	    re( qr{^.*, a loyal follower of .*, has arrived.} ) );
+	    re( qr{^.*, a loyal .* follower of .*, has arrived.} ) );
 
     yaml_cmp_deeply( $tcp_to_server, "Expecting player add.",
 	    "add_player", 3,
@@ -134,7 +134,7 @@ sub tests {
     # Expect the announcements on the new client
     yaml_cmp_deeply( $tcp_to_server2, "Expecting announcement.",
 	    "announce",
-	    re( qr{^test user 2, a loyal follower of Eris, has arrived.} ) );
+	    re( qr{^test user 2, a loyal .* follower of Eris, has arrived.} ) );
 
     yaml_cmp_deeply( $tcp_to_server2, "Expecting player add.",
 	    "add_player", 4,
@@ -149,7 +149,7 @@ sub tests {
     # and on the original client as well.
     yaml_cmp_deeply( $tcp_to_server, "Expecting announcement.",
 	    "announce",
-	    re( qr{^test user 2, a loyal follower of Eris, has arrived.} ) );
+	    re( qr{^test user 2, a loyal .* follower of Eris, has arrived.} ) );
 
     yaml_cmp_deeply( $tcp_to_server, "Expecting player add.",
 	    "add_player", 4,
@@ -167,7 +167,7 @@ sub tests {
     # Might have been a miss.
     $hit_test = get_yaml( $tcp_to_server );
 
-    print "ht: ".Dumper(\$hit_test).".\n";
+    # print "ht: ".Dumper(\$hit_test).".\n";
 
     if( $$hit_test[1] =~ m/missed/ )
     {
@@ -178,7 +178,7 @@ sub tests {
 		"Expecting miss announce",
 		);
 
-	yaml_cmp_deeply_debug( $tcp_to_server2, "Expecting miss announce 2",
+	yaml_cmp_deeply( $tcp_to_server2, "Expecting miss announce 2",
 		'announce',
 		re('test user 2 missed') );
 	
@@ -192,22 +192,41 @@ sub tests {
 		"Expecting hit announce",
 		);
 
-	yaml_cmp_deeply_debug( $tcp_to_server2, "Expecting hit announce 2",
+	yaml_cmp_deeply( $tcp_to_server2, "Expecting hit announce 2",
 		'announce',
 		re('(test user 2 hit test user for [0-9]+ damage.|test user 2 missed)') );
 
-	yaml_cmp_deeply_debug( $tcp_to_server, "Expecting hit",
+	yaml_cmp_deeply( $tcp_to_server, "Expecting hit",
 		'change_object', 3, { 'cur_hp' => num( 110, 30 ) } );
 
-	yaml_cmp_deeply_debug( $tcp_to_server2, "Expecting hit 2",
+	yaml_cmp_deeply( $tcp_to_server2, "Expecting hit 2",
 		'change_object', 3, { 'cur_hp' => num( 110, 30 ) } );
     };
 
+
+    # Make it a sideways attack
+    tcp_send( $tcp_to_server2, 'player_move_rel', -1, 0 );
+    yaml_cmp_deeply( $tcp_to_server, "Expecting object move", "object_move_rel", 4, -1, 0 );
+    yaml_cmp_deeply( $tcp_to_server2, "Expecting object move", "object_move_rel", 4, -1, 0 );
+
+    tcp_send( $tcp_to_server2, 'player_move_rel', 0, -1 );
+    yaml_cmp_deeply( $tcp_to_server, "Expecting object move", "object_move_rel", 4, 0, -1 );
+    yaml_cmp_deeply( $tcp_to_server2, "Expecting object move", "object_move_rel", 4, 0, -1 );
+
     # Test user hitting test user 2
-    tcp_send( $tcp_to_server, 'attack', 4, 0, 1 );
+    tcp_send( $tcp_to_server, 'attack', 4, -1, 0 );
 
     # Might have been a miss.
     $hit_test = get_yaml( $tcp_to_server );
+
+    # Clean out other crap
+    while( $$hit_test[0] ne 'announce' )
+    {
+	print "Ignoring ".Dumper(\$hit_test)."\n";
+	$hit_test = get_yaml( $tcp_to_server );
+    }
+
+    # print "ht2: ".Dumper(\$hit_test).".\n";
 
     if( $$hit_test[1] =~ m/missed/ )
     {
@@ -218,7 +237,7 @@ sub tests {
 		"Expecting miss announce",
 		);
 
-	yaml_cmp_deeply_debug( $tcp_to_server2, "Expecting miss announce 2",
+	yaml_cmp_deeply( $tcp_to_server2, "Expecting miss announce 2",
 		'announce',
 		re('test user missed') );
 
@@ -232,15 +251,15 @@ sub tests {
 		"Expecting hit announce",
 		);
 
-	yaml_cmp_deeply_debug( $tcp_to_server2, "Expecting hit announce 2",
+	yaml_cmp_deeply( $tcp_to_server2, "Expecting hit announce 2",
 		'announce',
 		re('(test user hit test user 2 for [0-9]+ damage.|test user 2 missed)') );
 
-	yaml_cmp_deeply_debug( $tcp_to_server, "Expecting hit",
-		'change_object', 4, { 'cur_hp' => num( 110, 30 ) } );
+	yaml_cmp_deeply( $tcp_to_server, "Expecting hit",
+		'change_object', 4, { 'cur_hp' => num( 30, 30 ) } );
 
-	yaml_cmp_deeply_debug( $tcp_to_server2, "Expecting hit 2",
-		'change_object', 4, { 'cur_hp' => num( 110, 30 ) } );
+	yaml_cmp_deeply( $tcp_to_server2, "Expecting hit 2",
+		'change_object', 4, { 'cur_hp' => num( 30, 30 ) } );
     };
 
     tcp_send( $tcp_to_server, 'remove_object', 3 );

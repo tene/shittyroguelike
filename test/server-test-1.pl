@@ -60,7 +60,7 @@ sub tests {
 
     yaml_cmp_deeply( $tcp_to_server, "Expecting announcement.",
 	    "announce",
-	    re( qr{^.*, a loyal follower of .*, has arrived.} ) );
+	    re( qr{^.*, a loyal .* follower of .*, has arrived.} ) );
 
     yaml_cmp_deeply( $tcp_to_server, "Expecting player add.",
 	    "add_player", 3,
