@@ -30,7 +30,7 @@ sub tests {
 	    },
 	    );
 
-    client_expect( "human", "expect 'human'" );
+    client_expect( "weeble", "expect 'weeble'" );
     client_key_send("\e[B");
     client_key_send("\n");
 
@@ -38,7 +38,7 @@ sub tests {
     client_key_send("e");
     client_key_send("\n");
 
-    client_expect( "red", "expect 'red'" );
+    client_expect( "yellow", "expect 'yellow'" );
     client_key_send("\e[B");
     client_key_send("\e[B");
     client_key_send("\n");
@@ -47,7 +47,7 @@ sub tests {
 
 # input: register, aoeusnth Race1 God2 green
     yaml_cmp_deeply( $tcp_to_client, "Client tcp: Expecting register command",
-	    'register', 'rlpowell', 'human', 'Eris', 'yellow' );
+	    'register', 'rlpowell', 'weeble', 'Eris', 'yellow' );
 
     my $fake_map =
 	[
