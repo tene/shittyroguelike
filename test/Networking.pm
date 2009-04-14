@@ -151,7 +151,7 @@ sub yaml_cmp_deeply {
     # print "in yaml_cmp_deeply, actual: ".Dumper(\$actual)."\n";
 
     # Ignore irrelevant stuff, but mention it.
-    while( $actual ne \[] && $$actual[0] ne $_[0] )
+    while( defined $actual && $$actual[0] ne $_[0] )
     {
 	print "in yaml_cmp_deeply, ignoring irrelevant message: ".Dumper(\$actual)."\n";
 	$actual = get_yaml( $socket );
@@ -177,7 +177,7 @@ sub yaml_cmp_deeply_debug {
     print "in yaml_cmp_deeply debug, actual: ".Dumper(\$actual)."\n";
 
     # Ignore irrelevant stuff, but mention it.
-    while( $actual ne \[] && $$actual[0] ne $_[0] )
+    while( defined $actual && $$actual[0] ne $_[0] )
     {
 	print "in yaml_cmp_deeply_debug, ignoring irrelevant message: ".Dumper(\$actual)."\n";
 	$actual = get_yaml( $socket );
