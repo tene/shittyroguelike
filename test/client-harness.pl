@@ -84,7 +84,7 @@ if( ! $manual )
 		"/home/rlpowell/programming/cutegirls/client/client.pl",
 		@ARGV[1..$#ARGV],
 		)
-	or die "Cannot spawn cliest $!\n";
+	or die "Cannot spawn client $!\n";
 
     $exp->log_file( "/tmp/cg-client.out", "w" );
 } else {
