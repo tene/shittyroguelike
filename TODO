@@ -48,6 +48,12 @@ BUGS
 - If the user doesn't wait when "Building world, please wait...",
   client crashes.  Should block input.
 - Delete doesn't work in player name input.
+- Something is waiting for input after ESC is pressed.  To test, try
+  to place a building, then abort with q vs. aborting with ESC.  The
+  latter takes *much* longer.  We either need to fix that shit, or
+  have chat escaping use something else.
+- every map has *two* entrance objects created, in the client;
+  probably a side affect of loading and then adding an entrance
 
 ################################################################################
 Dev Stuff
