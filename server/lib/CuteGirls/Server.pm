@@ -429,7 +429,7 @@ sub drop_item {
     my $player = $place->objects->{$heap->{id}};
     my $obj = Object->new(fg=>$fg,bg=>$bg,symbol=>$symbol,x=>$player->x,y=>$player->y);
     $place->objects->{$obj->id} = $obj;
-    $kernel->post($server_session,'broadcast',['drop_item',$heap->{id},$obj->to_hash]);
+    $kernel->post($server_session,'broadcast',['drop_item',$obj->to_hash]);
     tile_of($player)->enter($obj);
     my $rand = 5+rand(rand(rand(100))); # shitty skewing towards the bottom
     $kernel->delay_set('change_object',$rand/2,$obj->id,{'symbol'=>'°','fg'=>'magenta'});
