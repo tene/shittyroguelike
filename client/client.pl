@@ -32,6 +32,7 @@ my $ui;
 my $my_id;
 my $server;
 my %keybindings;
+my %scratch;
 
 # set up the initial session
 POE::Session->create
@@ -40,6 +41,7 @@ POE::Session->create
         got_keystroke => \&keystroke_handler,
         help_keystroke => \&help_handler,
         chat_keystroke => \&chat_handler,
+	pick_location_keystroke => \&pick_location_handler,
         object_move_rel => \&object_move_rel,
         create_player => \&create_player,
         add_player => \&add_player,
@@ -163,9 +165,10 @@ sub clear_keybindings {
 # 
 # Bind the given key to the given action in the given mode.
 # 
+# Used in the keys.conf file
+#
 # =cut
 
-# Bind a key; used in the keys.conf file
 sub keybind {
     my ($mode, $key, $binding) = @_;
 
@@ -220,12 +223,32 @@ sub keystroke_handler {
     # create a silly little expiring item
     # Eventually this should be for dropping inventory items
     $actions{'drop'} = sub {
-	my $player = $place->objects->{$my_id};
 	send_to_server('drop_item','*','red','black'); 
     };
 
     # redraw the screen.  use in case of UI bugs.
     $actions{'redraw'} = sub { $ui->redraw() };
+
+    # place a building
+    $actions{'place'} = sub {
+	output("Please place the building.\n");
+
+	# Change the curses input wheel to emit
+	# 'pick_location_keystroke' events
+	# instead of 'got_keystroke' events.
+	$heap->{console}->[2] = 'pick_location_keystroke';
+
+	# Note what we're doing with the picked location
+	$scratch{pick_action} = 'place_building';
+	$scratch{building_type} = 'farm';
+	$scratch{pick_size_x} = '3';
+	$scratch{pick_size_y} = '3';
+	my $player = $place->objects->{$my_id};
+	$scratch{pick_x} = $player->x;
+	$scratch{pick_y} = $player->y;
+
+	draw_pick_box();
+    };
 
     # update the status window.  again, in case of bugs.
     $actions{'update_status'} = sub { $ui->update_status() };
@@ -263,6 +286,141 @@ sub keystroke_handler {
     }
 }
 
+# =head2 C<draw_pick_box>
+# 
+# Args: None
+# 
+# Draws the current pick box, defined by the appropriate values in
+# %scratch, over the map area.
+#
+# =cut
+
+sub draw_pick_box {
+    $ui->redraw();
+
+    for( my $i = 0; $i < $scratch{pick_size_x}; $i++) {
+	for( my $j = 0; $j < $scratch{pick_size_y}; $j++) {
+	    $ui->drawtile(
+		    Place::Tile->new(
+			"type" => "none",
+			"bg" => "black",
+			"contents" => [],
+			"fg" => "red",
+			"symbol" => 'X',
+			"vasru" => 0,
+			"x" => $scratch{pick_x} + $i,
+			"y" => $scratch{pick_y} + $j,
+			"place" => $ui->place,
+			)
+		    );
+	}
+    }
+
+    update_panels();
+    refresh();
+}
+
+# =head2 C<pick_move>
+# 
+# Args: x offset, y offset
+# 
+# Move the pick_location_handler/draw_pick_box box in the direction
+# specified.
+#
+# =cut
+
+sub pick_move {
+    my ($ox, $oy) = @_;
+
+    # Check that we're not moving off the map
+    my $dest = tile_at( $scratch{pick_x} + $ox, $scratch{pick_y} + $oy );
+    if( $dest )
+    {
+	$scratch{pick_x} = $dest->x;
+	$scratch{pick_y} = $dest->y;
+    }
+
+    draw_pick_box();
+}
+
+# =head2 C<pick_location_handler>
+# 
+# Args: keystroke
+# 
+# keystroke_handler for location pick mode; move the pick marker
+# around and place it
+#
+# =cut
+
+sub pick_location_handler {
+    my ($kernel, $heap, $keystroke) = @_[KERNEL, HEAP, ARG0];
+
+    # See keystroke_handler for a description of %actions
+    my %actions;
+    $actions{'move_up'} = sub { pick_move(0,-1); };
+    $actions{'move_down'} = sub { pick_move(0,1); };
+    $actions{'move_left'} = sub { pick_move(-1,0); };
+    $actions{'move_right'} = sub { pick_move(1,0); };
+
+    $actions{'abort_pick'} = sub { 
+	output("Building placement aborted.\n");
+
+	$ui->redraw();
+	update_panels();
+	refresh();
+
+	# reset the input event handler
+	$heap->{console}->[2] = 'got_keystroke';
+    };
+
+    $actions{'pick'} = sub {
+	print STDERR "In actions-pick.\n";
+	# Check if the location is valid
+	for( my $i = 0; $i < $scratch{pick_size_x}; $i++) {
+	    for( my $j = 0; $j < $scratch{pick_size_y}; $j++) {
+		my $tile = tile_at($scratch{pick_x} + $i, $scratch{pick_y} + $j);
+		use Data::Dumper;
+		print STDERR "tile of pick: ".$scratch{pick_x} + $i.
+		    ", ".$scratch{pick_y} + $j.", ".Dumper($tile)."\n";
+
+		# The tile must be a ground or rock tile and must
+		# have no contents.
+		if( ( $tile->type ne 'ground' && $tile->type ne 'rock' ) ||
+			( ref($tile->contents) eq "ARRAY" && scalar(@{$tile->contents}) ne 0 )
+		  )
+
+		{
+		    # FIXME: Adjust message based on whether it's
+		    # actually building selection or not; use
+		    # Locale::MakeText
+		    output("Invalid building location.\n");
+
+		    return;
+		}
+	    }
+	}
+
+	# FIXME: Adjust message based on whether it's
+	# actually building selection or not; use
+	# Locale::MakeText
+	output("Building placed.\n");
+
+	send_to_server( $scratch{pick_action}, $scratch{building_type}, $scratch{pick_x}, $scratch{pick_y} );
+
+	$ui->redraw();
+	update_panels();
+	refresh();
+
+	# reset the input event handler
+	$heap->{console}->[2] = 'got_keystroke';
+    };
+
+    if (exists ${$keybindings{'pick'}}{$keystroke} ) {
+	# print "exists: ".$keybindings{$keystroke}.", ".$actions{$keybindings{$keystroke}}.".\n";
+	$actions{${$keybindings{'pick'}}{$keystroke}}();
+    }
+}
+
 # =head1 C<move>
 # 
 # Helper function to move the player around.
@@ -282,10 +440,10 @@ sub move {
 
     # If there's something alive there, kill it.  Otherwise, move.
     if ($player) {
-        send_to_server('attack',$player->id,$x,$y);
+	send_to_server('attack',$player->id,$x,$y);
     }
     else {
-        send_to_server('player_move_rel',$x,$y);
+	send_to_server('player_move_rel',$x,$y);
     }
 }
 
@@ -345,7 +503,7 @@ sub chat_handler {
 
     # bail out of chat
     $actions{'leave_chat'} = sub { 
-	# reset the input even thandler
+	# reset the input event handler
 	$heap->{console}->[2] = 'got_keystroke';
 	# clear any saved message so far
 	$heap->{chat_message} = '';
@@ -588,17 +746,15 @@ sub new_map {
 # =cut
 
 sub drop_item {
-    my ($kernel, $heap, $id, $obj) = @_[KERNEL, HEAP, ARG0, ARG1];
-    # Won't necessarily be a player, but that's all we use it for
-    my $player = $place->objects->{$id};
+    my ($kernel, $heap, $obj) = @_[KERNEL, HEAP, ARG0, ARG1];
 
     # create a new Object using the attributes given to us
     $obj = Object->new(%$obj);
 
     # add it to the map at the right place
-    tile_of($player)->enter($obj);
+    tile_of($obj)->enter($obj);
     $place->objects->{$obj->id} = $obj;
-    $ui->drawtile(tile_of($player));
+    $ui->drawtile(tile_of($obj));
     $ui->update_status();
     $ui->refresh();
 }
