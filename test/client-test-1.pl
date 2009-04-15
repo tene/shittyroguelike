@@ -1,7 +1,24 @@
 use Test::More tests => 13;
 
+use lib '../lib/';
+
+use Place;
+
+#*******************************************
+# Tests basic movement
+#*******************************************
+
 sub tests {
     my $listener = shift;
+
+    use FindBin qw($Bin);
+    chdir "$Bin";
+    print "pwd: ".`pwd`;
+    unlink "store/*";
+    my $fake_map = Place->new();
+    $fake_map->get("test1");
+    $fake_map = $fake_map->to_ref();
+    #print "map: ".Dumper(\$fake_map)."\n";
 
 # Get the client talking to the server.
     client_expect("Username", "expect 'username'");
@@ -62,274 +79,6 @@ sub tests {
 	    "Client tcp: Expecting register command",
 	    'register', 'test user', 'human', 'bob', 'yellow',
 	    );
-
-    my $fake_map =
-	[
-	[
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	],
-	[
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	],
-	[
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	],
-	[
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	],
-	[
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	],
-	[
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	],
-	];
 
     tcp_send(
 	    $tcp_to_client,

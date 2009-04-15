@@ -4,8 +4,25 @@
 
 use Test::More tests => 13;
 
+use lib '../lib/';
+
+use Place;
+
+#*******************************************
+# Tests basic attack command
+#*******************************************
+
 sub tests {
     my $listener = shift;
+
+    use FindBin qw($Bin);
+    chdir "$Bin";
+    print "pwd: ".`pwd`;
+    unlink "store/*";
+    my $fake_map = Place->new();
+    $fake_map->get("test1");
+    $fake_map = $fake_map->to_ref();
+    #print "map: ".Dumper(\$fake_map)."\n";
 
     client_expect( "login", "expect 'login'" );
 
@@ -48,274 +65,6 @@ sub tests {
 # input: register, aoeusnth Race1 God2 green
     yaml_cmp_deeply( $tcp_to_client, "Client tcp: Expecting register command",
 	    'register', 'rlpowell', 'weeble', 'Eris', 'yellow' );
-
-    my $fake_map =
-	[
-	[
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	],
-	[
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	],
-	[
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	],
-	[
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	],
-	[
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	],
-	[
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	{
-	    "bg" => "black",
-	    "contents" => [],
-	    "fg" => "white",
-	    "symbol" => '.',
-	    "vasru" => 0,
-	},
-	],
-	];
 
     tcp_send( $tcp_to_client, "new_map", $fake_map );
 
