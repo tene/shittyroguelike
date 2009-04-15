@@ -31,6 +31,9 @@ method BUILD ($params) {
 }
 
 method tile ($x,$y) {
+    # No negatives!
+    $x = $x > 0 ? $x : 0;
+    $y = $y > 0 ? $y : 0;
     $.chart->[$y]->[$x];
 }
 
@@ -54,7 +57,6 @@ method get ($map) {
                 }
             }
         }
-        print Dumper($self->objects);
     }
     elsif (-f "maps/$map.txt") {
         local $/;
@@ -78,7 +80,17 @@ method load_from_ascii ($map) {
         my @tiles = ();
         my $x = 0;
         for my $char (@chars) {
-            my $tile = Place::Tile->new(symbol=>$char,x=>$x,y=>$y,fg=>'white',bg=>'black',place=>$self);
+	    # Pick a type based on the symbol in the file
+	    my $type = 'ground';
+	    if( $char eq '#' )
+	    {
+		$type = 'rock';
+	    }
+	    if( $char eq ' ' )
+	    {
+		$type = 'none';
+	    }
+            my $tile = Place::Tile->new(type=>$type,symbol=>$char,x=>$x,y=>$y,fg=>'white',bg=>'black',place=>$self);
             if($char eq '.') {
                 $tile->vasru(1);
             }
@@ -130,7 +142,8 @@ method load_from_ref ($map) {
             my $fg = $item->{fg};
             my $bg = $item->{bg};
             my $vasru = $item->{vasru};
-            my $tile = Place::Tile->new(symbol=>$char,x=>$x,y=>$y,fg=>$fg,bg=>$bg,place=>$self,vasru=>$vasru);
+            my $type = $item->{type};
+            my $tile = Place::Tile->new(type=>$type,symbol=>$char,x=>$x,y=>$y,fg=>$fg,bg=>$bg,place=>$self,vasru=>$vasru);
 
             for my $thing (@{$item->{contents}}) {
                 my ($classname) = delete $thing->{class};
