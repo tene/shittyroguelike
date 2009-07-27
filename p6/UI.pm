@@ -45,6 +45,7 @@ class UI {
     has $!info;
     has $!x;
     has $!y;
+    has $!tiles;
     multi method new {
         my $std = initscr();
         noecho();
@@ -59,13 +60,23 @@ class UI {
         $status.outline(0,0);
         $info.scroll(1);
         mvaddstr($y-6,0,'-'x$x);
-        self.bless(*, :x($x), :y($y), :main($main), :status($status), :info($info));
+        my $fh = open '../server/maps/map1.txt';
+        my $tiles = $fh.lines>>.split('');
+        for $tiles.kv -> $y, @t {
+            for @t.kv -> $x, $floor {
+                $main.addstr($y, $x, $floor);
+            }
+        }
+        self.bless(*, :x($x), :y($y), :main($main), :status($status), :info($info), :tiles($tiles));
     }
     method info($msg) {
         $!info.addstr("$msg\n");
     }
     method draw(Drawable $obj) {
         $!main.draw($obj);
+    }
+    method clear(Drawable $obj) {
+        $!main.addstr($obj.y, $obj.x, $!tiles[$obj.y][$obj.x]);
     }
     method sync {
         update_panels();
