@@ -1,9 +1,43 @@
 use Curses:from<parrot>;
 
-role Drawable {
+class Drawable {
     has $.x is rw;
     has $.y is rw;
     has $.symbol is rw;
+}
+
+class Dacti is Drawable {
+    has $.tile is rw;
+    method leave {
+        $!tile.?remove(self);
+        my $tmp = $!tile;
+        $!tile = Failure;
+        return $tmp;
+    }
+}
+
+class Actor is Dacti {
+}
+
+class Tile is Drawable {
+    has $.contents;
+
+    method symbol {
+        if defined($!contents) {
+            return $!contents.symbol;
+        }
+        else {
+            return $!symbol;
+        }
+    }
+    method remove(Dacti $obj) {
+        $!contents = Failure;
+        return $obj;
+    }
+    method insert(Dacti $obj) {
+        $!contents = $obj;
+        $obj.tile = self;
+    }
 }
 
 class Panel {
@@ -30,12 +64,9 @@ class Panel {
     method clear {
         werase($.win);
     }
-    method draw(Drawable $d) {
-        $.addstr($d.y, $d.x, $d.symbol);
+    method draw($d) {
+        mvwaddstr($.win, $d.y, $d.x, $d.symbol);
     }
-}
-
-class Actor does Drawable {
 }
 
 class UI {
@@ -62,21 +93,30 @@ class UI {
         mvaddstr($y-6,0,'-'x$x);
         my $fh = open '../server/maps/map1.txt';
         my $tiles = $fh.lines>>.split('');
-        for $tiles.kv -> $y, @t {
-            for @t.kv -> $x, $floor {
+        my $tilelist = gather for $tiles.kv -> $y, @t {
+            take [ gather for @t.kv -> $x, $floor {
                 $main.addstr($y, $x, $floor);
-            }
-        }
-        self.bless(*, :x($x), :y($y), :main($main), :status($status), :info($info), :tiles($tiles));
+                my $tile = Tile.new(:y($y), :x($x), :symbol($floor));
+                take $tile;
+            }];
+        };
+        self.bless(*, :x($x), :y($y), :main($main), :status($status), :info($info), :tiles($tilelist));
     }
     method info($msg) {
         $!info.addstr("$msg\n");
     }
-    method draw(Drawable $obj) {
+    multi method draw(Drawable $obj) {
         $!main.draw($obj);
     }
+    multi method draw(Failure $fail) {
+        $.info('Something asked to draw a fail...');
+    }
     method clear(Drawable $obj) {
-        $!main.addstr($obj.y, $obj.x, $!tiles[$obj.y][$obj.x]);
+        $!main.addstr($obj.y, $obj.x, $!tiles[$obj.y][$obj.x].symbol);
+    }
+    method insert(Dacti $obj) {
+        $!tiles[$obj.y][$obj.x].?insert($obj);
+        $.draw($obj);
     }
     method sync {
         update_panels();

@@ -7,12 +7,13 @@ Welcome to the game!
 There will be dancing and food and lulz.
 });
 sub move($dy, $dx, $obj) {
-    $ui.clear($obj);
+    $ui.draw($obj.leave);
     $obj.x += $dx;
     $obj.y += $dy;
-    $ui.draw($obj);
+    $ui.insert($obj);
 }
 my $dude = Actor.new(:y(5), :x(5), :symbol<@>);
+$ui.insert($dude);
 $ui.draw($dude);
 $ui.sync();
 loop {
@@ -34,8 +35,6 @@ loop {
             last
         }
     }
-    #$ui.main.clear();
-    #$ui.draw($dude);
     $ui.info($ch ~ "({chr($ch)})");
     $ui.sync();
 }
