@@ -7,6 +7,7 @@ Welcome to the game!
 There will be dancing and food and lulz.
 });
 sub move($dy, $dx, $obj) {
+    return unless $ui.get_tile_rel($obj, $dy, $dx).kunti;
     $ui.draw($obj.leave);
     $obj.x += $dx;
     $obj.y += $dy;
