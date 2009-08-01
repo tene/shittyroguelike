@@ -1,12 +1,14 @@
 use Curses:from<parrot>;
 
-class Drawable {
+module CG {
+
+role Drawable {
     has $.x is rw;
     has $.y is rw;
     has $.symbol is rw;
 }
 
-class Dacti is Drawable {
+class Dacti does CG::Drawable {
     has $.tile is rw;
     method leave {
         $!tile.?remove(self);
@@ -16,10 +18,10 @@ class Dacti is Drawable {
     }
 }
 
-class Actor is Dacti {
+class Actor is CG::Dacti {
 }
 
-class Tile is Drawable {
+class Tile does CG::Drawable {
     has $.contents;
 
     method symbol {
@@ -30,11 +32,11 @@ class Tile is Drawable {
             return $!symbol;
         }
     }
-    method remove(Dacti $obj) {
+    method remove(CG::Dacti $obj) {
         $!contents = Failure;
         return $obj;
     }
-    method insert(Dacti $obj) {
+    method insert(CG::Dacti $obj) {
         $!contents = $obj;
         $obj.tile = self;
     }
@@ -85,9 +87,9 @@ class UI {
         keypad($std, 1);
         my $x = getmaxx($std);
         my $y = getmaxy($std);
-        my $main = Panel.new($y-6, $x-15, 0, 0);
-        my $status = Panel.new($y-6, 15, 0, $x-15);
-        my $info = Panel.new(5, $x, $y-5, 0);
+        my $main = CG::Panel.new($y-6, $x-15, 0, 0);
+        my $status = CG::Panel.new($y-6, 15, 0, $x-15);
+        my $info = CG::Panel.new(5, $x, $y-5, 0);
         $status.outline(0,0);
         $info.scroll(1);
         mvaddstr($y-6,0,'-'x$x);
@@ -96,7 +98,7 @@ class UI {
         my $tilelist = gather for $tiles.kv -> $y, @t {
             take [ gather for @t.kv -> $x, $floor {
                 $main.addstr($y, $x, $floor);
-                my $tile = Tile.new(:y($y), :x($x), :symbol($floor));
+                my $tile = CG::Tile.new(:y($y), :x($x), :symbol($floor));
                 take $tile;
             }];
         };
@@ -105,16 +107,16 @@ class UI {
     method info($msg) {
         $!info.addstr("$msg\n");
     }
-    multi method draw(Drawable $obj) {
+    multi method draw(CG::Drawable $obj) {
         $!main.draw($obj);
     }
     multi method draw(Failure $fail) {
         $.info('Something asked to draw a fail...');
     }
-    method clear(Drawable $obj) {
+    method clear(CG::Drawable $obj) {
         $!main.addstr($obj.y, $obj.x, $!tiles[$obj.y][$obj.x].symbol);
     }
-    method insert(Dacti $obj) {
+    method insert(CG::Dacti $obj) {
         $!tiles[$obj.y][$obj.x].?insert($obj);
         $.draw($obj);
     }
@@ -123,6 +125,8 @@ class UI {
         doupdate();
         refresh();
     }
+}
+
 }
 
 # vim: expandtab shiftwidth=4 ft=perl6:

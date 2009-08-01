@@ -1,7 +1,7 @@
 use Curses:from<parrot>;
-use UI;
+use CG::UI;
 
-my $ui = UI.new();
+my $ui = CG::UI.new();
 $ui.info(q{O HAI!
 Welcome to the game!
 There will be dancing and food and lulz.
@@ -12,7 +12,7 @@ sub move($dy, $dx, $obj) {
     $obj.y += $dy;
     $ui.insert($obj);
 }
-my $dude = Actor.new(:y(5), :x(5), :symbol<@>);
+my $dude = CG::Actor.new(:y(5), :x(5), :symbol<@>);
 $ui.insert($dude);
 $ui.draw($dude);
 $ui.sync();
