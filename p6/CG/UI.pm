@@ -2,10 +2,20 @@ use Curses:from<parrot>;
 
 module CG {
 
+    constant COLOR_BLACK is export = 0;
+    constant COLOR_RED is export = 1;
+    constant COLOR_GREEN is export = 2;
+    constant COLOR_YELLOW is export = 3;
+    constant COLOR_BLUE is export = 4;
+    constant COLOR_MAGENTA is export = 5;
+    constant COLOR_CYAN is export = 6;
+    constant COLOR_WHITE is export = 7;
+
 role Drawable {
     has $.x is rw;
     has $.y is rw;
     has $.symbol is rw;
+    has $.fg is rw = 4; # COLOR_BLUE
 }
 
 sub get-id {
@@ -39,6 +49,14 @@ class Tile does CG::Drawable {
             return $!symbol;
         }
     }
+    method fg {
+        if defined($!contents) {
+            return $!contents.fg;
+        }
+        else {
+            return 7; # COLOR_WHITE
+        }
+    }
     method remove(CG::Dacti $obj) {
         $!contents = Failure;
         return $obj;
@@ -64,6 +82,12 @@ class Panel {
     multi method addstr($msg) {
         waddstr($.win, $msg);
     }
+    multi method attron($attr) {
+        wattron($.win, $attr);
+    }
+    multi method attroff($attr) {
+        wattroff($.win, $attr);
+    }
     method outline($verch, $horch) {
         box($.win, $verch, $horch);
     }
@@ -72,9 +96,6 @@ class Panel {
     }
     method clear {
         werase($.win);
-    }
-    method draw($d) {
-        mvwaddstr($.win, $d.y, $d.x, $d.symbol);
     }
 }
 
@@ -91,10 +112,16 @@ class UI {
     }
     multi method new {
         my $std = initscr();
+        start_color();
         noecho();
         cbreak();
         curs_set(0);
         keypad($std, 1);
+        for 0..7 -> $bg {
+            for 0..7 -> $fg {
+                init_pair $bg*8 + $fg, $fg, $bg;
+            }
+        }
         my $x = getmaxx($std);
         my $y = getmaxy($std);
         my $main = CG::Panel.new($y-6, $x-15, 0, 0);
@@ -118,8 +145,13 @@ class UI {
     method info($msg) {
         $!info.addstr("$msg\n");
     }
+    sub cp($fg,$bg=0) {
+        256*($bg*8+$fg);
+    }
     multi method draw(CG::Drawable $obj) {
-        $!main.draw($obj);
+        $!main.attron(cp($obj.fg));
+        $!main.addstr($obj.y, $obj.x, $obj.symbol);
+        $!main.attroff(cp($obj.fg));
     }
     multi method draw(Failure $fail) {
         $.info('Something asked to draw a fail...');
