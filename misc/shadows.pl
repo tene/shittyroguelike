@@ -12,6 +12,8 @@ while (my $line = <DATA>) {
 my @shades = (16,232..255,231);
 my @colors = (15,21,196);
 my $shades = @shades - 1;
+my $fgbonus = 10;
+my $darkfg = $shades[5];
 my %pl = (x => 40, y => 9 );
 my $win = Curses->new;
 start_color;
@@ -26,9 +28,15 @@ sub cp {
     return $cache{"$fg.$bg"} ||= $count++;
 }
 for my $bg (@shades) {
-    for my $fg (232,15,21) { # 196 = red
+    for my $fg (15,21) { # 196 = red
         init_pair(cp($fg,$bg), $fg, $bg);
     }
+}
+init_pair(cp($darkfg,16),$darkfg,16);
+for my $n (0..($shades - $fgbonus)) {
+    my $fg = $shades[$n+$fgbonus];
+    my $bg = $shades[$n];
+    init_pair(cp($fg,$bg), $fg, $bg);
 }
 sub dist {
     my ($x, $y) = @_;
@@ -38,13 +46,13 @@ sub dist {
 }
 sub light {
     my ($x, $y) = @_;
-    my $d = 1 + dist($x,$y)/2;
+    my $d = 1 + dist($x,$y)**2/8;
     my $tile = $map->[$y]->[$x];
     my $i = $shades/$d;
     if ($tile eq ' ' || $tile eq '#') {
         $i = 0;
     }
-    $shades[int($i)];
+    int($i);
 }
 sub redraw {
     for my $x (0..$COLS) {
@@ -94,11 +102,14 @@ sub do_shadows {
                         my $x = $ox + ($swap ? $cell*$rowdir : $depth*$axisdir);
                         my $y = $oy + ($swap ? $depth*$axisdir : $cell*$rowdir);
                         my $bg = light($x,$y);
-                        my $fg = 15;
+                        my $fg = $bg + $fgbonus;
+                        $fg = $fg > $shades ? 15 : $shades[$fg];
+                        $bg = $shades[$bg];
+                        #$fg = 15;
                         my $tile = $map->[$y]->[$x];
-                        if (in_ranges($ranges, $cell, $da) || ($cell**2 + $depth**2 > 100)) {
+                        if (in_ranges($ranges, $cell, $da) ) { # || ($cell**2 + $depth**2 > 100)) {
                             $bg = $shades[0];
-                            $fg = $shades[1];
+                            $fg = $darkfg;#$shades[1];
                             attron(COLOR_PAIR(cp($fg,$bg)));
                             addstr($y, $x, $tile);
                             attroff(COLOR_PAIR(cp($fg,$bg)));
